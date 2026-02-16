@@ -13,6 +13,22 @@ export type Property = {
   location: string;
   price: string;
   image: string;
+  category?: string;
+  propertyType?: string;
+  size?: number;
+  bedrooms?: number;
+  bathrooms?: number;
+  pricePerSqm?: number;
+  description?: string;
+  features?: string[];
+  lat?: number;
+  lng?: number;
+  agent?: {
+    name: string;
+    phone: string;
+    email: string;
+  };
+  images?: string[];
 };
 
 export const services: Service[] = [
@@ -48,26 +64,219 @@ export const services: Service[] = [
 export const properties: Property[] = [
   {
     id: 1,
-    type: "House",
-    title: "บ้านเดี่ยวสุดหรู พร้อมสระว่ายน้ำ",
-    location: "บางนา, กรุงเทพฯ",
-    price: "12,900,000 THB",
-    image: "/globe.svg",
+    type: "ขาย",
+    title: "บ้านเดี่ยว 2 ชั้น พร้อมสระว่ายน้ำ",
+    location: "บางนา, กรุงเทพมหานคร",
+    price: "฿15,000,000",
+    image: "/hero_1.jpg",
+    category: "ที่อยู่อาศัย",
+    propertyType: "บ้านเดี่ยว",
+    size: 350,
+    bedrooms: 4,
+    bathrooms: 4,
+    pricePerSqm: 42857,
+    description: "บ้านเดี่ยว 2 ชั้น สไตล์โมเดิร์น พร้อมสระว่ายน้ำส่วนตัว ตกแต่งพร้อมอยู่ ทำเลดี ใกล้ BTS บางนา เดินทางสะดวก ย่านชุมชนเงียบสงบ ปลอดภัย",
+    features: [
+      "สระว่ายน้ำส่วนตัว",
+      "ที่จอดรถ 2 คัน",
+      "ครัวบิ้วอิน",
+      "ระบบรักษาความปลอดภัย 24 ชม.",
+      "สวนหน้าบ้าน",
+      "ใกล้ BTS"
+    ],
+    lat: 13.6684,
+    lng: 100.6037,
+    agent: {
+      name: "คุณสมชาย ใจดี",
+      phone: "02-123-4567",
+      email: "somchai@realestate.com"
+    },
+    images: ["/hero_1.jpg", "/hero_2.jpg", "/hero_3.jpg"]
   },
   {
     id: 2,
-    type: "Condo",
-    title: "คอนโดหรู ใจกลางเมือง วิวแม่น้ำ",
-    location: "สาทร, กรุงเทพฯ",
-    price: "5,500,000 THB",
-    image: "/file.svg",
+    type: "ขาย",
+    title: "คอนโดโมเดิร์น ใจกลางเมือง วิวแม่น้ำ",
+    location: "สาทร, กรุงเทพมหานคร",
+    price: "฿8,500,000",
+    image: "/hero_2.jpg",
+    category: "ที่อยู่อาศัย",
+    propertyType: "คอนโด",
+    size: 120,
+    bedrooms: 2,
+    bathrooms: 2,
+    pricePerSqm: 70833,
+    description: "คอนโดหรู ชั้นสูง วิวแม่น้ำเจ้าพระยาสวยงาม ตกแต่งครบพร้อมเฟอร์นิเจอร์ ใกล้ BTS สาทร สะดวกสบายครบครัน",
+    features: [
+      "วิวแม่น้ำเจ้าพระยา",
+      "ฟิตเนส & สระว่ายน้ำ",
+      "ระบบ Smart Home",
+      "ที่จอดรถ 1 คัน",
+      "Security 24 ชม.",
+      "ใกล้ BTS สาทร"
+    ],
+    lat: 13.7244,
+    lng: 100.5320,
+    agent: {
+      name: "คุณวิภา นันทะเสน",
+      phone: "02-234-5678",
+      email: "wipa@realestate.com"
+    },
+    images: ["/hero_2.jpg", "/hero_1.jpg", "/hero_3.jpg"]
   },
   {
     id: 3,
-    type: "Townhouse",
+    type: "เช่า",
     title: "ทาวน์โฮม 3 ชั้น ใกล้รถไฟฟ้า",
-    location: "ลาดพร้าว, กรุงเทพฯ",
-    price: "3,890,000 THB",
-    image: "/window.svg",
+    location: "บางรัก, กรุงเทพมหานคร",
+    price: "฿25,000",
+    image: "/hero_3.jpg",
+    category: "ที่อยู่อาศัย",
+    propertyType: "ทาวน์เฮ้า",
+    size: 180,
+    bedrooms: 3,
+    bathrooms: 3,
+    pricePerSqm: 139,
+    description: "ทาวน์โฮม 3 ชั้น สภาพใหม่ พร้อมอยู่ ใกล้ MRT สีลม เดินทางสะดวก บรรยากาศดี เหมาะสำหรับครอบครัว",
+    features: [
+      "ใกล้ MRT สีลม",
+      "ที่จอดรถ 2 คัน",
+      "พื้นที่ใช้สอย 3 ชั้น",
+      "แอร์ 4 เครื่อง",
+      "เฟอร์นิเจอร์บางส่วน",
+      "ห้างสรรพสินค้าใกล้เคียง"
+    ],
+    lat: 13.7248,
+    lng: 100.5340,
+    agent: {
+      name: "คุณประเสริฐ สุขใจ",
+      phone: "02-345-6789",
+      email: "prasert@realestate.com"
+    },
+    images: ["/hero_3.jpg", "/hero_2.jpg", "/hero_1.jpg"]
   },
+  {
+    id: 4,
+    type: "ขาย",
+    title: "บ้านเดี่ยวสไตล์โมเดิร์น พร้อมสวน",
+    location: "เมือง นางรอง, บุรีรัมย์",
+    price: "฿6,800,000",
+    image: "/hero_1.jpg",
+    category: "ที่อยู่อาศัย",
+    propertyType: "บ้านเดี่ยว",
+    size: 280,
+    bedrooms: 3,
+    bathrooms: 3,
+    pricePerSqm: 24286
+  },
+  {
+    id: 5,
+    type: "ขาย",
+    title: "ที่ดินเปล่า ติดถนนใหญ่",
+    location: "ปทุมวัน, กรุงเทพมหานคร",
+    price: "฿45,000,000",
+    image: "/hero_2.jpg",
+    category: "ทำนา",
+    propertyType: "ที่ดิน",
+    size: 400,
+    pricePerSqm: 112500
+  },
+  {
+    id: 6,
+    type: "เช่า",
+    title: "คอนโดใหม่ โครงการหรู ฟิตเนสครบ",
+    location: "สาทร, กรุงเทพมหานคร",
+    price: "฿35,000",
+    image: "/hero_3.jpg",
+    category: "ที่อยู่อาศัย",
+    propertyType: "คอนโด",
+    size: 85,
+    bedrooms: 2,
+    bathrooms: 1,
+    pricePerSqm: 412
+  },
+  {
+    id: 7,
+    type: "ขาย",
+    title: "บ้านเดี่ยว 2 ชั้น ย่านเงียบสงบ",
+    location: "บางรัก, กรุงเทพมหานคร",
+    price: "฿9,200,000",
+    image: "/hero_1.jpg",
+    category: "ที่อยู่อาศัย",
+    propertyType: "บ้านเดี่ยว",
+    size: 250,
+    bedrooms: 4,
+    bathrooms: 3,
+    pricePerSqm: 36800
+  },
+  {
+    id: 8,
+    type: "ขาย",
+    title: "ทาวน์เฮ้าส์ใหม่ ตกแต่งพร้อมอยู่",
+    location: "ปทุมวัน, กรุงเทพมหานคร",
+    price: "฿4,500,000",
+    image: "/hero_2.jpg",
+    category: "ที่อยู่อาศัย",
+    propertyType: "ทาวน์เฮ้า",
+    size: 150,
+    bedrooms: 3,
+    bathrooms: 2,
+    pricePerSqm: 30000
+  },
+  {
+    id: 9,
+    type: "เช่า",
+    title: "บ้านเดี่ยวชั้นเดียว สวนสวย",
+    location: "เมือง นางรอง, บุรีรัมย์",
+    price: "฿18,000",
+    image: "/hero_3.jpg",
+    category: "ที่อยู่อาศัย",
+    propertyType: "บ้านเดี่ยว",
+    size: 200,
+    bedrooms: 3,
+    bathrooms: 2,
+    pricePerSqm: 90
+  },
+  {
+    id: 10,
+    type: "ขาย",
+    title: "คอนโด วิวทะเล ชั้นสูง",
+    location: "สาทร, กรุงเทพมหานคร",
+    price: "฿12,000,000",
+    image: "/hero_1.jpg",
+    category: "ที่อยู่อาศัย",
+    propertyType: "คอนโด",
+    size: 95,
+    bedrooms: 2,
+    bathrooms: 2,
+    pricePerSqm: 126316
+  },
+  {
+    id: 11,
+    type: "ขาย",
+    title: "บ้านสวน พื้นที่กว้าง",
+    location: "เมือง นางรอง, บุรีรัมย์",
+    price: "฿3,200,000",
+    image: "/hero_2.jpg",
+    category: "หรือวา",
+    propertyType: "บ้านเดี่ยว",
+    size: 320,
+    bedrooms: 3,
+    bathrooms: 2,
+    pricePerSqm: 10000
+  },
+  {
+    id: 12,
+    type: "เช่า",
+    title: "ทาวน์โฮมใหม่ ใกล้ห้างสรรพสินค้า",
+    location: "ปทุมวัน, กรุงเทพมหานคร",
+    price: "฿28,000",
+    image: "/hero_3.jpg",
+    category: "ที่อยู่อาศัย",
+    propertyType: "ทาวน์เฮ้า",
+    size: 160,
+    bedrooms: 3,
+    bathrooms: 3,
+    pricePerSqm: 175
+  }
 ];
