@@ -1,6 +1,5 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import L from 'leaflet';
@@ -41,26 +40,10 @@ const houseIcon = L.divIcon({
 
 export default function MapPage() {
   const searchParams = useSearchParams();
-  const [mounted, setMounted] = useState(false);
   
   const lat = parseFloat(searchParams.get('lat') || '13.7563');
   const lng = parseFloat(searchParams.get('lng') || '100.5018');
   const title = searchParams.get('title') || 'ทรัพย์สิน';
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  if (!mounted) {
-    return (
-      <div className="h-screen flex items-center justify-center bg-gray-100">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">กำลังโหลดแผนที่...</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="h-screen w-full relative">

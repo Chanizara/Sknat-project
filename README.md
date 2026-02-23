@@ -1,36 +1,67 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# SKNAT Real Estate Web
 
-## Getting Started
+ระบบเว็บอสังหาริมทรัพย์ที่มี
+- หน้าเว็บลูกค้าแสดงรายการบ้านจากฐานข้อมูล MySQL
+- หน้า `admin/seller` สำหรับเพิ่ม/แก้ไข/ลบรายการบ้าน
+- API สำหรับจัดการ `properties` และ `users`
 
-First, run the development server:
+## 1) รันฐานข้อมูล (MySQL + phpMyAdmin)
+
+จากโฟลเดอร์โปรเจกต์ `/Users/riw/Desktop/sknat_all/web`
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+docker compose up -d
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+สิ่งที่จะได้
+- MySQL: `127.0.0.1:3307`
+- phpMyAdmin: `http://localhost:8081`
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+ข้อมูลตั้งต้น
+- Database: `sknat_db`
+- User app: `sknat_user` / `sknat_pass123`
+- Root: `root` / `root123`
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+ตารางสำคัญ
+- `users` (เก็บ `username`, `password_hash`, `role`)
+- `properties` (เก็บข้อมูลบ้าน)
 
-## Learn More
+Seeder เริ่มต้นใน `docker/mysql/init/01-schema.sql`
+- admin: `admin / Admin@1234`
+- seller: `seller1 / Seller@1234`
 
-To learn more about Next.js, take a look at the following resources:
+## 2) ตั้งค่า environment ของเว็บ
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+ในโฟลเดอร์ `/Users/riw/Desktop/sknat_all/web`
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+cp .env.example .env.local
+```
 
-## Deploy on Vercel
+## 3) ติดตั้ง dependencies และรันเว็บ
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```bash
+npm install
+npm run dev
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+เปิดเว็บ
+- ลูกค้า: `http://localhost:3000`
+- จัดการข้อมูลบ้าน: `http://localhost:3000/admin/properties`
+
+## 4) API ที่มี
+
+- `GET /api/properties` รายการบ้านทั้งหมด
+- `POST /api/properties` เพิ่มบ้าน
+- `GET /api/properties/:id` รายละเอียดบ้าน
+- `PATCH /api/properties/:id` แก้ไขบ้าน
+- `DELETE /api/properties/:id` ลบบ้าน
+
+- `GET /api/users` รายชื่อผู้ใช้ (admin/seller)
+- `POST /api/users` เพิ่มผู้ใช้
+- `POST /api/auth/login` ตรวจสอบ username/password
+
+## หมายเหตุเรื่องความปลอดภัย
+
+ตัวอย่างนี้เก็บรหัสผ่านแบบ SHA-256 เพื่อให้เริ่มใช้งานได้เร็ว
+สำหรับ production ควรเปลี่ยนเป็น `bcrypt/argon2` และเพิ่ม session/JWT + authorization ก่อนใช้งานจริง

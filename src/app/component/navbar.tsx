@@ -55,6 +55,13 @@ export default function Navbar() {
             Contact Us
         </Link>
 
+        <Link
+          href="/admin/properties"
+          className="hover:opacity-100 transition cursor-pointer"
+        >
+          Admin
+        </Link>
+
         </div>
 
     </nav>

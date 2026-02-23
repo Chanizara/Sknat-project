@@ -22,14 +22,13 @@ export default function Hero() {
 
   return (
     <section className="relative h-[100vh] w-full overflow-hidden">
-
       {images.map((src, i) => (
         <img
           key={i}
           src={src}
           alt="Nike Hero"
           className={`
-            absolute inset-0 w-full h-full object-cover
+            absolute inset-0 h-full w-full object-cover
             transition-opacity duration-[2000ms] ease-in-out
             ${i === index ? "opacity-100" : "opacity-0"}
           `}
@@ -38,6 +37,13 @@ export default function Hero() {
 
       {/* soft overlay (optional แต่ช่วยให้ดูแพง) */}
       <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-black/20" />
+
+      <div className="hero-scroll-cue absolute bottom-9 left-1/2 z-40 -translate-x-1/2 text-white/80 md:bottom-11">
+        <span className="hero-scroll-cue__label">SCROLL DOWN</span>
+        <span className="hero-scroll-cue__line">
+          <span className="hero-scroll-cue__dot" />
+        </span>
+      </div>
 
       {/* Slide Indicator */}
         <div
