@@ -1,7 +1,7 @@
 'use client';
 
 import Image from "next/image";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type WheelEvent } from "react";
 
 import { buildPriceLabel, formatPrice, getDistrict } from "@/lib/property-format";
 import { LISTING_TYPES, type Property } from "@/types/property";
@@ -54,6 +54,9 @@ export default function MainPage({ properties }: MainPageProps) {
   const [isFilterVisible, setIsFilterVisible] = useState(false);
   const [isFilterWide, setIsFilterWide] = useState(false);
   const filterCloseTimerRef = useRef<number | null>(null);
+  const propertySliderRef = useRef<HTMLDivElement | null>(null);
+  const sliderAutoDirectionRef = useRef<1 | -1>(1);
+  const sliderAutoPauseUntilRef = useRef(0);
 
   const areaTypeOptions = useMemo(
     () => Array.from(new Set(properties.map((property) => property.category).filter(Boolean))) as string[],
@@ -175,6 +178,30 @@ export default function MainPage({ properties }: MainPageProps) {
     });
   };
 
+  const handlePropertySliderWheel = (event: WheelEvent<HTMLDivElement>) => {
+    const slider = propertySliderRef.current;
+    if (!slider) return;
+
+    sliderAutoPauseUntilRef.current = Date.now() + 2400;
+    if (window.matchMedia("(max-width: 767px)").matches) return;
+    if (Math.abs(event.deltaY) <= Math.abs(event.deltaX)) return;
+
+    const maxScrollLeft = slider.scrollWidth - slider.clientWidth;
+    if (maxScrollLeft <= 0) return;
+
+    const canScrollRight = event.deltaY > 0 && slider.scrollLeft < maxScrollLeft - 1;
+    const canScrollLeft = event.deltaY < 0 && slider.scrollLeft > 1;
+    if (!canScrollRight && !canScrollLeft) return;
+
+    event.preventDefault();
+    const next = Math.max(0, Math.min(slider.scrollLeft + event.deltaY, maxScrollLeft));
+    slider.scrollTo({ left: next, behavior: "auto" });
+  };
+
+  const handlePropertySliderPointerDown = () => {
+    sliderAutoPauseUntilRef.current = Date.now() + 2600;
+  };
+
   const openFilterPanel = () => {
     if (filterCloseTimerRef.current) {
       window.clearTimeout(filterCloseTimerRef.current);
@@ -202,6 +229,37 @@ export default function MainPage({ properties }: MainPageProps) {
       }
     };
   }, []);
+
+  useEffect(() => {
+    sliderAutoDirectionRef.current = 1;
+    sliderAutoPauseUntilRef.current = Date.now() + 900;
+
+    const timer = window.setInterval(() => {
+      const slider = propertySliderRef.current;
+      if (!slider) return;
+      if (Date.now() < sliderAutoPauseUntilRef.current) return;
+
+      const maxScrollLeft = slider.scrollWidth - slider.clientWidth;
+      if (maxScrollLeft <= 0) return;
+
+      let next = slider.scrollLeft + sliderAutoDirectionRef.current * 1.2;
+      if (next >= maxScrollLeft) {
+        next = maxScrollLeft;
+        sliderAutoDirectionRef.current = -1;
+        sliderAutoPauseUntilRef.current = Date.now() + 800;
+      } else if (next <= 0) {
+        next = 0;
+        sliderAutoDirectionRef.current = 1;
+        sliderAutoPauseUntilRef.current = Date.now() + 800;
+      }
+
+      slider.scrollLeft = next;
+    }, 16);
+
+    return () => {
+      window.clearInterval(timer);
+    };
+  }, [filteredProperties.length]);
 
   return (
     <div className="min-h-screen bg-[linear-gradient(180deg,#e7edf4_0%,#dce6f1_42%,#eaf0f5_100%)] text-slate-900">
@@ -273,11 +331,21 @@ export default function MainPage({ properties }: MainPageProps) {
               </button>
             </div>
           ) : (
-            <div className="grid gap-7 md:grid-cols-2 2xl:grid-cols-3">
+            <div>
+              <div className="mb-3 flex items-center justify-between text-[11px] uppercase tracking-[0.2em] text-slate-500">
+                <span>Property Slider</span>
+                <span>เลื่อนแนวนอนเพื่อดูต่อ</span>
+              </div>
+              <div
+                ref={propertySliderRef}
+                onWheel={handlePropertySliderWheel}
+                onPointerDown={handlePropertySliderPointerDown}
+                className="flex snap-x snap-mandatory gap-7 overflow-x-auto pb-4 pr-2 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+              >
               {filteredProperties.map((property) => (
                 <article
                   key={property.id}
-                  className="group overflow-hidden rounded-[2rem] bg-white/78 shadow-[0_26px_55px_-34px_rgba(15,23,42,0.62)] backdrop-blur-sm transition duration-400 hover:-translate-y-1.5"
+                  className="group w-[min(88vw,690px)] shrink-0 snap-start overflow-hidden rounded-[2rem] bg-white/78 shadow-[0_26px_55px_-34px_rgba(15,23,42,0.62)] backdrop-blur-sm transition duration-400 hover:-translate-y-1.5 md:w-[min(72vw,700px)] 2xl:w-[min(60vw,760px)]"
                 >
                   <div className="relative h-64 overflow-hidden md:h-72">
                     <Image
@@ -330,6 +398,7 @@ export default function MainPage({ properties }: MainPageProps) {
                   </div>
                 </article>
               ))}
+              </div>
             </div>
           )}
         </div>
