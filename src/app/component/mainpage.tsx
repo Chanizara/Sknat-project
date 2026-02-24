@@ -281,14 +281,6 @@ export default function MainPage({ properties }: MainPageProps) {
             >
               ตัวกรองขั้นสูง ({activeFilters})
             </button>
-
-            <button
-              type="button"
-              onClick={clearFilters}
-              className="h-12 rounded-full bg-white/80 px-5 text-sm font-semibold text-slate-700 transition hover:bg-white"
-            >
-              รีเซ็ต
-            </button>
           </div>
 
           {/* Inline Filter Panel */}
