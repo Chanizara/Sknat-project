@@ -51,9 +51,6 @@ export default function MainPage({ properties }: MainPageProps) {
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
-  const [isFilterVisible, setIsFilterVisible] = useState(false);
-  const [isFilterWide, setIsFilterWide] = useState(false);
-  const filterCloseTimerRef = useRef<number | null>(null);
   const propertySliderRef = useRef<HTMLDivElement | null>(null);
   const sliderAutoDirectionRef = useRef<1 | -1>(1);
   const sliderAutoPauseUntilRef = useRef(0);
@@ -202,33 +199,9 @@ export default function MainPage({ properties }: MainPageProps) {
     sliderAutoPauseUntilRef.current = Date.now() + 2600;
   };
 
-  const openFilterPanel = () => {
-    if (filterCloseTimerRef.current) {
-      window.clearTimeout(filterCloseTimerRef.current);
-      filterCloseTimerRef.current = null;
-    }
-    setIsFilterOpen(true);
-    requestAnimationFrame(() => setIsFilterVisible(true));
+  const toggleFilterPanel = () => {
+    setIsFilterOpen((prev) => !prev);
   };
-
-  const closeFilterPanel = () => {
-    setIsFilterVisible(false);
-    if (filterCloseTimerRef.current) {
-      window.clearTimeout(filterCloseTimerRef.current);
-    }
-    filterCloseTimerRef.current = window.setTimeout(() => {
-      setIsFilterOpen(false);
-      filterCloseTimerRef.current = null;
-    }, 280);
-  };
-
-  useEffect(() => {
-    return () => {
-      if (filterCloseTimerRef.current) {
-        window.clearTimeout(filterCloseTimerRef.current);
-      }
-    };
-  }, []);
 
   useEffect(() => {
     sliderAutoDirectionRef.current = 1;
@@ -303,7 +276,7 @@ export default function MainPage({ properties }: MainPageProps) {
 
             <button
               type="button"
-              onClick={openFilterPanel}
+              onClick={toggleFilterPanel}
               className="h-12 rounded-full bg-slate-950 px-5 text-sm font-semibold text-white transition hover:bg-slate-800"
             >
               ตัวกรองขั้นสูง ({activeFilters})
@@ -316,6 +289,39 @@ export default function MainPage({ properties }: MainPageProps) {
             >
               รีเซ็ต
             </button>
+          </div>
+
+          {/* Inline Filter Panel */}
+          <div
+            className={`overflow-hidden transition-all duration-500 ease-in-out ${
+              isFilterOpen ? "mb-7 max-h-[2000px] opacity-100" : "max-h-0 opacity-0"
+            }`}
+          >
+            <div className="rounded-[2rem] bg-white/72 p-5 shadow-[0_24px_60px_-36px_rgba(15,23,42,0.55)] backdrop-blur-lg md:p-6">
+              <div className="mb-5 flex items-start justify-between gap-4">
+                <div>
+                  <h3 className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-700">Advanced Filters</h3>
+                  <p className="mt-1 text-xs text-slate-500">ปรับเงื่อนไขเพื่อคัดบ้านที่ใกล้เคียงความต้องการ</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={toggleFilterPanel}
+                  className="rounded-full bg-slate-950 px-4 py-2 text-xs font-semibold text-white transition hover:bg-slate-800"
+                >
+                  ซ่อน
+                </button>
+              </div>
+
+              <HorizontalFilterControls
+                filters={filters}
+                areaTypeOptions={areaTypeOptions}
+                developmentTypeOptions={developmentTypeOptions}
+                districtOptions={districtOptions}
+                handleFilterChange={handleFilterChange}
+                toggleArrayFilter={toggleArrayFilter}
+                clearFilters={clearFilters}
+              />
+            </div>
           </div>
 
           {filteredProperties.length === 0 ? (
@@ -404,61 +410,6 @@ export default function MainPage({ properties }: MainPageProps) {
         </div>
       </section>
 
-      {isFilterOpen ? (
-        <div
-          className={`fixed inset-0 z-[80] backdrop-blur-[3px] transition-[background-color,opacity] duration-300 ${
-            isFilterVisible ? "bg-slate-950/42 opacity-100" : "bg-slate-950/0 opacity-0"
-          }`}
-        >
-          <button type="button" onClick={closeFilterPanel} className="absolute inset-0" aria-label="ปิดฟิลเตอร์" />
-
-          <aside
-            className={`absolute bottom-4 left-3 top-4 overflow-hidden rounded-[2rem] border border-white/50 bg-[linear-gradient(160deg,rgba(247,250,255,0.95)_0%,rgba(227,236,246,0.92)_100%)] p-4 shadow-[20px_0_80px_-25px_rgba(15,23,42,0.72)] transition-[transform,opacity,width,max-width] duration-300 ease-out md:p-5 ${
-              isFilterWide ? "w-[calc(100%-1.5rem)] max-w-[460px]" : "w-[calc(100%-1.5rem)] max-w-[360px]"
-            } ${
-              isFilterVisible ? "translate-x-0 opacity-100" : "-translate-x-8 opacity-0"
-            }`}
-          >
-            <div className="mb-3 rounded-2xl bg-white/55 p-3 ring-1 ring-white/70 backdrop-blur-sm">
-              <div className="flex items-start justify-between gap-2">
-                <div>
-                  <h3 className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-700">Advanced Filters</h3>
-                  <p className="mt-1 text-xs text-slate-500">ปรับเงื่อนไขเพื่อคัดบ้านที่ใกล้เคียงความต้องการ</p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setIsFilterWide((prev) => !prev)}
-                    className="rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 ring-1 ring-slate-200 transition hover:bg-slate-50"
-                  >
-                    {isFilterWide ? "ย่อ" : "ขยาย"}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={closeFilterPanel}
-                    className="rounded-full bg-slate-950 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-slate-800"
-                  >
-                    ปิด
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <div className="max-h-[calc(100vh-185px)] overflow-y-auto pr-1">
-              <FilterControls
-                filters={filters}
-                areaTypeOptions={areaTypeOptions}
-                developmentTypeOptions={developmentTypeOptions}
-                districtOptions={districtOptions}
-                handleFilterChange={handleFilterChange}
-                toggleArrayFilter={toggleArrayFilter}
-                clearFilters={clearFilters}
-              />
-            </div>
-          </aside>
-        </div>
-      ) : null}
-
       {selectedProperty ? (
         <PropertyModal
           key={selectedProperty.id}
@@ -467,6 +418,204 @@ export default function MainPage({ properties }: MainPageProps) {
           onClose={closePropertyModal}
         />
       ) : null}
+    </div>
+  );
+}
+
+function HorizontalFilterControls({
+  filters,
+  areaTypeOptions,
+  developmentTypeOptions,
+  districtOptions,
+  handleFilterChange,
+  toggleArrayFilter,
+  clearFilters,
+}: FilterControlsProps) {
+  return (
+    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      {/* Search Keyword */}
+      <div className="rounded-2xl bg-white/70 p-4 ring-1 ring-white/75 backdrop-blur-sm">
+        <label className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500">คำค้นหา</label>
+        <input
+          type="text"
+          placeholder="บ้านเดี่ยว, คอนโด, ที่ดิน"
+          value={filters.searchKeyword}
+          onChange={(event) => handleFilterChange("searchKeyword", event.target.value)}
+          className="h-10 w-full rounded-xl bg-white px-3 text-sm text-slate-800 outline-none ring-1 ring-slate-200 transition focus:ring-slate-900"
+        />
+      </div>
+
+      {/* Area Type */}
+      <div className="rounded-2xl bg-white/70 p-4 ring-1 ring-white/75 backdrop-blur-sm">
+        <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500">พื้นที่</p>
+        <div className="flex flex-wrap gap-1.5">
+          {areaTypeOptions.map((type) => (
+            <button
+              key={type}
+              type="button"
+              onClick={() => toggleArrayFilter("areaType", type)}
+              className={`rounded-full px-2.5 py-1 text-xs transition ${
+                filters.areaType.includes(type)
+                  ? "bg-slate-950 text-white"
+                  : "bg-white text-slate-700 ring-1 ring-slate-200 hover:bg-slate-50"
+              }`}
+            >
+              {type}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Listing Type */}
+      <div className="rounded-2xl bg-white/70 p-4 ring-1 ring-white/75 backdrop-blur-sm">
+        <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500">ประเภทประกาศ</p>
+        <div className="flex flex-wrap gap-1.5">
+          {LISTING_TYPES.map((type) => (
+            <button
+              key={type}
+              type="button"
+              onClick={() => toggleArrayFilter("listingType", type)}
+              className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
+                filters.listingType.includes(type)
+                  ? "bg-slate-950 text-white"
+                  : "bg-white text-slate-700 ring-1 ring-slate-200 hover:bg-slate-50"
+              }`}
+            >
+              {type}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Development Type */}
+      <div className="rounded-2xl bg-white/70 p-4 ring-1 ring-white/75 backdrop-blur-sm">
+        <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500">ประเภทการพัฒนา</p>
+        <div className="flex flex-wrap gap-1.5">
+          {developmentTypeOptions.map((type) => (
+            <button
+              key={type}
+              type="button"
+              onClick={() => toggleArrayFilter("developmentType", type)}
+              className={`rounded-full px-2.5 py-1 text-xs transition ${
+                filters.developmentType.includes(type)
+                  ? "bg-slate-950 text-white"
+                  : "bg-white text-slate-700 ring-1 ring-slate-200 hover:bg-slate-50"
+              }`}
+            >
+              {type}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Price Range */}
+      <div className="rounded-2xl bg-white/70 p-4 ring-1 ring-white/75 backdrop-blur-sm md:col-span-2">
+        <label className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500">
+          ราคา {formatPrice(filters.priceRange[0])} - {formatPrice(filters.priceRange[1])}
+        </label>
+        <input
+          type="range"
+          min="0"
+          max={DEFAULT_MAX_PRICE}
+          step="100000"
+          value={filters.priceRange[1]}
+          onChange={(event) =>
+            handleFilterChange("priceRange", [filters.priceRange[0], parseInt(event.target.value, 10)])
+          }
+          className="mb-2 h-2 w-full cursor-pointer appearance-none rounded-full bg-slate-300 accent-slate-900"
+        />
+        <div className="grid grid-cols-2 gap-2">
+          <input
+            type="number"
+            placeholder="ต่ำสุด"
+            value={filters.priceRange[0]}
+            onChange={(event) =>
+              handleFilterChange("priceRange", [parseInt(event.target.value, 10) || 0, filters.priceRange[1]])
+            }
+            className="h-9 w-full rounded-xl bg-white px-2.5 text-sm text-slate-800 outline-none ring-1 ring-slate-200 transition focus:ring-slate-900"
+          />
+          <input
+            type="number"
+            placeholder="สูงสุด"
+            value={filters.priceRange[1]}
+            onChange={(event) =>
+              handleFilterChange("priceRange", [
+                filters.priceRange[0],
+                parseInt(event.target.value, 10) || DEFAULT_MAX_PRICE,
+              ])
+            }
+            className="h-9 w-full rounded-xl bg-white px-2.5 text-sm text-slate-800 outline-none ring-1 ring-slate-200 transition focus:ring-slate-900"
+          />
+        </div>
+      </div>
+
+      {/* Area Size */}
+      <div className="rounded-2xl bg-white/70 p-4 ring-1 ring-white/75 backdrop-blur-sm">
+        <label className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500">
+          พื้นที่ {filters.areaSize[0]} - {filters.areaSize[1]} ตร.ม.
+        </label>
+        <input
+          type="range"
+          min="0"
+          max={DEFAULT_MAX_AREA}
+          step="10"
+          value={filters.areaSize[1]}
+          onChange={(event) =>
+            handleFilterChange("areaSize", [filters.areaSize[0], parseInt(event.target.value, 10)])
+          }
+          className="h-2 w-full cursor-pointer appearance-none rounded-full bg-slate-300 accent-slate-900"
+        />
+      </div>
+
+      {/* Min Bedrooms */}
+      <div className="rounded-2xl bg-white/70 p-4 ring-1 ring-white/75 backdrop-blur-sm">
+        <label className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500">ห้องนอนขั้นต่ำ</label>
+        <select
+          value={filters.minBedrooms}
+          onChange={(event) => handleFilterChange("minBedrooms", event.target.value)}
+          className="h-10 w-full rounded-xl bg-white px-3 text-sm text-slate-800 outline-none ring-1 ring-slate-200 transition focus:ring-slate-900"
+        >
+          <option value="">ไม่ระบุ</option>
+          <option value="1">1+</option>
+          <option value="2">2+</option>
+          <option value="3">3+</option>
+          <option value="4">4+</option>
+          <option value="5">5+</option>
+        </select>
+      </div>
+
+      {/* District */}
+      <div className="rounded-2xl bg-white/70 p-4 ring-1 ring-white/75 backdrop-blur-sm md:col-span-2 lg:col-span-1">
+        <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500">เขต/อำเภอ</p>
+        <div className="max-h-24 space-y-1 overflow-auto rounded-xl bg-white p-2 ring-1 ring-slate-200">
+          {districtOptions.map((district) => (
+            <button
+              key={district}
+              type="button"
+              onClick={() => toggleArrayFilter("district", district)}
+              className={`block w-full rounded-lg px-2 py-1 text-left text-xs transition ${
+                filters.district.includes(district)
+                  ? "bg-slate-950 text-white"
+                  : "text-slate-700 hover:bg-slate-100"
+              }`}
+            >
+              {district}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Clear Button */}
+      <div className="rounded-2xl bg-white/70 p-4 ring-1 ring-white/75 backdrop-blur-sm md:col-span-2 lg:col-span-1 xl:col-span-1">
+        <label className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500">รีเซ็ตตัวกรอง</label>
+        <button
+          type="button"
+          onClick={clearFilters}
+          className="h-10 w-full rounded-xl bg-slate-950 px-4 text-sm font-semibold text-white shadow-md transition hover:bg-slate-800"
+        >
+          ล้างตัวกรองทั้งหมด
+        </button>
+      </div>
     </div>
   );
 }
