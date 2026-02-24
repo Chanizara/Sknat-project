@@ -303,13 +303,22 @@ export default function MainPage({ properties }: MainPageProps) {
                   <h3 className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-700">Advanced Filters</h3>
                   <p className="mt-1 text-xs text-slate-500">ปรับเงื่อนไขเพื่อคัดบ้านที่ใกล้เคียงความต้องการ</p>
                 </div>
-                <button
-                  type="button"
-                  onClick={toggleFilterPanel}
-                  className="rounded-full bg-slate-950 px-4 py-2 text-xs font-semibold text-white transition hover:bg-slate-800"
-                >
-                  ซ่อน
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={clearFilters}
+                    className="rounded-full bg-white px-4 py-2 text-xs font-semibold text-slate-700 ring-1 ring-slate-300 transition hover:bg-slate-50"
+                  >
+                    ล้างตัวกรองทั้งหมด
+                  </button>
+                  <button
+                    type="button"
+                    onClick={toggleFilterPanel}
+                    className="rounded-full bg-slate-950 px-4 py-2 text-xs font-semibold text-white transition hover:bg-slate-800"
+                  >
+                    ซ่อน
+                  </button>
+                </div>
               </div>
 
               <HorizontalFilterControls
@@ -432,189 +441,179 @@ function HorizontalFilterControls({
   clearFilters,
 }: FilterControlsProps) {
   return (
-    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-      {/* Search Keyword */}
-      <div className="rounded-2xl bg-white/70 p-4 ring-1 ring-white/75 backdrop-blur-sm">
-        <label className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500">คำค้นหา</label>
-        <input
-          type="text"
-          placeholder="บ้านเดี่ยว, คอนโด, ที่ดิน"
-          value={filters.searchKeyword}
-          onChange={(event) => handleFilterChange("searchKeyword", event.target.value)}
-          className="h-10 w-full rounded-xl bg-white px-3 text-sm text-slate-800 outline-none ring-1 ring-slate-200 transition focus:ring-slate-900"
-        />
-      </div>
-
-      {/* Area Type */}
-      <div className="rounded-2xl bg-white/70 p-4 ring-1 ring-white/75 backdrop-blur-sm">
-        <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500">พื้นที่</p>
-        <div className="flex flex-wrap gap-1.5">
-          {areaTypeOptions.map((type) => (
-            <button
-              key={type}
-              type="button"
-              onClick={() => toggleArrayFilter("areaType", type)}
-              className={`rounded-full px-2.5 py-1 text-xs transition ${
-                filters.areaType.includes(type)
-                  ? "bg-slate-950 text-white"
-                  : "bg-white text-slate-700 ring-1 ring-slate-200 hover:bg-slate-50"
-              }`}
-            >
-              {type}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Listing Type */}
-      <div className="rounded-2xl bg-white/70 p-4 ring-1 ring-white/75 backdrop-blur-sm">
-        <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500">ประเภทประกาศ</p>
-        <div className="flex flex-wrap gap-1.5">
-          {LISTING_TYPES.map((type) => (
-            <button
-              key={type}
-              type="button"
-              onClick={() => toggleArrayFilter("listingType", type)}
-              className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
-                filters.listingType.includes(type)
-                  ? "bg-slate-950 text-white"
-                  : "bg-white text-slate-700 ring-1 ring-slate-200 hover:bg-slate-50"
-              }`}
-            >
-              {type}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Development Type */}
-      <div className="rounded-2xl bg-white/70 p-4 ring-1 ring-white/75 backdrop-blur-sm">
-        <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500">ประเภทการพัฒนา</p>
-        <div className="flex flex-wrap gap-1.5">
-          {developmentTypeOptions.map((type) => (
-            <button
-              key={type}
-              type="button"
-              onClick={() => toggleArrayFilter("developmentType", type)}
-              className={`rounded-full px-2.5 py-1 text-xs transition ${
-                filters.developmentType.includes(type)
-                  ? "bg-slate-950 text-white"
-                  : "bg-white text-slate-700 ring-1 ring-slate-200 hover:bg-slate-50"
-              }`}
-            >
-              {type}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Price Range */}
-      <div className="rounded-2xl bg-white/70 p-4 ring-1 ring-white/75 backdrop-blur-sm md:col-span-2">
-        <label className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500">
-          ราคา {formatPrice(filters.priceRange[0])} - {formatPrice(filters.priceRange[1])}
-        </label>
-        <input
-          type="range"
-          min="0"
-          max={DEFAULT_MAX_PRICE}
-          step="100000"
-          value={filters.priceRange[1]}
-          onChange={(event) =>
-            handleFilterChange("priceRange", [filters.priceRange[0], parseInt(event.target.value, 10)])
-          }
-          className="mb-2 h-2 w-full cursor-pointer appearance-none rounded-full bg-slate-300 accent-slate-900"
-        />
-        <div className="grid grid-cols-2 gap-2">
+    <div className="space-y-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        {/* Search Keyword */}
+        <div className="rounded-2xl bg-white/70 p-4 ring-1 ring-white/75 backdrop-blur-sm">
+          <label className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500">คำค้นหา</label>
           <input
-            type="number"
-            placeholder="ต่ำสุด"
-            value={filters.priceRange[0]}
-            onChange={(event) =>
-              handleFilterChange("priceRange", [parseInt(event.target.value, 10) || 0, filters.priceRange[1]])
-            }
-            className="h-9 w-full rounded-xl bg-white px-2.5 text-sm text-slate-800 outline-none ring-1 ring-slate-200 transition focus:ring-slate-900"
+            type="text"
+            placeholder="บ้านเดี่ยว, คอนโด, ที่ดิน"
+            value={filters.searchKeyword}
+            onChange={(event) => handleFilterChange("searchKeyword", event.target.value)}
+            className="h-10 w-full rounded-xl bg-white px-3 text-sm text-slate-800 outline-none ring-1 ring-slate-200 transition focus:ring-slate-900"
           />
+        </div>
+
+        {/* Area Type */}
+        <div className="rounded-2xl bg-white/70 p-4 ring-1 ring-white/75 backdrop-blur-sm">
+          <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500">พื้นที่</p>
+          <div className="flex flex-wrap gap-1.5">
+            {areaTypeOptions.map((type) => (
+              <button
+                key={type}
+                type="button"
+                onClick={() => toggleArrayFilter("areaType", type)}
+                className={`rounded-full px-2.5 py-1 text-xs transition ${
+                  filters.areaType.includes(type)
+                    ? "bg-slate-950 text-white"
+                    : "bg-white text-slate-700 ring-1 ring-slate-200 hover:bg-slate-50"
+                }`}
+              >
+                {type}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Listing Type */}
+        <div className="rounded-2xl bg-white/70 p-4 ring-1 ring-white/75 backdrop-blur-sm">
+          <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500">ประเภทประกาศ</p>
+          <div className="flex flex-wrap gap-1.5">
+            {LISTING_TYPES.map((type) => (
+              <button
+                key={type}
+                type="button"
+                onClick={() => toggleArrayFilter("listingType", type)}
+                className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
+                  filters.listingType.includes(type)
+                    ? "bg-slate-950 text-white"
+                    : "bg-white text-slate-700 ring-1 ring-slate-200 hover:bg-slate-50"
+                }`}
+              >
+                {type}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Development Type */}
+        <div className="rounded-2xl bg-white/70 p-4 ring-1 ring-white/75 backdrop-blur-sm">
+          <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500">ประเภทการพัฒนา</p>
+          <div className="flex flex-wrap gap-1.5">
+            {developmentTypeOptions.map((type) => (
+              <button
+                key={type}
+                type="button"
+                onClick={() => toggleArrayFilter("developmentType", type)}
+                className={`rounded-full px-2.5 py-1 text-xs transition ${
+                  filters.developmentType.includes(type)
+                    ? "bg-slate-950 text-white"
+                    : "bg-white text-slate-700 ring-1 ring-slate-200 hover:bg-slate-50"
+                }`}
+              >
+                {type}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Price Range */}
+        <div className="rounded-2xl bg-white/70 p-4 ring-1 ring-white/75 backdrop-blur-sm md:col-span-2">
+          <label className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500">
+            ราคา {formatPrice(filters.priceRange[0])} - {formatPrice(filters.priceRange[1])}
+          </label>
           <input
-            type="number"
-            placeholder="สูงสุด"
+            type="range"
+            min="0"
+            max={DEFAULT_MAX_PRICE}
+            step="100000"
             value={filters.priceRange[1]}
             onChange={(event) =>
-              handleFilterChange("priceRange", [
-                filters.priceRange[0],
-                parseInt(event.target.value, 10) || DEFAULT_MAX_PRICE,
-              ])
+              handleFilterChange("priceRange", [filters.priceRange[0], parseInt(event.target.value, 10)])
             }
-            className="h-9 w-full rounded-xl bg-white px-2.5 text-sm text-slate-800 outline-none ring-1 ring-slate-200 transition focus:ring-slate-900"
+            className="mb-2 h-2 w-full cursor-pointer appearance-none rounded-full bg-slate-300 accent-slate-900"
           />
+          <div className="grid grid-cols-2 gap-2">
+            <input
+              type="number"
+              placeholder="ต่ำสุด"
+              value={filters.priceRange[0]}
+              onChange={(event) =>
+                handleFilterChange("priceRange", [parseInt(event.target.value, 10) || 0, filters.priceRange[1]])
+              }
+              className="h-9 w-full rounded-xl bg-white px-2.5 text-sm text-slate-800 outline-none ring-1 ring-slate-200 transition focus:ring-slate-900"
+            />
+            <input
+              type="number"
+              placeholder="สูงสุด"
+              value={filters.priceRange[1]}
+              onChange={(event) =>
+                handleFilterChange("priceRange", [
+                  filters.priceRange[0],
+                  parseInt(event.target.value, 10) || DEFAULT_MAX_PRICE,
+                ])
+              }
+              className="h-9 w-full rounded-xl bg-white px-2.5 text-sm text-slate-800 outline-none ring-1 ring-slate-200 transition focus:ring-slate-900"
+            />
+          </div>
+        </div>
+
+        {/* Area Size */}
+        <div className="rounded-2xl bg-white/70 p-4 ring-1 ring-white/75 backdrop-blur-sm">
+          <label className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500">
+            พื้นที่ {filters.areaSize[0]} - {filters.areaSize[1]} ตร.ม.
+          </label>
+          <input
+            type="range"
+            min="0"
+            max={DEFAULT_MAX_AREA}
+            step="10"
+            value={filters.areaSize[1]}
+            onChange={(event) =>
+              handleFilterChange("areaSize", [filters.areaSize[0], parseInt(event.target.value, 10)])
+            }
+            className="h-2 w-full cursor-pointer appearance-none rounded-full bg-slate-300 accent-slate-900"
+          />
+        </div>
+
+        {/* Min Bedrooms */}
+        <div className="rounded-2xl bg-white/70 p-4 ring-1 ring-white/75 backdrop-blur-sm">
+          <label className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500">ห้องนอนขั้นต่ำ</label>
+          <select
+            value={filters.minBedrooms}
+            onChange={(event) => handleFilterChange("minBedrooms", event.target.value)}
+            className="h-10 w-full rounded-xl bg-white px-3 text-sm text-slate-800 outline-none ring-1 ring-slate-200 transition focus:ring-slate-900"
+          >
+            <option value="">ไม่ระบุ</option>
+            <option value="1">1+</option>
+            <option value="2">2+</option>
+            <option value="3">3+</option>
+            <option value="4">4+</option>
+            <option value="5">5+</option>
+          </select>
         </div>
       </div>
 
-      {/* Area Size */}
+      {/* District - Full Width Horizontal */}
       <div className="rounded-2xl bg-white/70 p-4 ring-1 ring-white/75 backdrop-blur-sm">
-        <label className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500">
-          พื้นที่ {filters.areaSize[0]} - {filters.areaSize[1]} ตร.ม.
-        </label>
-        <input
-          type="range"
-          min="0"
-          max={DEFAULT_MAX_AREA}
-          step="10"
-          value={filters.areaSize[1]}
-          onChange={(event) =>
-            handleFilterChange("areaSize", [filters.areaSize[0], parseInt(event.target.value, 10)])
-          }
-          className="h-2 w-full cursor-pointer appearance-none rounded-full bg-slate-300 accent-slate-900"
-        />
-      </div>
-
-      {/* Min Bedrooms */}
-      <div className="rounded-2xl bg-white/70 p-4 ring-1 ring-white/75 backdrop-blur-sm">
-        <label className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500">ห้องนอนขั้นต่ำ</label>
-        <select
-          value={filters.minBedrooms}
-          onChange={(event) => handleFilterChange("minBedrooms", event.target.value)}
-          className="h-10 w-full rounded-xl bg-white px-3 text-sm text-slate-800 outline-none ring-1 ring-slate-200 transition focus:ring-slate-900"
-        >
-          <option value="">ไม่ระบุ</option>
-          <option value="1">1+</option>
-          <option value="2">2+</option>
-          <option value="3">3+</option>
-          <option value="4">4+</option>
-          <option value="5">5+</option>
-        </select>
-      </div>
-
-      {/* District */}
-      <div className="rounded-2xl bg-white/70 p-4 ring-1 ring-white/75 backdrop-blur-sm md:col-span-2 lg:col-span-1">
-        <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500">เขต/อำเภอ</p>
-        <div className="max-h-24 space-y-1 overflow-auto rounded-xl bg-white p-2 ring-1 ring-slate-200">
+        <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500">เขต/อำเภอ</p>
+        <div className="flex flex-wrap gap-2">
           {districtOptions.map((district) => (
             <button
               key={district}
               type="button"
               onClick={() => toggleArrayFilter("district", district)}
-              className={`block w-full rounded-lg px-2 py-1 text-left text-xs transition ${
+              className={`rounded-full px-3 py-1.5 text-xs font-medium transition ${
                 filters.district.includes(district)
                   ? "bg-slate-950 text-white"
-                  : "text-slate-700 hover:bg-slate-100"
+                  : "bg-white text-slate-700 ring-1 ring-slate-200 hover:bg-slate-50"
               }`}
             >
               {district}
             </button>
           ))}
         </div>
-      </div>
-
-      {/* Clear Button */}
-      <div className="rounded-2xl bg-white/70 p-4 ring-1 ring-white/75 backdrop-blur-sm md:col-span-2 lg:col-span-1 xl:col-span-1">
-        <label className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500">รีเซ็ตตัวกรอง</label>
-        <button
-          type="button"
-          onClick={clearFilters}
-          className="h-10 w-full rounded-xl bg-slate-950 px-4 text-sm font-semibold text-white shadow-md transition hover:bg-slate-800"
-        >
-          ล้างตัวกรองทั้งหมด
-        </button>
       </div>
     </div>
   );
