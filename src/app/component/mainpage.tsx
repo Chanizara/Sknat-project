@@ -1,12 +1,11 @@
 'use client';
 
 import Image from "next/image";
-import { useEffect, useMemo, useRef, useState, type WheelEvent } from "react";
+import Link from "next/link";
+import { useMemo, useState } from "react";
 
 import { buildPriceLabel, formatPrice, getDistrict } from "@/lib/property-format";
 import { LISTING_TYPES, type Property } from "@/types/property";
-
-import PropertyModal from "./PropertyModal";
 
 type MainPageProps = {
   properties: Property[];
@@ -48,8 +47,6 @@ export default function MainPage({ properties }: MainPageProps) {
     district: [],
   });
 
-  const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   const areaTypeOptions = useMemo(
@@ -66,16 +63,6 @@ export default function MainPage({ properties }: MainPageProps) {
     () => Array.from(new Set(properties.map((property) => getDistrict(property.location)).filter(Boolean))),
     [properties],
   );
-
-  const openPropertyModal = (property: Property) => {
-    setSelectedProperty(property);
-    setIsModalOpen(true);
-  };
-
-  const closePropertyModal = () => {
-    setIsModalOpen(false);
-    setTimeout(() => setSelectedProperty(null), 300);
-  };
 
   const filteredProperties = useMemo(() => {
     return properties.filter((property) => {
@@ -328,16 +315,15 @@ export default function MainPage({ properties }: MainPageProps) {
                         ) : null}
                       </div>
 
-                      <button
-                        type="button"
-                        onClick={() => openPropertyModal(property)}
+                      <Link
+                        href={`/property/${property.id}`}
                         className="inline-flex h-10 items-center gap-2 rounded-full bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-slate-800"
                       >
                         รายละเอียด
                         <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
                         </svg>
-                      </button>
+                      </Link>
                     </div>
                   </div>
                 </article>
@@ -347,15 +333,6 @@ export default function MainPage({ properties }: MainPageProps) {
           )}
         </div>
       </section>
-
-      {selectedProperty ? (
-        <PropertyModal
-          key={selectedProperty.id}
-          property={selectedProperty}
-          isOpen={isModalOpen}
-          onClose={closePropertyModal}
-        />
-      ) : null}
     </div>
   );
 }
