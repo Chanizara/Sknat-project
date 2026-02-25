@@ -1,6 +1,11 @@
+'use client';
+
 import Link from "next/link";
+import { useFavoritesStore } from "@/lib/favorites-store";
 
 export default function Navbar() {
+  const { favorites } = useFavoritesStore();
+  
   return (
     <nav
   className="
@@ -55,13 +60,21 @@ export default function Navbar() {
             Contact Us
         </Link>
 
+        {/* ปุ่มบ้านที่ชอบ */}
         <Link
-          href="/admin/properties"
-          className="hover:opacity-100 transition cursor-pointer"
+          href="/compare"
+          className="relative hover:opacity-100 transition cursor-pointer flex items-center gap-1.5"
         >
-          Admin
+          <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+          </svg>
+          <span>บ้านที่ชอบ</span>
+          {favorites.length > 0 && (
+            <span className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
+              {favorites.length}
+            </span>
+          )}
         </Link>
-
         </div>
 
     </nav>

@@ -6,6 +6,7 @@ import { useMemo, useState } from "react";
 
 import { buildPriceLabel, formatPrice, getDistrict } from "@/lib/property-format";
 import { LISTING_TYPES, type Property } from "@/types/property";
+import { useFavoritesStore } from "@/lib/favorites-store";
 
 type MainPageProps = {
   properties: Property[];
@@ -36,6 +37,8 @@ const DEFAULT_MAX_PRICE = 50000000;
 const DEFAULT_MAX_AREA = 500;
 
 export default function MainPage({ properties }: MainPageProps) {
+  const { addFavorite, removeFavorite, isFavorite, canAddMore } = useFavoritesStore();
+  
   const [filters, setFilters] = useState<Filters>({
     searchKeyword: "",
     areaType: [],
@@ -48,6 +51,20 @@ export default function MainPage({ properties }: MainPageProps) {
   });
 
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+
+  const handleToggleFavorite = (property: Property, event: React.MouseEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
+    
+    if (isFavorite(property.id)) {
+      removeFavorite(property.id);
+    } else {
+      const success = addFavorite(property);
+      if (!success && !isFavorite(property.id)) {
+        alert('คุณสามารถเลือกได้สูงสุด 3 บ้านเท่านั้น เพื่อนำไป Compare กัน');
+      }
+    }
+  };
 
   const areaTypeOptions = useMemo(
     () => Array.from(new Set(properties.map((property) => property.category).filter(Boolean))) as string[],
@@ -293,6 +310,31 @@ export default function MainPage({ properties }: MainPageProps) {
                         <span className="rounded-full bg-black/45 px-3 py-1 text-[11px] font-medium text-white">{property.propertyType}</span>
                       ) : null}
                     </div>
+
+                    {/* ปุ่มไลค์ */}
+                    <button
+                      onClick={(e) => handleToggleFavorite(property, e)}
+                      className={`absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full transition-all ${
+                        isFavorite(property.id)
+                          ? 'bg-red-500 text-white scale-110'
+                          : 'bg-white/90 text-slate-700 hover:bg-white'
+                      }`}
+                      aria-label={isFavorite(property.id) ? 'ลบจากรายการโปรด' : 'เพิ่มในรายการโปรด'}
+                    >
+                      <svg 
+                        className="h-5 w-5" 
+                        fill={isFavorite(property.id) ? 'currentColor' : 'none'} 
+                        viewBox="0 0 24 24" 
+                        stroke="currentColor"
+                        strokeWidth="2"
+                      >
+                        <path 
+                          strokeLinecap="round" 
+                          strokeLinejoin="round" 
+                          d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" 
+                        />
+                      </svg>
+                    </button>
 
                     <div className="absolute bottom-4 left-4 right-4 space-y-1.5">
                       <p className="line-clamp-1 text-xs text-white/85">{property.location}</p>
