@@ -11,6 +11,7 @@ const images = [
 
 export default function Hero() {
   const [index, setIndex] = useState(0);
+  const [scrollY, setScrollY] = useState(0);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -20,23 +21,43 @@ export default function Hero() {
     return () => clearInterval(interval);
   }, []);
 
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrollY(window.scrollY);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Calculate parallax effect - slower movement creates depth
+  const parallaxOffset = scrollY * 0.5;
+
   return (
     <section className="relative h-[100vh] w-full overflow-hidden">
-      {images.map((src, i) => (
-        <img
-          key={i}
-          src={src}
-          alt="Nike Hero"
-          className={`
-            absolute inset-0 h-full w-full object-cover
-            transition-opacity duration-[2000ms] ease-in-out
-            ${i === index ? "opacity-100" : "opacity-0"}
-          `}
-        />
-      ))}
+      <div 
+        className="absolute inset-0 w-full h-full"
+        style={{
+          transform: `translateY(${parallaxOffset}px)`,
+          transition: 'transform 0.1s ease-out'
+        }}
+      >
+        {images.map((src, i) => (
+          <img
+            key={i}
+            src={src}
+            alt="Nike Hero"
+            className={`
+              absolute inset-0 h-full w-full object-cover
+              transition-opacity duration-[2000ms] ease-in-out
+              ${i === index ? "opacity-100" : "opacity-0"}
+            `}
+          />
+        ))}
 
-      {/* soft overlay (optional แต่ช่วยให้ดูแพง) */}
-      <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-black/20" />
+        {/* soft overlay (optional แต่ช่วยให้ดูแพง) */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-black/20" />
+      </div>
 
       <div className="hero-scroll-cue absolute bottom-9 left-1/2 z-40 -translate-x-1/2 text-white/80 md:bottom-11">
         <span className="hero-scroll-cue__label">SCROLL DOWN</span>

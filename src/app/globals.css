@@ -24,6 +24,8 @@ body {
   color: var(--foreground);
   font-family: "Sarabun", "Noto Sans Thai", "Prompt", "IBM Plex Sans Thai", "Segoe UI", sans-serif;
   text-rendering: geometricPrecision;
+  scroll-behavior: smooth;
+  overflow-x: hidden;
 }
 
 ::selection {
