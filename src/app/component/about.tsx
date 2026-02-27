@@ -174,7 +174,7 @@ export default function About() {
           <p className="text-[11px] uppercase tracking-[0.3em] text-slate-500">
             About SKNAT
           </p>
-          <h2 className="mt-3 text-3xl font-semibold tracking-tight text-slate-950 md:text-5xl">
+          <h2 className="mt-3 text-3xl font-semibold tracking-tight text-slate-950 md:text-5xl leading-[1.4] md:leading-[1.3]">
             เราคือผู้เชี่ยวชาญ
             <br />
             <span className="text-slate-600">ด้านอสังหาริมทรัพย์หรู</span>
