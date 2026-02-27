@@ -1,6 +1,25 @@
+'use client';
+
 import Link from "next/link";
 
 export default function Footer() {
+  const scrollToSection = (sectionId: string) => {
+    if (sectionId === 'home') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+    const element = document.getElementById(sectionId);
+    if (element) {
+      const navbarHeight = 80;
+      const elementPosition = element.getBoundingClientRect().top + window.scrollY;
+      const offsetPosition = elementPosition - navbarHeight;
+      
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth'
+      });
+    }
+  };
   return (
     <>
       <section id="contact" className="relative overflow-hidden bg-[linear-gradient(180deg,#edf2f7_0%,#dfe8f1_100%)] py-20 text-slate-900">
@@ -86,19 +105,28 @@ export default function Footer() {
               <h5 className="text-sm font-semibold uppercase tracking-[0.16em] text-white">เมนู</h5>
               <ul className="mt-3 space-y-2 text-sm">
                 <li>
-                  <Link href="#home" className="transition hover:text-white">
+                  <button 
+                    onClick={() => scrollToSection('home')}
+                    className="transition hover:text-white bg-transparent border-none text-slate-300 cursor-pointer"
+                  >
                     หน้าแรก
-                  </Link>
+                  </button>
                 </li>
                 <li>
-                  <Link href="#properties" className="transition hover:text-white">
+                  <button 
+                    onClick={() => scrollToSection('properties')}
+                    className="transition hover:text-white bg-transparent border-none text-slate-300 cursor-pointer"
+                  >
                     บ้านทั้งหมด
-                  </Link>
+                  </button>
                 </li>
                 <li>
-                  <Link href="#contact" className="transition hover:text-white">
+                  <button 
+                    onClick={() => scrollToSection('contact')}
+                    className="transition hover:text-white bg-transparent border-none text-slate-300 cursor-pointer"
+                  >
                     ติดต่อเรา
-                  </Link>
+                  </button>
                 </li>
                 <li>
                   <Link href="/admin/properties" className="transition hover:text-white">

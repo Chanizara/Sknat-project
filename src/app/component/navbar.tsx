@@ -5,6 +5,20 @@ import { useFavoritesStore } from "@/lib/favorites-store";
 
 export default function Navbar() {
   const { favorites } = useFavoritesStore();
+
+  const scrollToSection = (sectionId: string) => {
+    const element = document.getElementById(sectionId);
+    if (element) {
+      const navbarHeight = 80; // Approximate navbar height offset
+      const elementPosition = element.getBoundingClientRect().top + window.scrollY;
+      const offsetPosition = elementPosition - navbarHeight;
+      
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth'
+      });
+    }
+  };
   
   return (
     <nav
@@ -32,33 +46,33 @@ export default function Navbar() {
      {/* RIGHT : Menu */}
         <div className="col-start-3 justify-self-end flex gap-8 opacity-80">
 
-        <Link
-            href="#about"
-            className="hover:opacity-100 transition cursor-pointer"
+        <button
+            onClick={() => scrollToSection('about')}
+            className="hover:opacity-100 transition cursor-pointer bg-transparent border-none text-white text-sm tracking-wide"
         >
             About
-        </Link>
+        </button>
 
-        <Link
-            href="#services"
-            className="hover:opacity-100 transition cursor-pointer"
+        <button
+            onClick={() => scrollToSection('services')}
+            className="hover:opacity-100 transition cursor-pointer bg-transparent border-none text-white text-sm tracking-wide"
         >
             Services
-        </Link>
+        </button>
 
-        <Link
-            href="#properties"
-            className="hover:opacity-100 transition cursor-pointer"
+        <button
+            onClick={() => scrollToSection('properties')}
+            className="hover:opacity-100 transition cursor-pointer bg-transparent border-none text-white text-sm tracking-wide"
         >
             Properties
-        </Link>
+        </button>
 
-        <Link
-          href="#contact"
-            className="hover:opacity-100 transition cursor-pointer"
+        <button
+            onClick={() => scrollToSection('contact')}
+            className="hover:opacity-100 transition cursor-pointer bg-transparent border-none text-white text-sm tracking-wide"
         >
             Contact Us
-        </Link>
+        </button>
 
         {/* ปุ่มบ้านที่ชอบ */}
         <Link
