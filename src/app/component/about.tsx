@@ -25,11 +25,14 @@ const stats = [
 ];
 
 // Stagger delay between each stat (in ms)
-const STAGGER_DELAY = 150;
+const STAGGER_DELAY = 400;
 
-// Easing function for smooth animation (easeOutExpo)
-const easeOutExpo = (t: number): number => {
-  return t === 1 ? 1 : 1 - Math.pow(2, -10 * t);
+// Total animation duration (in ms) - longer for dramatic effect
+const ANIMATION_DURATION = 3500;
+
+// Dramatic easing - starts fast, slows down with satisfying deceleration
+const easeOutQuart = (t: number): number => {
+  return 1 - Math.pow(1 - t, 4);
 };
 
 function useCountUp(
@@ -57,7 +60,7 @@ function useCountUp(
 
         const elapsed = timestamp - startTimeRef.current;
         const progress = Math.min(elapsed / duration, 1);
-        const easedProgress = easeOutExpo(progress);
+        const easedProgress = easeOutQuart(progress);
         const currentCount = Math.floor(easedProgress * target);
 
         setCount(currentCount);
@@ -97,11 +100,25 @@ function AnimatedStat({
   index: number;
   start: boolean;
 }) {
-  const count = useCountUp(value, 1200, index * STAGGER_DELAY, start);
+  const count = useCountUp(value, ANIMATION_DURATION, index * STAGGER_DELAY, start);
+  const [isComplete, setIsComplete] = useState(false);
+
+  useEffect(() => {
+    if (start) {
+      const timer = setTimeout(() => {
+        setIsComplete(true);
+      }, ANIMATION_DURATION + index * STAGGER_DELAY + 100);
+      return () => clearTimeout(timer);
+    }
+  }, [start, index]);
 
   return (
     <div className="text-center">
-      <p className="text-2xl font-bold text-slate-950 md:text-3xl tabular-nums">
+      <p 
+        className={`text-2xl font-bold text-slate-950 md:text-3xl tabular-nums transition-transform duration-500 ${
+          isComplete ? 'scale-110' : 'scale-100'
+        }`}
+      >
         {count}
         {suffix}
       </p>
