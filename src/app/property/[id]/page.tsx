@@ -116,7 +116,7 @@ export default function PropertyDetailPage() {
   const [loading, setLoading] = useState(true);
   const [isVisible, setIsVisible] = useState(false);
   const [startCounting, setStartCounting] = useState(false);
-  const [activeTab, setActiveTab] = useState<'overview' | 'floorplan' | 'video'>('overview');
+  
   const [showShareToast, setShowShareToast] = useState(false);
   const [showSaveToast, setShowSaveToast] = useState(false);
   const { addFavorite, removeFavorite, isFavorite } = useFavoritesStore();
@@ -508,115 +508,59 @@ export default function PropertyDetailPage() {
               </div>
             </div>
 
-            {/* Tabs Navigation */}
-            <div className="flex gap-2 mb-8 p-1.5 bg-white/60 rounded-2xl w-fit backdrop-blur-sm border border-slate-200/50">
-              {(['overview', 'floorplan', 'video'] as const).map((tab) => (
-                <button
-                  key={tab}
-                  onClick={() => setActiveTab(tab)}
-                  className={`px-6 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
-                    activeTab === tab 
-                      ? 'bg-white text-slate-900 shadow-sm border border-slate-200' 
-                      : 'text-slate-600 hover:text-slate-900'
-                  }`}
-                >
-                  {tab === 'overview' && 'ภาพรวม'}
-                  {tab === 'floorplan' && 'แปลนบ้าน'}
-                  {tab === 'video' && 'วิดีโอ'}
-                </button>
-              ))}
-            </div>
-
-            {/* Tab Content */}
-            <div className="mb-10">
-              {activeTab === 'overview' && (
-                <div className="space-y-6">
-                  {/* Description */}
-                  {property.description && (
-                    <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 border border-slate-200 shadow-sm">
-                      <h2 className="text-xl font-bold text-slate-900 mb-4 flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center border border-slate-100">
-                          <svg className="w-5 h-5 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                          </svg>
-                        </div>
-                        รายละเอียด
-                      </h2>
-                      <p className="text-slate-600 leading-relaxed whitespace-pre-line">{property.description}</p>
-                    </div>
-                  )}
-
-                  {/* Features */}
-                  {property.features && property.features.length > 0 && (
-                    <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 border border-slate-200 shadow-sm">
-                      <h2 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center border border-slate-100">
-                          <svg className="w-5 h-5 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
-                          </svg>
-                        </div>
-                        จุดเด่น
-                      </h2>
-                      <div className="flex flex-wrap gap-3">
-                        {property.features.map((feature, index) => (
-                          <FeatureTag key={index} label={feature} />
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Property Details Grid */}
-                  <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 border border-slate-200 shadow-sm">
-                    <h2 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center border border-slate-100">
-                        <svg className="w-5 h-5 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                        </svg>
-                      </div>
-                      ข้อมูลทรัพย์
-                    </h2>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                      <DetailItem label="รหัสทรัพย์" value={`#${String(property.id).padStart(5, '0')}`} />
-                      <DetailItem label="ประเภท" value={property.propertyType || 'บ้านเดี่ยว'} />
-                      <DetailItem label="สถานะ" value={property.type} />
-                      <DetailItem label="ที่จอดรถ" value="2 คัน" />
-                      <DetailItem label="จำนวนชั้น" value="2 ชั้น" />
-                      <DetailItem label="ทิศทาง" value="ทิศตะวันออก" />
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {activeTab === 'floorplan' && (
-                <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-12 border border-slate-200 shadow-sm text-center">
-                  <div className="w-24 h-24 mx-auto mb-6 rounded-3xl bg-slate-50 flex items-center justify-center border border-slate-100">
-                    <svg className="w-12 h-12 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" />
+            {/* Content */}
+            <div className="mb-10 space-y-6">
+              {/* Description */}
+              <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 border border-slate-200 shadow-sm">
+                <h2 className="text-xl font-bold text-slate-900 mb-4 flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center border border-slate-100">
+                    <svg className="w-5 h-5 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
                   </div>
-                  <h3 className="text-xl font-bold text-slate-900 mb-2">แปลนบ้าน</h3>
-                  <p className="text-slate-500 mb-6">แปลนบ้านจะแสดงที่นี่เมื่อมีข้อมูล</p>
-                  <button className="px-6 py-3 bg-slate-100 text-slate-700 rounded-full font-medium hover:bg-slate-200 transition-colors">
-                    ติดต่อขอแปลนบ้าน
-                  </button>
+                  รายละเอียด
+                </h2>
+                <p className="text-slate-600 leading-relaxed whitespace-pre-line">บ้านเดี่ยว 3 ชั้น สไตล์ Modern Minimalist ออกแบบร่วมสมัย เน้นความเรียบหรู โปร่งโล่ง และการใช้พื้นที่อย่างคุ้มค่า เหมาะสำหรับครอบครัวขนาดกลางถึงใหญ่</p>
+              </div>
+
+              {/* Features */}
+              {property.features && property.features.length > 0 && (
+                <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 border border-slate-200 shadow-sm">
+                  <h2 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center border border-slate-100">
+                      <svg className="w-5 h-5 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                      </svg>
+                    </div>
+                    จุดเด่น
+                  </h2>
+                  <div className="flex flex-wrap gap-3">
+                    {property.features.map((feature, index) => (
+                      <FeatureTag key={index} label={feature} />
+                    ))}
+                  </div>
                 </div>
               )}
 
-              {activeTab === 'video' && (
-                <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-12 border border-slate-200 shadow-sm text-center">
-                  <div className="w-24 h-24 mx-auto mb-6 rounded-3xl bg-slate-50 flex items-center justify-center border border-slate-100">
-                    <svg className="w-12 h-12 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              {/* Property Details Grid */}
+              <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 border border-slate-200 shadow-sm">
+                <h2 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center border border-slate-100">
+                    <svg className="w-5 h-5 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                     </svg>
                   </div>
-                  <h3 className="text-xl font-bold text-slate-900 mb-2">วิดีโอนำเที่ยว</h3>
-                  <p className="text-slate-500 mb-6">วิดีโอจะแสดงที่นี่เมื่อมีข้อมูล</p>
-                  <button className="px-6 py-3 bg-slate-100 text-slate-700 rounded-full font-medium hover:bg-slate-200 transition-colors">
-                    ขอดูวิดีโอเพิ่มเติม
-                  </button>
+                  ข้อมูลทรัพย์
+                </h2>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                  <DetailItem label="รหัสทรัพย์" value={`#${String(property.id).padStart(5, '0')}`} />
+                  <DetailItem label="ประเภท" value={property.propertyType || 'บ้านเดี่ยว'} />
+                  <DetailItem label="สถานะ" value={property.type} />
+                  <DetailItem label="ที่จอดรถ" value="2 คัน" />
+                  <DetailItem label="จำนวนชั้น" value="3 ชั้น" />
+                  <DetailItem label="ทิศทาง" value="ทิศตะวันออก" />
                 </div>
-              )}
+              </div>
             </div>
 
             {/* Nearby Places */}
