@@ -158,3 +158,26 @@ export async function authenticateUser(input: unknown): Promise<User | null> {
     wrapDbError(error);
   }
 }
+
+export async function likeProperty(userId: number, propertyId: number): Promise<void> {
+  try {
+    await dbPool.execute(
+      `INSERT INTO user_favorites (user_id, property_id) VALUES (?, ?)
+       ON DUPLICATE KEY UPDATE created_at = CURRENT_TIMESTAMP`,
+      [userId, propertyId],
+    );
+  } catch (error) {
+    wrapDbError(error);
+  }
+}
+
+export async function unlikeProperty(userId: number, propertyId: number): Promise<void> {
+  try {
+    await dbPool.execute(
+      `DELETE FROM user_favorites WHERE user_id = ? AND property_id = ?`,
+      [userId, propertyId],
+    );
+  } catch (error) {
+    wrapDbError(error);
+  }
+}

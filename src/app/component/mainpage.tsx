@@ -7,6 +7,8 @@ import { useMemo, useState } from "react";
 import { buildPriceLabel, formatPrice, getDistrict } from "@/lib/property-format";
 import { LISTING_TYPES, type Property } from "@/types/property";
 import { useFavoritesStore } from "@/lib/favorites-store";
+import About from "./about";
+import Services from "./services";
 
 type MainPageProps = {
   properties: Property[];
@@ -182,6 +184,8 @@ export default function MainPage({ properties }: MainPageProps) {
 
   return (
     <div className="min-h-screen bg-[linear-gradient(180deg,#e7edf4_0%,#dce6f1_42%,#eaf0f5_100%)] text-slate-900">
+      <About />
+      <Services />
       <section id="properties" className="relative overflow-hidden py-16 md:py-20">
         <div className="pointer-events-none absolute -left-28 top-20 h-72 w-72 rounded-full bg-cyan-200/35 blur-3xl" />
         <div className="pointer-events-none absolute right-0 top-28 h-72 w-72 rounded-full bg-blue-300/25 blur-3xl" />

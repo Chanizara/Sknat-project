@@ -1,8 +1,9 @@
 'use client';
 
 import dynamic from "next/dynamic";
-import L from "leaflet";
 import { useSearchParams } from "next/navigation";
+import { useEffect, useState, Suspense } from "react";
+import type L from "leaflet";
 
 const MapContainer = dynamic(
   () => import("react-leaflet").then((mod) => mod.MapContainer),
@@ -21,25 +22,40 @@ const Popup = dynamic(
   { ssr: false },
 );
 
-const houseIcon = L.divIcon({
-  className: "custom-house-marker",
-  html: `
-    <div class="map-house-pin">
-      <span class="map-house-pin__pulse"></span>
-      <span class="map-house-pin__core">
-        <svg viewBox="0 0 24 24" fill="none">
-          <path d="M4 11.5L12 4l8 7.5v7a1.5 1.5 0 0 1-1.5 1.5h-3.2v-5.2a1.1 1.1 0 0 0-1.1-1.1h-2.4a1.1 1.1 0 0 0-1.1 1.1V20H7.5A1.5 1.5 0 0 1 6 18.5v-7z" />
-        </svg>
-      </span>
-    </div>
-  `,
-  iconSize: [56, 56],
-  iconAnchor: [28, 56],
-  popupAnchor: [0, -50],
-});
+// Create icon only on client side
+function useHouseIcon() {
+  const [icon, setIcon] = useState<L.DivIcon | null>(null);
 
-export default function MapPage() {
+  useEffect(() => {
+    // Dynamic import leaflet only on client
+    import("leaflet").then((L) => {
+      setIcon(
+        L.divIcon({
+          className: "custom-house-marker",
+          html: `
+            <div class="map-house-pin">
+              <span class="map-house-pin__pulse"></span>
+              <span class="map-house-pin__core">
+                <svg viewBox="0 0 24 24" fill="none">
+                  <path d="M4 11.5L12 4l8 7.5v7a1.5 1.5 0 0 1-1.5 1.5h-3.2v-5.2a1.1 1.1 0 0 0-1.1-1.1h-2.4a1.1 1.1 0 0 0-1.1 1.1V20H7.5A1.5 1.5 0 0 1 6 18.5v-7z" />
+                </svg>
+              </span>
+            </div>
+          `,
+          iconSize: [56, 56],
+          iconAnchor: [28, 56],
+          popupAnchor: [0, -50],
+        })
+      );
+    });
+  }, []);
+
+  return icon;
+}
+
+function MapPageContent() {
   const searchParams = useSearchParams();
+  const houseIcon = useHouseIcon();
 
   const parsedLat = parseFloat(searchParams.get("lat") || "13.7563");
   const parsedLng = parseFloat(searchParams.get("lng") || "100.5018");
@@ -56,6 +72,7 @@ export default function MapPage() {
   const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
 
   const handleClose = () => {
+    if (typeof window === "undefined") return;
     if (window.opener) {
       window.close();
       return;
@@ -104,7 +121,7 @@ export default function MapPage() {
                 url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
               />
 
-              <Marker position={[lat, lng]} icon={houseIcon}>
+              {houseIcon && <Marker position={[lat, lng]} icon={houseIcon}>
                 <Popup className="sknat-map-popup" minWidth={260}>
                   <article className="overflow-hidden rounded-xl bg-white/98">
                     {image ? (
@@ -126,7 +143,7 @@ export default function MapPage() {
                     </div>
                   </article>
                 </Popup>
-              </Marker>
+              </Marker>}
             </MapContainer>
           </div>
         </div>
@@ -153,5 +170,20 @@ export default function MapPage() {
         </a>
       </div>
     </div>
+  );
+}
+
+export default function MapPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex h-screen items-center justify-center bg-slate-50">
+        <div className="text-center">
+          <div className="mb-4 inline-block h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-slate-950" />
+          <p className="text-sm text-slate-600">กำลังโหลดแผนที่...</p>
+        </div>
+      </div>
+    }>
+      <MapPageContent />
+    </Suspense>
   );
 }

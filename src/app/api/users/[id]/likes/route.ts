@@ -2,14 +2,12 @@ import { NextResponse } from "next/server";
 
 import { likeProperty, unlikeProperty, UserStoreError } from "@/lib/user-store";
 
-type RouteContext = {
-  params: {
-    id: string;
-  };
-};
-
-export async function POST(request: Request, { params }: RouteContext) {
-  const userId = Number(params.id);
+export async function POST(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params;
+  const userId = Number(id);
   if (isNaN(userId)) {
     return NextResponse.json({ message: "ID ผู้ใช้ไม่ถูกต้อง" }, { status: 400 });
   }
@@ -30,8 +28,12 @@ export async function POST(request: Request, { params }: RouteContext) {
   }
 }
 
-export async function DELETE(request: Request, { params }: RouteContext) {
-  const userId = Number(params.id);
+export async function DELETE(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params;
+  const userId = Number(id);
   if (isNaN(userId)) {
     return NextResponse.json({ message: "ID ผู้ใช้ไม่ถูกต้อง" }, { status: 400 });
   }

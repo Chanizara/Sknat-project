@@ -398,8 +398,7 @@ export async function createProperty(input: unknown): Promise<Property> {
       normalized.pricePerSqm ??
       (normalized.size && normalized.size > 0 && normalized.price ? Math.round(normalized.price / normalized.size) : undefined);
 
-    const [result] = await dbPool.execute<ResultSetHeader>(
-      `INSERT INTO properties (
+    const sql = `INSERT INTO properties (
         type,
         title,
         location,
@@ -419,7 +418,9 @@ export async function createProperty(input: unknown): Promise<Property> {
         agent_phone,
         agent_email,
         images
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const [result] = await (dbPool.execute as any)(sql,
       [
         normalized.type,
         normalized.title,
@@ -474,8 +475,7 @@ export async function updateProperty(id: number, input: unknown): Promise<Proper
       updatedAt: new Date().toISOString(),
     };
 
-    await dbPool.execute(
-      `UPDATE properties
+    const updateSql = `UPDATE properties
       SET
         type = ?,
         title = ?,
@@ -497,7 +497,9 @@ export async function updateProperty(id: number, input: unknown): Promise<Proper
         agent_email = ?,
         images = ?,
         updated_at = NOW()
-      WHERE id = ?`,
+      WHERE id = ?`;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await (dbPool.execute as any)(updateSql,
       [
         merged.type,
         merged.title,
