@@ -90,7 +90,7 @@ function NearbyPlaceItem({
 function FeatureTag({ label }: { label: string }) {
   return (
     <span className="inline-flex items-center gap-2 px-4 py-2.5 rounded-full bg-white text-slate-700 text-sm font-medium border border-slate-200 shadow-sm hover:bg-slate-50 transition-colors">
-      <svg className="w-4 h-4 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <svg className="w-4 h-4 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
       </svg>
       {label}
@@ -175,11 +175,9 @@ export default function PropertyDetailPage() {
           url: url,
         });
       } catch (err) {
-        // User cancelled or share failed
         console.log('Share cancelled');
       }
     } else {
-      // Fallback: copy to clipboard
       try {
         await navigator.clipboard.writeText(url);
         setShowShareToast(true);
@@ -232,7 +230,7 @@ export default function PropertyDetailPage() {
             </svg>
           </div>
           <h1 className="text-2xl font-semibold text-slate-900 mb-3">ไม่พบข้อมูลบ้าน</h1>
-          <Link href="/" className="inline-flex items-center gap-2 px-6 py-3 bg-slate-900 text-white rounded-full text-sm font-semibold hover:bg-slate-800 transition-all">
+          <Link href="/" className="inline-flex items-center gap-2 px-6 py-3 bg-slate-950 text-white rounded-full text-sm font-semibold hover:bg-slate-800 transition-all">
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
             </svg>
@@ -286,6 +284,10 @@ export default function PropertyDetailPage() {
 
   return (
     <div className="min-h-screen bg-[linear-gradient(180deg,#f8fafc_0%,#f1f5f9_50%,#e2e8f0_100%)]">
+      {/* Decorative Elements */}
+      <div className="pointer-events-none absolute -left-28 top-20 h-72 w-72 rounded-full bg-cyan-200/35 blur-3xl" />
+      <div className="pointer-events-none absolute right-0 top-28 h-72 w-72 rounded-full bg-blue-300/25 blur-3xl" />
+
       {/* Floating Navigation */}
       <div className="fixed top-0 left-0 right-0 z-50 px-4 sm:px-6 lg:px-10 py-4">
         <div className="max-w-7xl mx-auto">
@@ -309,7 +311,7 @@ export default function PropertyDetailPage() {
             <span className="w-px h-4 bg-slate-300" />
             <div className="flex items-center gap-2">
               <span className="text-xs text-slate-500 uppercase tracking-wider">รายละเอียดทรัพย์</span>
-              <span className="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-xs font-medium">
+              <span className="px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 text-xs font-medium">
                 {property.type}
               </span>
             </div>
@@ -511,7 +513,7 @@ export default function PropertyDetailPage() {
             {/* Content */}
             <div className="mb-10 space-y-6">
               {/* Description */}
-              <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 border border-slate-200 shadow-sm">
+              <div className="bg-white/80 backdrop-blur-sm rounded-[2rem] p-8 border border-slate-200 shadow-sm">
                 <h2 className="text-xl font-bold text-slate-900 mb-4 flex items-center gap-3">
                   <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center border border-slate-100">
                     <svg className="w-5 h-5 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -525,7 +527,7 @@ export default function PropertyDetailPage() {
 
               {/* Features */}
               {property.features && property.features.length > 0 && (
-                <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 border border-slate-200 shadow-sm">
+                <div className="bg-white/80 backdrop-blur-sm rounded-[2rem] p-8 border border-slate-200 shadow-sm">
                   <h2 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-3">
                     <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center border border-slate-100">
                       <svg className="w-5 h-5 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -543,7 +545,7 @@ export default function PropertyDetailPage() {
               )}
 
               {/* Property Details Grid */}
-              <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 border border-slate-200 shadow-sm">
+              <div className="bg-white/80 backdrop-blur-sm rounded-[2rem] p-8 border border-slate-200 shadow-sm">
                 <h2 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-3">
                   <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center border border-slate-100">
                     <svg className="w-5 h-5 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -564,7 +566,7 @@ export default function PropertyDetailPage() {
             </div>
 
             {/* Nearby Places */}
-            <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 border border-slate-200 shadow-sm mb-8">
+            <div className="bg-white/80 backdrop-blur-sm rounded-[2rem] p-8 border border-slate-200 shadow-sm mb-8">
               <h2 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center border border-slate-100">
                   <svg className="w-5 h-5 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -589,7 +591,7 @@ export default function PropertyDetailPage() {
             </div>
 
             {/* Location Map */}
-            <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 border border-slate-200 shadow-sm">
+            <div className="bg-white/80 backdrop-blur-sm rounded-[2rem] p-8 border border-slate-200 shadow-sm">
               <h2 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center border border-slate-100">
                   <svg className="w-5 h-5 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -637,9 +639,10 @@ export default function PropertyDetailPage() {
               }`}
             >
               {/* Contact Card */}
-              <div className="rounded-3xl bg-white p-8 border border-slate-200 shadow-[0_20px_50px_-20px_rgba(15,23,42,0.15)]">
+              <div className="rounded-[2rem] bg-white/80 backdrop-blur-sm p-8 border border-slate-200 shadow-[0_20px_50px_-20px_rgba(15,23,42,0.15)]">
+                {/* Header - Changed from green to slate */}
                 <div className="flex items-center gap-4 mb-8">
-                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg">
+                  <div className="w-14 h-14 rounded-2xl bg-slate-950 flex items-center justify-center shadow-lg">
                     <svg className="w-7 h-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                     </svg>
@@ -665,21 +668,22 @@ export default function PropertyDetailPage() {
                       </div>
                     </div>
 
-                    {/* Contact Buttons */}
+                    {/* Contact Buttons - Redesigned with consistent slate theme */}
                     <div className="space-y-3">
+                      {/* Phone Button - Changed from dark blue to white/outline style */}
                       {property.agent.phone && (
                         <a
                           href={`tel:${property.agent.phone}`}
-                          className="flex items-center gap-4 p-4 rounded-2xl bg-slate-900 text-white hover:bg-slate-800 transition-all group"
+                          className="flex items-center gap-4 p-4 rounded-2xl bg-white border border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition-all group"
                         >
-                          <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center group-hover:bg-white/20 transition-colors">
-                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <div className="w-12 h-12 rounded-xl bg-slate-950 flex items-center justify-center group-hover:scale-105 transition-transform">
+                            <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                             </svg>
                           </div>
                           <div className="flex-1">
-                            <p className="text-xs text-slate-300">โทร</p>
-                            <p className="font-semibold">{property.agent.phone}</p>
+                            <p className="text-xs text-slate-500">โทร</p>
+                            <p className="font-semibold text-slate-900">{property.agent.phone}</p>
                           </div>
                           <svg className="w-5 h-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -687,12 +691,13 @@ export default function PropertyDetailPage() {
                         </a>
                       )}
 
+                      {/* Email Button */}
                       {property.agent.email && (
                         <a
                           href={`mailto:${property.agent.email}`}
-                          className="flex items-center gap-4 p-4 rounded-2xl bg-slate-50 hover:bg-slate-100 transition-all border border-slate-200 group"
+                          className="flex items-center gap-4 p-4 rounded-2xl bg-white hover:bg-slate-50 transition-all border border-slate-200 group"
                         >
-                          <div className="w-12 h-12 rounded-xl bg-white flex items-center justify-center border border-slate-200 group-hover:scale-105 transition-transform">
+                          <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center group-hover:scale-105 transition-transform">
                             <svg className="w-5 h-5 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                             </svg>
@@ -704,23 +709,23 @@ export default function PropertyDetailPage() {
                         </a>
                       )}
 
-                      {/* LINE Button */}
+                      {/* LINE Button - Changed from green to slate theme */}
                       <a
                         href="https://line.me/ti/p/@sknat.property"
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center gap-4 p-4 rounded-2xl bg-[#06C755] hover:bg-[#05b34d] transition-all text-white group"
+                        className="flex items-center gap-4 p-4 rounded-2xl bg-white border border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition-all group"
                       >
-                        <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center group-hover:scale-105 transition-transform">
-                          <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                        <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center group-hover:scale-105 transition-transform">
+                          <svg className="w-5 h-5 text-slate-600" viewBox="0 0 24 24" fill="currentColor">
                             <path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63h2.386c.349 0 .63.285.63.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .345-.285.63-.631.63s-.63-.285-.63-.63V8.108c0-.345.282-.63.63-.63.346 0 .63.285.63.63v4.771zm-1.65.631c-.345 0-.63-.285-.63-.63V8.108c0-.345.285-.63.63-.63.346 0 .629.285.629.63v4.772c0 .344-.283.629-.63.629zm-2.466.631c-.345 0-.63-.286-.63-.631V8.739h-1.17c-.345 0-.63-.285-.63-.63 0-.345.285-.63.63-.63h3.601c.345 0 .63.285.63.63 0 .345-.285.63-.63.63h-1.17v4.771c0 .345-.285.631-.631.631zm-2.902 0c-.346 0-.631-.286-.631-.631V8.108c0-.345.285-.63.63-.63h1.756c.869 0 1.575.706 1.575 1.574 0 .869-.706 1.575-1.575 1.575H8.492v2.401c0 .345-.285.631-.63.631zm.63-4.772v1.512h1.126c.315 0 .57-.255.57-.57 0-.316-.255-.571-.57-.571H8.492v.629z"/>
                           </svg>
                         </div>
                         <div className="flex-1">
-                          <p className="text-xs text-white/80">LINE ID</p>
-                          <p className="font-semibold">@sknat.property</p>
+                          <p className="text-xs text-slate-500">LINE ID</p>
+                          <p className="font-semibold text-slate-900">@sknat.property</p>
                         </div>
-                        <svg className="w-5 h-5 text-white/80" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <svg className="w-5 h-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                         </svg>
                       </a>
@@ -774,11 +779,11 @@ export default function PropertyDetailPage() {
                 </button>
               </div>
 
-              {/* Price per sqm info */}
+              {/* Price per sqm info - Changed from emerald to slate */}
               {property.pricePerSqm && (
-                <div className="mt-6 p-5 rounded-2xl bg-emerald-50 border border-emerald-100">
-                  <p className="text-xs text-emerald-600 mb-1">ราคาต่อตร.ม.</p>
-                  <p className="text-xl font-bold text-emerald-700">{formatPrice(property.pricePerSqm)}/ตร.ม.</p>
+                <div className="mt-6 p-5 rounded-2xl bg-slate-50 border border-slate-200">
+                  <p className="text-xs text-slate-500 mb-1">ราคาต่อตร.ม.</p>
+                  <p className="text-xl font-bold text-slate-900">{formatPrice(property.pricePerSqm)}/ตร.ม.</p>
                 </div>
               )}
             </div>
@@ -790,7 +795,7 @@ export default function PropertyDetailPage() {
       {showShareToast && (
         <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 animate-in fade-in slide-in-from-bottom-4 duration-300">
           <div className="flex items-center gap-3 px-6 py-3 bg-slate-900 text-white rounded-full shadow-2xl">
-            <svg className="w-5 h-5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="w-5 h-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
             <span className="text-sm font-medium">คัดลอกลิงก์แล้ว</span>
