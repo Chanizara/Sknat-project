@@ -133,7 +133,7 @@ export default function Services() {
     <section
       ref={sectionRef}
       id="services"
-      className="relative overflow-hidden bg-[linear-gradient(180deg,#e2e8f0_0%,#f1f5f9_100%)] py-24 md:py-32"
+      className="relative overflow-hidden bg-white py-24 md:py-32"
     >
       {/* Decorative Elements */}
       <div className="pointer-events-none absolute left-0 top-0 h-72 w-72 rounded-full bg-cyan-200/30 blur-3xl" />

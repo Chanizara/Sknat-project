@@ -183,7 +183,7 @@ export default function MainPage({ properties }: MainPageProps) {
   };
 
   return (
-    <div className="min-h-screen bg-[linear-gradient(180deg,#e7edf4_0%,#dce6f1_42%,#eaf0f5_100%)] text-slate-900">
+    <div className="min-h-screen bg-white text-slate-900">
       <About />
       <Services />
       <section id="properties" className="relative overflow-hidden py-16 md:py-20">

@@ -22,7 +22,7 @@ export default function Footer() {
   };
   return (
     <>
-      <section id="contact" className="relative overflow-hidden bg-gradient-to-b from-slate-50 to-slate-100 py-20 md:py-28 text-slate-900">
+      <section id="contact" className="relative overflow-hidden bg-white py-20 md:py-28 text-slate-900">
         {/* Decorative background elements */}
         <div className="pointer-events-none absolute top-0 left-0 h-full w-full overflow-hidden">
           <div className="absolute -left-20 top-20 h-96 w-96 rounded-full bg-gradient-to-br from-emerald-100/40 to-cyan-100/40 blur-3xl" />

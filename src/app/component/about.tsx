@@ -158,7 +158,7 @@ export default function About() {
     <section
       ref={sectionRef}
       id="about"
-      className="relative overflow-hidden bg-[linear-gradient(180deg,#f8fafc_0%,#f1f5f9_100%)] py-24 md:py-32"
+      className="relative overflow-hidden bg-white py-24 md:py-32"
     >
       {/* Decorative Elements */}
       <div className="pointer-events-none absolute -right-32 top-20 h-96 w-96 rounded-full bg-cyan-100/40 blur-3xl" />
