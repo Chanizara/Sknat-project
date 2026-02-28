@@ -10,6 +10,9 @@ type UserRow = RowDataPacket & {
   username: string;
   role: UserRole;
   full_name: string | null;
+  phone: string | null;
+  email: string | null;
+  line_id: string | null;
   created_at: Date | string;
   updated_at: Date | string;
 };
@@ -50,6 +53,9 @@ function mapRowToUser(row: UserRow): User {
     username: row.username,
     role: row.role,
     fullName: row.full_name ?? undefined,
+    phone: row.phone ?? undefined,
+    email: row.email ?? undefined,
+    lineId: row.line_id ?? undefined,
     createdAt: toIsoString(row.created_at),
     updatedAt: toIsoString(row.updated_at),
   };
@@ -70,7 +76,7 @@ function wrapDbError(error: unknown): never {
 export async function listUsers(): Promise<User[]> {
   try {
     const [rows] = await dbPool.query<UserRow[]>(
-      `SELECT id, username, role, full_name, created_at, updated_at
+      `SELECT id, username, role, full_name, phone, email, line_id, created_at, updated_at
        FROM users
        ORDER BY id ASC`,
     );
@@ -91,6 +97,9 @@ export async function createUser(input: unknown): Promise<User> {
   const password = normalizeString(payload.password);
   const roleValue = normalizeString(payload.role);
   const fullName = normalizeString(payload.fullName);
+  const phone = normalizeString(payload.phone);
+  const email = normalizeString(payload.email);
+  const lineId = normalizeString(payload.lineId);
 
   if (!username) {
     throw new UserStoreError("username จำเป็นต้องระบุ");
@@ -106,13 +115,13 @@ export async function createUser(input: unknown): Promise<User> {
 
   try {
     const [result] = await dbPool.execute<ResultSetHeader>(
-      `INSERT INTO users (username, password_hash, role, full_name)
-       VALUES (?, ?, ?, ?)`,
-      [username, hashPassword(password), roleValue, fullName ?? null],
+      `INSERT INTO users (username, password_hash, role, full_name, phone, email, line_id)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      [username, hashPassword(password), roleValue, fullName ?? null, phone ?? null, email ?? null, lineId ?? null],
     );
 
     const [rows] = await dbPool.query<UserRow[]>(
-      `SELECT id, username, role, full_name, created_at, updated_at
+      `SELECT id, username, role, full_name, phone, email, line_id, created_at, updated_at
        FROM users WHERE id = ? LIMIT 1`,
       [result.insertId],
     );
@@ -142,7 +151,7 @@ export async function authenticateUser(input: unknown): Promise<User | null> {
 
   try {
     const [rows] = await dbPool.query<UserRow[]>(
-      `SELECT id, username, role, full_name, created_at, updated_at
+      `SELECT id, username, role, full_name, phone, email, line_id, created_at, updated_at
        FROM users
        WHERE username = ? AND password_hash = ?
        LIMIT 1`,

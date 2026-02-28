@@ -7,6 +7,9 @@ export type User = {
   username: string;
   role: UserRole;
   fullName?: string;
+  phone?: string;
+  email?: string;
+  lineId?: string;
   createdAt: string;
   updatedAt: string;
 };

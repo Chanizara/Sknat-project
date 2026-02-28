@@ -24,9 +24,11 @@ type PropertyRow = RowDataPacket & {
   features: string | null;
   lat: number | string | null;
   lng: number | string | null;
-  agent_name: string | null;
-  agent_phone: string | null;
-  agent_email: string | null;
+  seller_id: number | null;
+  seller_full_name: string | null;
+  seller_phone: string | null;
+  seller_email: string | null;
+  seller_line_id: string | null;
   images: string | null;
   created_at: Date | string;
   updated_at: Date | string;
@@ -65,6 +67,15 @@ function normalizeNumber(value: unknown, fieldName: string): number | undefined 
     throw new PropertyStoreError(`ค่า ${fieldName} ไม่ถูกต้อง`);
   }
 
+  return parsed;
+}
+
+function normalizePositiveInteger(value: unknown, fieldName: string): number | undefined {
+  const parsed = normalizeNumber(value, fieldName);
+  if (parsed === undefined) return undefined;
+  if (!Number.isInteger(parsed) || parsed <= 0) {
+    throw new PropertyStoreError(`ค่า ${fieldName} ไม่ถูกต้อง`);
+  }
   return parsed;
 }
 
@@ -154,7 +165,7 @@ function mapRowToProperty(row: PropertyRow): Property {
   const features = parseJsonArray(row.features);
   const images = parseJsonArray(row.images);
 
-  const hasAgent = row.agent_name || row.agent_phone || row.agent_email;
+  const hasAgent = row.seller_full_name || row.seller_phone || row.seller_email || row.seller_line_id;
 
   return {
     id: row.id,
@@ -173,11 +184,13 @@ function mapRowToProperty(row: PropertyRow): Property {
     features,
     lat: toNumberOrUndefined(row.lat),
     lng: toNumberOrUndefined(row.lng),
+    sellerId: toNumberOrUndefined(row.seller_id),
     agent: hasAgent
       ? {
-          name: row.agent_name ?? "-",
-          phone: row.agent_phone ?? "-",
-          email: row.agent_email ?? "-",
+          name: row.seller_full_name ?? "-",
+          phone: row.seller_phone ?? "-",
+          email: row.seller_email ?? "-",
+          lineId: row.seller_line_id ?? undefined,
         }
       : undefined,
     images,
@@ -266,6 +279,23 @@ function normalizePayload(input: unknown, mode: "create" | "update"): PropertyIn
     normalized.lng = normalizeNumber(payload.lng, "lng");
   }
 
+  if ("sellerId" in payload) {
+    normalized.sellerId = normalizePositiveInteger(payload.sellerId, "sellerId");
+  }
+
+  if ("seller_id" in payload) {
+    normalized.sellerId = normalizePositiveInteger(payload.seller_id, "seller_id");
+  }
+
+  // Backward compatibility for old payload keys.
+  if ("userId" in payload) {
+    normalized.sellerId = normalizePositiveInteger(payload.userId, "userId");
+  }
+
+  if ("user_id" in payload) {
+    normalized.sellerId = normalizePositiveInteger(payload.user_id, "user_id");
+  }
+
   if ("features" in payload) {
     normalized.features = normalizeStringArray(payload.features);
   }
@@ -304,6 +334,62 @@ function normalizePayload(input: unknown, mode: "create" | "update"): PropertyIn
   return normalized;
 }
 
+async function resolveSellerId(
+  normalized: PropertyInput,
+  fallbackSellerId?: number,
+): Promise<number | undefined> {
+  if (normalized.sellerId) {
+    const [rows] = await dbPool.query<RowDataPacket[]>(
+      `SELECT id
+       FROM users
+       WHERE id = ? AND role = 'seller'
+       LIMIT 1`,
+      [normalized.sellerId],
+    );
+
+    if (rows.length === 0) {
+      throw new PropertyStoreError("ไม่พบ seller ตาม sellerId ที่ระบุ");
+    }
+
+    return normalized.sellerId;
+  }
+
+  const agentEmail = normalized.agent?.email?.trim();
+  const agentPhone = normalized.agent?.phone?.trim();
+  const agentName = normalized.agent?.name?.trim();
+
+  if (!agentEmail && !agentPhone && !agentName) {
+    return fallbackSellerId;
+  }
+
+  const [rows] = await dbPool.query<RowDataPacket[]>(
+    `SELECT id
+     FROM users
+     WHERE role = 'seller'
+       AND (
+         (? IS NOT NULL AND email = ?)
+         OR (? IS NOT NULL AND phone = ?)
+         OR (? IS NOT NULL AND full_name = ?)
+       )
+     ORDER BY id ASC
+     LIMIT 1`,
+    [
+      agentEmail ?? null,
+      agentEmail ?? null,
+      agentPhone ?? null,
+      agentPhone ?? null,
+      agentName ?? null,
+      agentName ?? null,
+    ],
+  );
+
+  if (rows.length === 0) {
+    throw new PropertyStoreError("ไม่พบ seller ใน users ตามข้อมูลผู้ติดต่อที่ระบุ");
+  }
+
+  return Number(rows[0].id);
+}
+
 function wrapDbError(error: unknown): never {
   if (error instanceof PropertyStoreError) {
     throw error;
@@ -316,30 +402,33 @@ export async function listProperties(): Promise<Property[]> {
   try {
     const [rows] = await dbPool.query<PropertyRow[]>(
       `SELECT
-        id,
-        type,
-        title,
-        location,
-        price,
-        image,
-        category,
-        property_type,
-        size,
-        bedrooms,
-        bathrooms,
-        price_per_sqm,
-        description,
-        CAST(features AS CHAR) AS features,
-        lat,
-        lng,
-        agent_name,
-        agent_phone,
-        agent_email,
-        CAST(images AS CHAR) AS images,
-        created_at,
-        updated_at
-      FROM properties
-      ORDER BY id DESC`,
+        p.id,
+        p.type,
+        p.title,
+        p.location,
+        p.price,
+        p.image,
+        p.category,
+        p.property_type,
+        p.size,
+        p.bedrooms,
+        p.bathrooms,
+        p.price_per_sqm,
+        p.description,
+        CAST(p.features AS CHAR) AS features,
+        p.lat,
+        p.lng,
+        p.seller_id,
+        u.full_name AS seller_full_name,
+        u.phone AS seller_phone,
+        u.email AS seller_email,
+        u.line_id AS seller_line_id,
+        CAST(p.images AS CHAR) AS images,
+        p.created_at,
+        p.updated_at
+      FROM properties p
+      LEFT JOIN users u ON u.id = p.seller_id
+      ORDER BY p.id DESC`,
     );
 
     return rows.map(mapRowToProperty);
@@ -352,30 +441,33 @@ export async function getPropertyById(id: number): Promise<Property | undefined>
   try {
     const [rows] = await dbPool.query<PropertyRow[]>(
       `SELECT
-        id,
-        type,
-        title,
-        location,
-        price,
-        image,
-        category,
-        property_type,
-        size,
-        bedrooms,
-        bathrooms,
-        price_per_sqm,
-        description,
-        CAST(features AS CHAR) AS features,
-        lat,
-        lng,
-        agent_name,
-        agent_phone,
-        agent_email,
-        CAST(images AS CHAR) AS images,
-        created_at,
-        updated_at
-      FROM properties
-      WHERE id = ?
+        p.id,
+        p.type,
+        p.title,
+        p.location,
+        p.price,
+        p.image,
+        p.category,
+        p.property_type,
+        p.size,
+        p.bedrooms,
+        p.bathrooms,
+        p.price_per_sqm,
+        p.description,
+        CAST(p.features AS CHAR) AS features,
+        p.lat,
+        p.lng,
+        p.seller_id,
+        u.full_name AS seller_full_name,
+        u.phone AS seller_phone,
+        u.email AS seller_email,
+        u.line_id AS seller_line_id,
+        CAST(p.images AS CHAR) AS images,
+        p.created_at,
+        p.updated_at
+      FROM properties p
+      LEFT JOIN users u ON u.id = p.seller_id
+      WHERE p.id = ?
       LIMIT 1`,
       [id],
     );
@@ -393,6 +485,7 @@ export async function getPropertyById(id: number): Promise<Property | undefined>
 export async function createProperty(input: unknown): Promise<Property> {
   try {
     const normalized = normalizePayload(input, "create");
+    const sellerId = await resolveSellerId(normalized);
 
     const pricePerSqm =
       normalized.pricePerSqm ??
@@ -414,11 +507,9 @@ export async function createProperty(input: unknown): Promise<Property> {
         features,
         lat,
         lng,
-        agent_name,
-        agent_phone,
-        agent_email,
+        seller_id,
         images
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [result] = await (dbPool.execute as any)(sql,
       [
@@ -437,9 +528,7 @@ export async function createProperty(input: unknown): Promise<Property> {
         normalized.features ? JSON.stringify(normalized.features) : null,
         normalized.lat ?? null,
         normalized.lng ?? null,
-        normalized.agent?.name ?? null,
-        normalized.agent?.phone ?? null,
-        normalized.agent?.email ?? null,
+        sellerId ?? null,
         normalized.images ? JSON.stringify(normalized.images) : null,
       ],
     );
@@ -464,9 +553,12 @@ export async function updateProperty(id: number, input: unknown): Promise<Proper
       throw new PropertyStoreError("ไม่พบรายการอสังหาริมทรัพย์", 404);
     }
 
+    const sellerId = await resolveSellerId(normalized, existing.sellerId);
+
     const merged: Property = {
       ...existing,
       ...normalized,
+      sellerId,
       pricePerSqm:
         normalized.pricePerSqm ??
         ((normalized.price !== undefined || normalized.size !== undefined) && (normalized.size ?? existing.size)
@@ -492,9 +584,7 @@ export async function updateProperty(id: number, input: unknown): Promise<Proper
         features = ?,
         lat = ?,
         lng = ?,
-        agent_name = ?,
-        agent_phone = ?,
-        agent_email = ?,
+        seller_id = ?,
         images = ?,
         updated_at = NOW()
       WHERE id = ?`;
@@ -516,9 +606,7 @@ export async function updateProperty(id: number, input: unknown): Promise<Proper
         merged.features ? JSON.stringify(merged.features) : null,
         merged.lat ?? null,
         merged.lng ?? null,
-        merged.agent?.name ?? null,
-        merged.agent?.phone ?? null,
-        merged.agent?.email ?? null,
+        merged.sellerId ?? null,
         merged.images ? JSON.stringify(merged.images) : null,
         id,
       ],

@@ -6,6 +6,7 @@ export type Agent = {
   name: string;
   phone: string;
   email: string;
+  lineId?: string;
 };
 
 export type Property = {
@@ -27,6 +28,7 @@ export type Property = {
   lng?: number;
   agent?: Agent;
   images?: string[];
+  sellerId?: number;
   createdAt: string;
   updatedAt: string;
 };
