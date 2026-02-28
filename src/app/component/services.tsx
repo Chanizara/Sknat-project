@@ -136,8 +136,8 @@ export default function Services() {
       className="relative overflow-hidden bg-white py-24 md:py-32"
     >
       {/* Decorative Elements */}
-      <div className="pointer-events-none absolute left-0 top-0 h-72 w-72 rounded-full bg-cyan-200/30 blur-3xl" />
-      <div className="pointer-events-none absolute right-0 bottom-0 h-96 w-96 rounded-full bg-blue-200/30 blur-3xl" />
+      <div className="pointer-events-none absolute left-0 top-1/3 h-64 w-64 rounded-full bg-cyan-100/20 blur-2xl" />
+      <div className="pointer-events-none absolute right-0 bottom-1/3 h-64 w-64 rounded-full bg-blue-100/20 blur-2xl" />
       <div className="pointer-events-none absolute inset-x-0 top-0 h-[400px] bg-[linear-gradient(180deg,rgba(255,255,255,0.6)_0%,rgba(255,255,255,0)_100%)]" />
 
       <div className="container relative mx-auto px-4 md:px-6">

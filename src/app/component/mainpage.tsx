@@ -187,8 +187,8 @@ export default function MainPage({ properties }: MainPageProps) {
       <About />
       <Services />
       <section id="properties" className="relative overflow-hidden py-16 md:py-20">
-        <div className="pointer-events-none absolute -left-28 top-20 h-72 w-72 rounded-full bg-cyan-200/35 blur-3xl" />
-        <div className="pointer-events-none absolute right-0 top-28 h-72 w-72 rounded-full bg-blue-300/25 blur-3xl" />
+        <div className="pointer-events-none absolute left-0 top-1/4 h-56 w-56 rounded-full bg-blue-100/20 blur-2xl" />
+        <div className="pointer-events-none absolute right-0 bottom-1/4 h-56 w-56 rounded-full bg-cyan-100/20 blur-2xl" />
         <div className="pointer-events-none absolute inset-x-0 top-0 h-[420px] bg-[linear-gradient(180deg,rgba(255,255,255,0.7)_0%,rgba(255,255,255,0)_100%)]" />
 
         <div className="container relative mx-auto px-4 md:px-6">

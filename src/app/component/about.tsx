@@ -161,8 +161,8 @@ export default function About() {
       className="relative overflow-hidden bg-white py-24 md:py-32"
     >
       {/* Decorative Elements */}
-      <div className="pointer-events-none absolute -right-32 top-20 h-96 w-96 rounded-full bg-cyan-100/40 blur-3xl" />
-      <div className="pointer-events-none absolute -left-20 bottom-20 h-80 w-80 rounded-full bg-blue-100/50 blur-3xl" />
+      <div className="pointer-events-none absolute -left-32 top-1/3 h-64 w-64 rounded-full bg-blue-100/20 blur-2xl" />
+      <div className="pointer-events-none absolute right-1/4 bottom-1/4 h-48 w-48 rounded-full bg-cyan-100/15 blur-2xl" />
 
       <div className="container relative mx-auto px-4 md:px-6">
         {/* Section Header */}
