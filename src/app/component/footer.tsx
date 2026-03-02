@@ -1,9 +1,19 @@
 'use client';
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 export default function Footer() {
+  const pathname = usePathname();
+  const isHomePage = pathname === '/';
+
   const scrollToSection = (sectionId: string) => {
+    // If not on homepage, navigate to homepage with hash
+    if (!isHomePage) {
+      window.location.href = sectionId === 'home' ? '/' : `/#${sectionId}`;
+      return;
+    }
+
     if (sectionId === 'home') {
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
@@ -22,7 +32,9 @@ export default function Footer() {
   };
   return (
     <>
-      <section id="contact" className="relative overflow-hidden bg-white py-20 md:py-28 text-slate-900">
+      {/* Only show contact section on homepage */}
+      {isHomePage && (
+        <section id="contact" className="relative overflow-hidden bg-white py-20 md:py-28 text-slate-900">
         {/* Decorative background elements */}
         <div className="pointer-events-none absolute top-0 left-0 h-full w-full overflow-hidden">
           <div className="absolute -left-20 top-20 h-96 w-96 rounded-full bg-gradient-to-br from-emerald-100/40 to-cyan-100/40 blur-3xl" />
@@ -154,6 +166,7 @@ export default function Footer() {
           </div>
         </div>
       </section>
+      )}
 
       <footer className="relative overflow-hidden bg-slate-950 py-14 text-slate-300">
         <div className="pointer-events-none absolute -top-20 right-12 h-56 w-56 rounded-full bg-sky-400/10 blur-3xl" />
