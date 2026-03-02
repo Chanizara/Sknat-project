@@ -238,14 +238,6 @@ export default function PropertyDetailPage() {
           </svg>
           ดูรูปทั้งหมด ({allImages.length})
         </button>
-
-        {/* Scroll Down Indicator */}
-        <div className="hero-scroll-cue absolute bottom-9 left-1/2 z-40 -translate-x-1/2 text-white/80 md:bottom-11">
-          <span className="hero-scroll-cue__label">SCROLL DOWN</span>
-          <span className="hero-scroll-cue__line">
-            <span className="hero-scroll-cue__dot" />
-          </span>
-        </div>
       </section>
 
       {/* Property Details Section - Like About Section */}
