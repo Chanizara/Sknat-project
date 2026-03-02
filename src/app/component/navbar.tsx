@@ -1,12 +1,21 @@
 'use client';
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useFavoritesStore } from "@/lib/favorites-store";
 
 export default function Navbar() {
   const { favorites } = useFavoritesStore();
+  const pathname = usePathname();
+  const isHomePage = pathname === '/';
 
   const scrollToSection = (sectionId: string) => {
+    // If not on homepage, navigate to homepage with hash
+    if (!isHomePage) {
+      window.location.href = `/#${sectionId}`;
+      return;
+    }
+
     const element = document.getElementById(sectionId);
     if (element) {
       const navbarHeight = 80; // Approximate navbar height offset
@@ -32,16 +41,22 @@ export default function Navbar() {
   "
   >
       {/* LEFT : Logo */}
-      <img
-      src="/house_logo.png"
-      alt="logo"
-      className="
-        h-10
-        w-11
-        opacity-60
-        
-      "
-    />
+      <button
+        onClick={() => scrollToSection('hero')}
+        className="cursor-pointer bg-transparent border-none p-0"
+      >
+        <img
+          src="/house_logo.png"
+          alt="logo"
+          className="
+            h-10
+            w-11
+            opacity-60
+            hover:opacity-100
+            transition
+          "
+        />
+      </button>
 
      {/* RIGHT : Menu */}
         <div className="col-start-3 justify-self-end flex gap-8 opacity-80">
