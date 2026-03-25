@@ -53,7 +53,7 @@ export default function Footer() {
       ref={sectionRef}
       id="contact"
       className="relative overflow-hidden"
-      style={{ height: '100vh', minHeight: '600px' }}
+      style={{ height: '100vh', minHeight: '600px', zIndex: 1 }}
     >
       {/* ── Full-bleed background ── */}
       <div className="absolute inset-0">

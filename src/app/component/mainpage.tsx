@@ -271,7 +271,7 @@ export default function MainPage({ properties }: MainPageProps) {
                     whileInView={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.65, delay: (idx % 2) * 0.1, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] }}
                     viewport={{ once: true, margin: "-40px" }}
-                    className="group overflow-hidden rounded-2xl bg-white transition duration-300"
+                    className="group overflow-hidden bg-white transition duration-300"
                     style={{ border: '1px solid #e8e8e8' }}
                     whileHover={{ y: -4, boxShadow: '0 16px 40px rgba(0,0,0,0.10)', transition: { duration: 0.3 } }}
                   >
@@ -285,15 +285,15 @@ export default function MainPage({ properties }: MainPageProps) {
                       <div className="absolute inset-0 bg-linear-to-t from-[#020617]/75 via-[#020617]/15 to-transparent" />
 
                       <div className="absolute left-4 top-4 flex flex-wrap items-center gap-2">
-                        <span className="rounded-full bg-white/90 px-3 py-1 text-[11px] font-semibold text-[#0a0a0a]">{property.type}</span>
+                        <span className="bg-white/90 px-3 py-1 text-[11px] font-semibold text-[#0a0a0a]">{property.type}</span>
                         {property.propertyType ? (
-                          <span className="rounded-full bg-black/45 px-3 py-1 text-[11px] font-medium text-white">{property.propertyType}</span>
+                          <span className="bg-black/45 px-3 py-1 text-[11px] font-medium text-white">{property.propertyType}</span>
                         ) : null}
                       </div>
 
                       <button
                         onClick={(e) => handleToggleFavorite(property, e)}
-                        className={`absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-xl transition-all ${
+                        className={`absolute right-4 top-4 flex h-10 w-10 items-center justify-center transition-all ${
                           isFavorite(property.id)
                             ? 'bg-red-500 text-white scale-110'
                             : 'bg-white/90 text-[#0a0a0a] hover:bg-white'
@@ -333,7 +333,7 @@ export default function MainPage({ properties }: MainPageProps) {
                         </div>
                         <Link
                           href={`/property/${property.id}`}
-                          className="inline-flex h-10 items-center gap-2 rounded-xl bg-[#0a0a0a] px-4 text-sm font-semibold text-white transition hover:bg-[#1a40b6]"
+                          className="inline-flex h-10 items-center gap-2 bg-[#0a0a0a] px-4 text-sm font-semibold text-white transition hover:bg-[#1a40b6]"
                         >
                           รายละเอียด
                           <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
