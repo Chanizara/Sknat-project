@@ -62,8 +62,7 @@ function HeroRevealSection() {
       const sectionHeight = rect.height;
       
       // Progress from 0 (wireframe only) to 1 (fully revealed)
-      // Adjusted for longer scroll distance (300vh)
-      const progress = Math.max(0, Math.min(1, -sectionTop / (sectionHeight * 0.3)));
+      const progress = Math.max(0, Math.min(1, -sectionTop / (sectionHeight * 0.2)));
       setRevealProgress(progress);
     };
 
@@ -85,7 +84,7 @@ function HeroRevealSection() {
       {/* Sticky Container */}
       <div className="sticky top-0 h-screen flex items-center justify-center overflow-hidden">
         
-        {/* Image Container - Portrait rectangle, ~70% width, almost full height */}
+        {/* Image Container */}
         <div 
           className="relative"
           style={{
@@ -171,11 +170,39 @@ function HeroRevealSection() {
 // SERVICES SECTION (Light background, long) - With Parallax
 // ============================================
 function ServicesSection() {
+  const sectionRef = useRef<HTMLElement>(null);
+  const [parallaxY, setParallaxY] = useState(0);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (!sectionRef.current) return;
+      const rect = sectionRef.current.getBoundingClientRect();
+      const windowHeight = window.innerHeight;
+      
+      // When section enters viewport, calculate parallax offset
+      if (rect.top < windowHeight) {
+        const scrollProgress = (windowHeight - rect.top) / (windowHeight + rect.height);
+        const offset = Math.max(-100, -scrollProgress * 150); // Move up faster
+        setParallaxY(offset);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll();
+    
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   return (
     <section 
-      className="relative z-50 py-24 md:py-32 px-8 md:px-16 lg:px-24"
+      ref={sectionRef}
+      className="relative py-24 md:py-32 px-8 md:px-16 lg:px-24"
       style={{ 
-        backgroundColor: '#ffffff'
+        backgroundColor: '#ffffff',
+        zIndex: 50,
+        marginTop: '-30vh', // Overlap with hero
+        transform: `translateY(${parallaxY}px)`,
+        willChange: 'transform'
       }}
     >
       {/* Top Long Line */}
@@ -485,7 +512,7 @@ function HorizontalProcessSection() {
       {/* Sticky Container */}
       <div className="sticky top-0 h-screen overflow-hidden">
         {/* Progress Bar */}
-        <div className="absolute top-0 left-0 right-0 z-50 h-px" style={{ backgroundColor: '#333' }}>
+        <div className="absolute top-6 left-8 right-8 z-50 h-px" style={{ backgroundColor: '#333' }}>
           <div 
             className="h-full transition-all duration-100"
             style={{ 
@@ -495,25 +522,12 @@ function HorizontalProcessSection() {
           />
         </div>
 
-        {/* Progress Indicators */}
-        <div className="absolute top-8 left-8 right-8 z-50 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span style={{ color: '#666' }}>◆</span>
-            <span className="text-[10px] font-medium tracking-[0.2em] uppercase" style={{ color: '#999' }}>
-              OUR PROCESS
-            </span>
-          </div>
-          <div className="flex gap-2">
-            {processes.map((_, idx) => (
-              <div 
-                key={idx}
-                className="w-8 h-1 transition-all duration-300"
-                style={{ 
-                  backgroundColor: idx <= activeIndex ? '#f5f2ee' : '#333'
-                }}
-              />
-            ))}
-          </div>
+        {/* Section Label */}
+        <div className="absolute top-8 left-8 z-50 flex items-center gap-2">
+          <span style={{ color: '#666' }}>◆</span>
+          <span className="text-[10px] font-medium tracking-[0.2em] uppercase" style={{ color: '#999' }}>
+            OUR PROCESS
+          </span>
         </div>
 
         {/* Horizontal Scroll Content */}
