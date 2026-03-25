@@ -5,6 +5,44 @@ import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 
 // ============================================
+// HERO TEXT SECTION - Initial text display
+// ============================================
+function HeroTextSection() {
+  return (
+    <section 
+      className="relative pt-8 pb-16 px-8"
+      style={{ backgroundColor: '#ffffff' }}
+    >
+      <div className="text-center">
+        {/* SKNAT Logo */}
+        <div className="mb-16">
+          <span 
+            className="text-xl font-semibold tracking-tight"
+            style={{ color: '#1a1a1a' }}
+          >
+            SKNAT
+          </span>
+        </div>
+        
+        <div className="flex items-center justify-center gap-2 mb-6">
+          <span style={{ color: '#999' }}>◆</span>
+          <span className="text-[10px] font-medium tracking-[0.2em] uppercase" style={{ color: '#666' }}>
+            OUR APPROACH
+          </span>
+        </div>
+        <h2 
+          className="text-3xl md:text-4xl lg:text-5xl font-light"
+          style={{ color: '#1a1a1a', lineHeight: '1.2' }}
+        >
+          สร้างสรรค์วิสัยทัศน์<br />
+          สู่การปฏิบัติที่สมบูรณ์แบบ
+        </h2>
+      </div>
+    </section>
+  );
+}
+
+// ============================================
 // HERO SECTION - Drawing to Real Image Reveal
 // ============================================
 function HeroRevealSection() {
@@ -39,26 +77,26 @@ function HeroRevealSection() {
       className="relative"
       style={{ 
         height: '180vh',
-        backgroundColor: '#f5f2ee'
+        backgroundColor: '#ffffff'
       }}
     >
       {/* Sticky Container */}
       <div className="sticky top-0 h-screen flex items-center justify-center overflow-hidden">
         
-        {/* Image Container - Square aspect ratio, centered */}
+        {/* Image Container - Portrait rectangle, ~70% width, almost full height */}
         <div 
           className="relative"
           style={{
-            width: 'min(85vw, 85vh)',
-            height: 'min(85vw, 85vh)',
-            maxWidth: '900px',
+            width: '95vw',
+            height: '95vh',
+            maxWidth: '1400px',
             maxHeight: '900px'
           }}
         >
           {/* Wireframe Image (Background) */}
           <div className="absolute inset-0 z-10">
             <Image
-              src="/house_about_drawing.jpg"
+              src="/house_about_drawings.jpg"
               alt="House Drawing"
               fill
               className="object-cover"
@@ -89,25 +127,10 @@ function HeroRevealSection() {
               top: `${100 - revealProgress * 100}%`,
               height: '2px',
               background: 'rgba(245,242,238,0.5)',
-              boxShadow: '0 0 20px rgba(245,242,238,0.8)',
+              boxShadow: '0 0 20px rgba(255,255,255,0.8)',
               transform: 'translateY(-50%)'
             }}
           />
-        </div>
-
-        {/* Title Overlay - positioned above the image */}
-        <div 
-          className="absolute top-8 left-1/2 z-40 -translate-x-1/2 text-center"
-          style={{
-            opacity: Math.max(0, 1 - revealProgress * 2),
-          }}
-        >
-          <div className="flex items-center gap-2 mb-2">
-            <span style={{ color: '#999' }}>◆</span>
-            <span className="text-[10px] font-medium tracking-[0.2em] uppercase" style={{ color: '#666' }}>
-              OUR VISION
-            </span>
-          </div>
         </div>
 
         {/* Scroll Indicator - at bottom */}
@@ -143,132 +166,170 @@ function HeroRevealSection() {
 }
 
 // ============================================
-// SERVICES SECTION (Light background, long)
+// SERVICES SECTION (Light background, long) - With Parallax
 // ============================================
 function ServicesSection() {
   return (
     <section 
-      className="min-h-screen py-24 md:py-32 px-8 md:px-16 lg:px-24"
-      style={{ backgroundColor: '#f5f2ee' }}
+      className="relative z-50 py-24 md:py-32 px-8 md:px-16 lg:px-24"
+      style={{ 
+        backgroundColor: '#ffffff'
+      }}
     >
-      {/* Header */}
-      <div className="flex items-center gap-2 mb-16">
-        <span style={{ color: '#999' }}>◆</span>
-        <span className="text-[10px] font-medium tracking-[0.2em] uppercase" style={{ color: '#666' }}>
-          SERVICES
-        </span>
+      {/* Top Long Line */}
+      <div className="w-full h-px bg-gray-200 mb-16" />
+      
+      {/* Header & Main Headline - Two Column Layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-20">
+        {/* Left: Header */}
+        <div className="lg:col-span-4">
+          <div className="flex items-center gap-2">
+            <span style={{ color: '#999' }}>◆</span>
+            <span className="text-[10px] font-medium tracking-[0.2em] uppercase" style={{ color: '#666' }}>
+              SERVICES
+            </span>
+          </div>
+        </div>
+        
+        {/* Right: Main Headline */}
+        <div className="lg:col-span-8">
+          <h2 
+            className="text-3xl md:text-4xl lg:text-5xl font-light leading-tight"
+            style={{ color: '#1a1a1a', lineHeight: '1.2' }}
+          >
+            เราดูแลทุกขั้นตอนด้วยความใส่ใจ
+            เพื่อให้มั่นใจในคุณภาพและความเข้าใจ
+            โครงการของคุณอย่างลึกซึ้ง
+          </h2>
+        </div>
       </div>
 
-      {/* Main Headline */}
-      <div className="max-w-5xl mb-20">
-        <h2 
-          className="text-3xl md:text-4xl lg:text-5xl font-light leading-tight mb-12"
-          style={{ color: '#1a1a1a', lineHeight: '1.2' }}
-        >
-          เราดูแลทุกขั้นตอนด้วยความใส่ใจ
-          เพื่อให้มั่นใจในคุณภาพและความเข้าใจ
-          โครงการของคุณอย่างลึกซึ้ง
-        </h2>
+      {/* Divider Line - Right side only */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-16">
+        <div className="lg:col-span-4" />
+        <div className="lg:col-span-8">
+          <div className="w-full h-px bg-gray-200" />
+        </div>
       </div>
 
       {/* Service Items */}
       <div className="space-y-0">
         {/* Service 1 */}
-        <div className="border-t border-gray-300 py-12">
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
-            <div className="md:col-span-4">
-              <h3 className="text-lg font-medium" style={{ color: '#1a1a1a' }}>
-                ที่ปรึกษาและกลยุทธ์
-              </h3>
-            </div>
-            <div className="md:col-span-8">
-              <p className="text-base leading-relaxed mb-6" style={{ color: '#555', lineHeight: '1.8' }}>
-                เราช่วยคุณวางรากฐานสำหรับโครงการโดยการกำหนดแนวทางที่ถูกต้องตั้งแต่เริ่มต้น 
-                เราสำรวจเป้าหมาย ความต้องการทางเทคนิค และศักยภาพในการสร้างสรรค์พื้นที่ที่ยอดเยี่ยม
-              </p>
-              <ul className="space-y-2">
-                {['ให้คำปรึกษางบประมาณ', 'จัดเตรียมใบเสนอราคา', 'คำแนะนำการออกแบบเบื้องต้น', 'วางแผนโครงการ', 'คำแนะนำทางเทคนิค'].map((item) => (
-                  <li key={item} className="flex items-center gap-3 text-sm" style={{ color: '#555' }}>
-                    <span style={{ color: '#999' }}>◇</span>
-                    {item}
-                  </li>
-                ))}
-              </ul>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          <div className="lg:col-span-4" />
+          <div className="lg:col-span-8">
+            <div className="py-12">
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
+                <div className="md:col-span-5">
+                  <h3 className="text-lg font-medium" style={{ color: '#1a1a1a' }}>
+                    ที่ปรึกษาและกลยุทธ์
+                  </h3>
+                </div>
+                <div className="md:col-span-7">
+                  <p className="text-base leading-relaxed mb-6" style={{ color: '#555', lineHeight: '1.8' }}>
+                    เราช่วยคุณวางรากฐานสำหรับโครงการโดยการกำหนดแนวทางที่ถูกต้องตั้งแต่เริ่มต้น 
+                    เราสำรวจเป้าหมาย ความต้องการทางเทคนิค และศักยภาพในการสร้างสรรค์พื้นที่ที่ยอดเยี่ยม
+                  </p>
+                  <ul className="space-y-2">
+                    {['ให้คำปรึกษางบประมาณ', 'จัดเตรียมใบเสนอราคา', 'คำแนะนำการออกแบบเบื้องต้น', 'วางแผนโครงการ', 'คำแนะนำทางเทคนิค'].map((item) => (
+                      <li key={item} className="flex items-center gap-3 text-sm" style={{ color: '#555' }}>
+                        <span style={{ color: '#999' }}>◇</span>
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
         {/* Service 2 */}
-        <div className="border-t border-gray-300 py-12">
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
-            <div className="md:col-span-4">
-              <h3 className="text-lg font-medium" style={{ color: '#1a1a1a' }}>
-                การออกแบบ
-              </h3>
-            </div>
-            <div className="md:col-span-8">
-              <p className="text-base leading-relaxed mb-6" style={{ color: '#555', lineHeight: '1.8' }}>
-                เรานำวิสัยทัศน์ของคุณสู่ความเป็นจริงด้วยการพัฒนาแบบแปลนที่แม่นยำและละเอียด 
-                รวมถึงแบบร่าง ข้อกำหนด และโซลูชันทางเทคนิคที่เหมาะกับโครงการของคุณ
-              </p>
-              <ul className="space-y-2">
-                {['แบบแปลงานออกแบบละเอียด', 'แก้ไขตามความจำเป็น', 'สำรวจหน้างาน'].map((item) => (
-                  <li key={item} className="flex items-center gap-3 text-sm" style={{ color: '#555' }}>
-                    <span style={{ color: '#999' }}>◇</span>
-                    {item}
-                  </li>
-                ))}
-              </ul>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          <div className="lg:col-span-4" />
+          <div className="lg:col-span-8">
+            <div className="border-t border-gray-200 py-12">
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
+                <div className="md:col-span-5">
+                  <h3 className="text-lg font-medium" style={{ color: '#1a1a1a' }}>
+                    การออกแบบ
+                  </h3>
+                </div>
+                <div className="md:col-span-7">
+                  <p className="text-base leading-relaxed mb-6" style={{ color: '#555', lineHeight: '1.8' }}>
+                    เรานำวิสัยทัศน์ของคุณสู่ความเป็นจริงด้วยการพัฒนาแบบแปลนที่แม่นยำและละเอียด 
+                    รวมถึงแบบร่าง ข้อกำหนด และโซลูชันทางเทคนิคที่เหมาะกับโครงการของคุณ
+                  </p>
+                  <ul className="space-y-2">
+                    {['แบบแปลงานออกแบบละเอียด', 'แก้ไขตามความจำเป็น', 'สำรวจหน้างาน'].map((item) => (
+                      <li key={item} className="flex items-center gap-3 text-sm" style={{ color: '#555' }}>
+                        <span style={{ color: '#999' }}>◇</span>
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
         {/* Service 3 */}
-        <div className="border-t border-gray-300 py-12">
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
-            <div className="md:col-span-4">
-              <h3 className="text-lg font-medium" style={{ color: '#1a1a1a' }}>
-                การก่อสร้าง
-              </h3>
-            </div>
-            <div className="md:col-span-8">
-              <p className="text-base leading-relaxed mb-6" style={{ color: '#555', lineHeight: '1.8' }}>
-                ตั้งแต่แนวคิดจนถึงการเสร็จสมบูรณ์ เราจัดการกระบวนการทั้งหมดในการนำโครงการของคุณสู่ความเป็นจริง 
-                ทีมงานที่มีประสบการณ์ส่งมอบโซลูชันแบบครบวงจร
-              </p>
-              <ul className="space-y-2">
-                {['การผลิต', 'โลจิสติกส์', 'วางแผนการติดตั้ง', 'การติดตั้ง'].map((item) => (
-                  <li key={item} className="flex items-center gap-3 text-sm" style={{ color: '#555' }}>
-                    <span style={{ color: '#999' }}>◇</span>
-                    {item}
-                  </li>
-                ))}
-              </ul>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          <div className="lg:col-span-4" />
+          <div className="lg:col-span-8">
+            <div className="border-t border-gray-200 py-12">
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
+                <div className="md:col-span-5">
+                  <h3 className="text-lg font-medium" style={{ color: '#1a1a1a' }}>
+                    การก่อสร้าง
+                  </h3>
+                </div>
+                <div className="md:col-span-7">
+                  <p className="text-base leading-relaxed mb-6" style={{ color: '#555', lineHeight: '1.8' }}>
+                    ตั้งแต่แนวคิดจนถึงการเสร็จสมบูรณ์ เราจัดการกระบวนการทั้งหมดในการนำโครงการของคุณสู่ความเป็นจริง 
+                    ทีมงานที่มีประสบการณ์ส่งมอบโซลูชันแบบครบวงจร
+                  </p>
+                  <ul className="space-y-2">
+                    {['การผลิต', 'โลจิสติกส์', 'วางแผนการติดตั้ง', 'การติดตั้ง'].map((item) => (
+                      <li key={item} className="flex items-center gap-3 text-sm" style={{ color: '#555' }}>
+                        <span style={{ color: '#999' }}>◇</span>
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
         {/* Service 4 */}
-        <div className="border-t border-b border-gray-300 py-12">
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
-            <div className="md:col-span-4">
-              <h3 className="text-lg font-medium" style={{ color: '#1a1a1a' }}>
-                การดูแลหลังการขาย
-              </h3>
-            </div>
-            <div className="md:col-span-8">
-              <p className="text-base leading-relaxed mb-6" style={{ color: '#555', lineHeight: '1.8' }}>
-                อสังหาฯ ของคุณเป็นการลงทุนที่ออกแบบมาให้คงทน เราให้การสนับสนุนต่อเนื่องเพื่อรักษาคุณภาพ 
-                ความปลอดภัย และประสิทธิภาพในระยะยาว
-              </p>
-              <ul className="space-y-2">
-                {['คำแนะนำทางเทคนิค', 'การตรวจสอบหน้างาน', 'การปรับแต่ง', 'การซ่อมแซม'].map((item) => (
-                  <li key={item} className="flex items-center gap-3 text-sm" style={{ color: '#555' }}>
-                    <span style={{ color: '#999' }}>◇</span>
-                    {item}
-                  </li>
-                ))}
-              </ul>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          <div className="lg:col-span-4" />
+          <div className="lg:col-span-8">
+            <div className="border-t border-gray-200 py-12">
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
+                <div className="md:col-span-5">
+                  <h3 className="text-lg font-medium" style={{ color: '#1a1a1a' }}>
+                    การดูแลหลังการขาย
+                  </h3>
+                </div>
+                <div className="md:col-span-7">
+                  <p className="text-base leading-relaxed mb-6" style={{ color: '#555', lineHeight: '1.8' }}>
+                    อสังหาฯ ของคุณเป็นการลงทุนที่ออกแบบมาให้คงทน เราให้การสนับสนุนต่อเนื่องเพื่อรักษาคุณภาพ 
+                    ความปลอดภัย และประสิทธิภาพในระยะยาว
+                  </p>
+                  <ul className="space-y-2">
+                    {['คำแนะนำทางเทคนิค', 'การตรวจสอบหน้างาน', 'การปรับแต่ง', 'การซ่อมแซม'].map((item) => (
+                      <li key={item} className="flex items-center gap-3 text-sm" style={{ color: '#555' }}>
+                        <span style={{ color: '#999' }}>◇</span>
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -284,29 +345,16 @@ function ClientStoriesSection() {
   return (
     <section 
       className="min-h-screen py-24 md:py-32 px-8 md:px-16 lg:px-24"
-      style={{ backgroundColor: '#f5f2ee' }}
+      style={{ backgroundColor: '#ffffff' }}
     >
+      {/* Section Divider */}
+      <div className="w-full h-px bg-gray-200 mb-16" />
       {/* Header */}
-      <div className="flex items-center justify-between mb-16">
-        <div className="flex items-center gap-2">
-          <span style={{ color: '#999' }}>◆</span>
-          <span className="text-[10px] font-medium tracking-[0.2em] uppercase" style={{ color: '#666' }}>
-            CLIENT STORIES
-          </span>
-        </div>
-        <div className="flex items-center gap-4">
-          <span className="text-[10px] font-medium tracking-[0.15em]" style={{ color: '#999' }}>
-            01 / 05
-          </span>
-          <div className="flex gap-2">
-            <button className="w-10 h-10 border border-gray-300 flex items-center justify-center transition-all hover:bg-black hover:text-white hover:border-black">
-              ←
-            </button>
-            <button className="w-10 h-10 border border-gray-300 flex items-center justify-center transition-all hover:bg-black hover:text-white hover:border-black">
-              →
-            </button>
-          </div>
-        </div>
+      <div className="flex items-center gap-2 mb-16">
+        <span style={{ color: '#999' }}>◆</span>
+        <span className="text-[10px] font-medium tracking-[0.2em] uppercase" style={{ color: '#666' }}>
+          CLIENT STORIES
+        </span>
       </div>
 
       {/* Main Content */}
@@ -650,31 +698,74 @@ function StickyNavBar() {
 }
 
 // ============================================
-// FOOTER SECTION
+// FULL MENU FOOTER - Dark center menu
 // ============================================
 function AboutFooter() {
+  const footerLinks = [
+    { label: 'About', href: '/about' },
+    { label: 'Services', href: '/about' },
+    { label: 'Properties', href: '/#properties' },
+    { label: 'Approach', href: '/about' },
+    { label: 'Contact', href: '/contact' },
+  ];
+
   return (
     <footer 
-      className="relative py-8 px-8 md:px-16"
+      className="relative min-h-[60vh] flex flex-col items-center justify-center px-8 py-16"
       style={{ 
-        backgroundColor: '#f5f2ee',
-        borderTop: '1px solid #d4d0c8'
+        backgroundColor: '#1a1a1a'
       }}
     >
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-6 text-[11px]" style={{ color: '#666' }}>
-          <span>&copy; {new Date().getFullYear()}, SKNAT Property</span>
-          <Link href="/about" className="transition hover:text-black">Line</Link>
-          <Link href="/" className="transition hover:text-black">Instagram</Link>
-        </div>
-        <div className="flex items-center gap-6 text-[11px]" style={{ color: '#666' }}>
-          <Link href="/" className="transition hover:text-black">นโยบายความเป็นส่วนตัว</Link>
-          <span>·</span>
-          <Link href="/" className="transition hover:text-black">ข้อตกลงการใช้งาน</Link>
-          <span>·</span>
-          <Link href="/admin/properties" className="transition hover:text-black">Admin</Link>
-        </div>
+      {/* Home Icon */}
+      <div className="mb-8">
+        <Link href="/" className="inline-block">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.6)" strokeWidth="1.5">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+            <polyline points="9 22 9 12 15 12 15 22" />
+          </svg>
+        </Link>
       </div>
+
+      {/* Menu Label */}
+      <p className="text-[10px] tracking-[0.2em] uppercase mb-12" style={{ color: '#666' }}>
+        Menu
+      </p>
+
+      {/* Main Menu Links */}
+      <nav className="space-y-5 mb-16">
+        {footerLinks.map((link) => (
+          <Link
+            key={link.label}
+            href={link.href}
+            className="block text-3xl md:text-4xl font-light transition-colors hover:text-white text-center"
+            style={{ color: 'rgba(255,255,255,0.85)' }}
+          >
+            {link.label}
+          </Link>
+        ))}
+      </nav>
+
+      {/* Secondary Links */}
+      <div className="flex items-center justify-center gap-12 text-sm mb-6" style={{ color: '#666' }}>
+        <Link href="/" className="hover:text-white transition-colors">News</Link>
+        <Link href="/" className="hover:text-white transition-colors">Showroom</Link>
+      </div>
+
+      {/* Contact Info */}
+      <div className="space-y-1 text-sm mb-10" style={{ color: '#666' }}>
+        <p>089-999-9999</p>
+        <p>hello@sknat.co.th</p>
+      </div>
+
+      {/* CTA Button */}
+      <Link
+        href="/contact"
+        className="inline-flex items-center gap-3 px-8 py-4 border border-gray-700 rounded-full text-sm tracking-[0.1em] uppercase transition-all hover:bg-white hover:text-black hover:border-white"
+        style={{ color: 'rgba(255,255,255,0.9)' }}
+      >
+        <span>→</span>
+        <span>Get in touch</span>
+      </Link>
     </footer>
   );
 }
@@ -685,19 +776,22 @@ function AboutFooter() {
 export default function AboutPage() {
   return (
     <main style={{ fontFamily: '"Sarabun", "Noto Sans Thai", sans-serif' }}>
-      {/* Section 0: Hero - Drawing to Real Image Reveal */}
+      {/* Section 0: Hero Text - Initial text display */}
+      <HeroTextSection />
+      
+      {/* Section 1: Hero - Drawing to Real Image Reveal */}
       <HeroRevealSection />
       
-      {/* Section 1: Services */}
+      {/* Section 2: Services */}
       <ServicesSection />
       
-      {/* Section 2: Client Stories / Quote */}
+      {/* Section 3: Client Stories / Quote */}
       <ClientStoriesSection />
       
-      {/* Section 3: Our Process (Horizontal Scroll) */}
+      {/* Section 4: Our Process (Horizontal Scroll) */}
       <HorizontalProcessSection />
       
-      {/* Section 4: Footer */}
+      {/* Section 5: Footer */}
       <AboutFooter />
       
       {/* Sticky Navigation Bar */}

@@ -1,4 +1,4 @@
-import Footer from "./component/footer";
+import BeforeFooter from "./component/before_footer";
 import Hero from "./component/hero";
 import MainPage from "./component/mainpage";
 import Navbar from "./component/navbar";
@@ -23,7 +23,7 @@ export default async function Page() {
       <Hero />
       <MainPage properties={properties} />
       <Contact />
-      <Footer />
+      <BeforeFooter />
     </>
   );
 }

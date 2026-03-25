@@ -56,36 +56,6 @@ export default function Hero() {
           />
         ))}
 
-        {/* Fluid glass ambient blobs */}
-        <div className="pointer-events-none absolute inset-0 overflow-hidden" style={{ zIndex: 1 }}>
-          <div style={{
-            position: 'absolute', width: '75%', height: '75%',
-            background: 'radial-gradient(circle, rgba(99,102,241,0.22) 0%, transparent 68%)',
-            filter: 'blur(90px)',
-            top: '-18%', left: '-12%',
-            animation: 'blob-drift-1 20s ease-in-out infinite',
-            willChange: 'transform',
-          }} />
-          <div style={{
-            position: 'absolute', width: '60%', height: '60%',
-            background: 'radial-gradient(circle, rgba(168,85,247,0.17) 0%, transparent 68%)',
-            filter: 'blur(75px)',
-            top: '22%', right: '-8%',
-            animation: 'blob-drift-2 26s ease-in-out infinite',
-            animationDelay: '-10s',
-            willChange: 'transform',
-          }} />
-          <div style={{
-            position: 'absolute', width: '55%', height: '55%',
-            background: 'radial-gradient(circle, rgba(6,182,212,0.14) 0%, transparent 68%)',
-            filter: 'blur(65px)',
-            bottom: '-12%', left: '22%',
-            animation: 'blob-drift-3 22s ease-in-out infinite',
-            animationDelay: '-6s',
-            willChange: 'transform',
-          }} />
-        </div>
-
         {/* Gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-black/25" style={{ zIndex: 2 }} />
       </div>
