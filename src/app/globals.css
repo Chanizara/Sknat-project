@@ -19,13 +19,38 @@
   --font-mono: var(--font-geist-mono);
 }
 
+html {
+  scroll-behavior: auto; /* Disable native smooth scroll - Lenis handles this */
+}
+
+html.lenis, html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+.lenis.lenis-smooth iframe {
+  pointer-events: none;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: "Sarabun", "Noto Sans Thai", "Prompt", "IBM Plex Sans Thai", "Segoe UI", sans-serif;
   text-rendering: geometricPrecision;
-  scroll-behavior: smooth;
   overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 ::selection {

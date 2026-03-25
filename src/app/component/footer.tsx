@@ -9,17 +9,26 @@ export default function Footer() {
   const pathname = usePathname();
   const isHomePage = pathname === '/';
   const sectionRef = useRef<HTMLElement>(null);
-  const [isVisible, setIsVisible] = useState(false);
+  const [scrollProgress, setScrollProgress] = useState(0);
+  const [isInView, setIsInView] = useState(false);
 
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) setIsVisible(true);
-      },
-      { threshold: 0.08 }
-    );
-    if (sectionRef.current) observer.observe(sectionRef.current);
-    return () => observer.disconnect();
+    const handleScroll = () => {
+      if (!sectionRef.current) return;
+      
+      const rect = sectionRef.current.getBoundingClientRect();
+      const windowH = window.innerHeight;
+      
+      // Calculate how much of the footer is in view
+      // 0 = just entering at bottom, 1 = fully in view
+      const progress = Math.max(0, Math.min(1, (windowH - rect.top) / (windowH * 0.6)));
+      setScrollProgress(progress);
+      setIsInView(rect.top < windowH && rect.bottom > 0);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll();
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   const scrollToSection = (sectionId: string) => {
@@ -28,15 +37,20 @@ export default function Footer() {
       return;
     }
     if (sectionId === 'home') {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      const lenis = (window as unknown as { lenis?: { scrollTo: (target: number) => void } }).lenis;
+      if (lenis) lenis.scrollTo(0);
+      else window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
     const element = document.getElementById(sectionId);
     if (element) {
-      window.scrollTo({
-        top: element.getBoundingClientRect().top + window.scrollY - 80,
-        behavior: 'smooth',
-      });
+      const lenis = (window as unknown as { lenis?: { scrollTo: (target: number) => void } }).lenis;
+      const targetY = element.getBoundingClientRect().top + window.scrollY - 80;
+      if (lenis) {
+        lenis.scrollTo(targetY);
+      } else {
+        window.scrollTo({ top: targetY, behavior: 'smooth' });
+      }
     }
   };
 
@@ -48,12 +62,25 @@ export default function Footer() {
     { label: 'Contact',    id: 'contact' },
   ];
 
+  // Animation values based on scroll progress
+  // When progress is 0: small icon state
+  // When progress is 1: full card state
+  const cardScale = 0.15 + (scrollProgress * 0.85); // 0.15 -> 1
+  const cardOpacity = 0.4 + (scrollProgress * 0.6);  // 0.4 -> 1
+  const cardBlur = (1 - scrollProgress) * 20;        // 20px -> 0
+  const cardY = (1 - scrollProgress) * 60;           // 60px -> 0
+  const borderRadius = 2.7 - (scrollProgress * 0.7); // 2.7rem -> 2rem
+  
+  // Content fade in (appears later in the animation)
+  const contentOpacity = Math.max(0, (scrollProgress - 0.3) / 0.7);
+  const contentY = (1 - contentOpacity) * 20;
+
   return (
     <footer
       ref={sectionRef}
       id="site-footer"
       className="relative overflow-hidden"
-      style={{ height: '100vh', minHeight: '600px', zIndex: 1 }}
+      style={{ height: '100vh', minHeight: '600px', zIndex: 10 }}
     >
       {/* ── Full-bleed background ── */}
       <div className="absolute inset-0">
@@ -85,15 +112,16 @@ export default function Footer() {
         </p>
       </div>
 
-      {/* ── Popup card ── */}
+      {/* ── Popup card with scroll-based animation ── */}
       <div className="absolute inset-0 flex items-center justify-center px-4">
         <div
           className="w-full max-w-[520px]"
           style={{
-            transform: isVisible ? 'translateY(0) scale(1)' : 'translateY(92px) scale(0.92)',
-            opacity: isVisible ? 1 : 0,
-            filter: isVisible ? 'blur(0px)' : 'blur(14px)',
-            transition: 'transform 0.95s cubic-bezier(0.16,1,0.3,1), opacity 0.95s ease, filter 0.95s ease',
+            transform: `translateY(${cardY}px) scale(${cardScale})`,
+            opacity: cardOpacity,
+            filter: `blur(${cardBlur}px)`,
+            transition: 'transform 0.1s linear, opacity 0.1s linear, filter 0.1s linear',
+            willChange: 'transform, opacity, filter',
           }}
         >
           <div
@@ -102,34 +130,47 @@ export default function Footer() {
               background: 'linear-gradient(180deg, rgba(28,28,30,0.78), rgba(18,18,20,0.9))',
               backdropFilter: 'blur(32px) saturate(135%)',
               WebkitBackdropFilter: 'blur(32px) saturate(135%)',
-              borderRadius: isVisible ? '2rem' : '2.7rem',
+              borderRadius: `${borderRadius}rem`,
               border: '1px solid rgba(255,255,255,0.12)',
               overflow: 'hidden',
-              boxShadow: isVisible
+              boxShadow: scrollProgress > 0.5
                 ? '0 42px 110px -58px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.15)'
                 : '0 20px 40px -30px rgba(0,0,0,0.45)',
-              transition: 'border-radius 0.95s cubic-bezier(0.16,1,0.3,1), box-shadow 0.95s ease',
+              transition: 'box-shadow 0.3s ease, border-radius 0.1s linear',
             }}
           >
+            {/* Glossy highlight */}
             <div
               className="pointer-events-none absolute inset-x-[12%] top-0 h-20 rounded-full"
               style={{
                 background: 'radial-gradient(circle at top, rgba(255,255,255,0.28), rgba(255,255,255,0) 72%)',
                 filter: 'blur(14px)',
-                opacity: isVisible ? 1 : 0.4,
-                transform: isVisible ? 'translateY(-8px) scaleX(1)' : 'translateY(10px) scaleX(0.8)',
-                transition: 'transform 0.95s cubic-bezier(0.16,1,0.3,1), opacity 0.95s ease',
+                opacity: 0.4 + (scrollProgress * 0.6),
+                transform: `translateY(${(1 - scrollProgress) * 18 - 8}px) scaleX(${0.5 + scrollProgress * 0.5})`,
+                transition: 'opacity 0.1s linear, transform 0.1s linear',
               }}
             />
+            
+            {/* Side glow */}
             <div
               className="pointer-events-none absolute -left-8 top-14 h-28 w-28 rounded-full"
               style={{
                 background: 'radial-gradient(circle, rgba(255,255,255,0.08), rgba(255,255,255,0) 70%)',
                 filter: 'blur(8px)',
+                opacity: scrollProgress,
+                transition: 'opacity 0.1s linear',
               }}
             />
-            <div className="px-8 pt-8 pb-6 md:px-10 md:pt-10 md:pb-7">
 
+            {/* Card Content - fades in as card expands */}
+            <div 
+              className="px-8 pt-8 pb-6 md:px-10 md:pt-10 md:pb-7"
+              style={{
+                opacity: contentOpacity,
+                transform: `translateY(${contentY}px)`,
+                transition: 'opacity 0.15s ease, transform 0.15s ease',
+              }}
+            >
               {/* MENU label */}
               <p
                 className="mb-5 text-[10px] font-light tracking-[0.5em] uppercase"
@@ -215,7 +256,7 @@ export default function Footer() {
                   (e.currentTarget as HTMLElement).style.color = '#fff';
                 }}
                 onMouseLeave={e => {
-                  (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.08)';
+                  (e.currentTarget as HTMLElement).style.background = 'linear-gradient(180deg, rgba(255,255,255,0.12), rgba(255,255,255,0.06))';
                   (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.75)';
                 }}
               >
@@ -227,14 +268,14 @@ export default function Footer() {
         </div>
       </div>
 
-      {/* ── Bottom pill bar (fluid.glass style) ── */}
+      {/* ── Bottom pill bar ── */}
       <div
         className="absolute bottom-6 left-1/2 z-20 flex items-center gap-4 px-5 py-3"
         style={{
-          transform: isVisible
+          transform: isInView
             ? 'translateX(-50%) translateY(0)'
             : 'translateX(-50%) translateY(24px)',
-          opacity: isVisible ? 1 : 0,
+          opacity: isInView ? 1 : 0,
           transition: 'transform 0.75s 0.2s cubic-bezier(0.22,1,0.36,1), opacity 0.75s 0.2s ease',
           background: 'rgba(14,14,14,0.85)',
           backdropFilter: 'blur(12px)',
@@ -267,7 +308,11 @@ export default function Footer() {
 
         {/* Back to top */}
         <button
-          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          onClick={() => {
+            const lenis = (window as unknown as { lenis?: { scrollTo: (target: number) => void } }).lenis;
+            if (lenis) lenis.scrollTo(0);
+            else window.scrollTo({ top: 0, behavior: 'smooth' });
+          }}
           className="cursor-pointer bg-transparent border-none p-0 opacity-50 hover:opacity-100 transition"
           aria-label="กลับด้านบน"
         >

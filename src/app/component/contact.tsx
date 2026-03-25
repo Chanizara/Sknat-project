@@ -44,6 +44,7 @@ export default function Contact() {
   const [drawProgress, setDrawProgress] = useState(0);
   const [textVisible, setTextVisible] = useState(false);
   const [stickyPhase, setStickyPhase] = useState(0);
+  const [footerReveal, setFooterReveal] = useState(0);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -61,6 +62,11 @@ export default function Contact() {
       const progress = Math.max(0, Math.min(1, entered / (windowH * 1.18)));
       const stickyProgress = Math.max(0, Math.min(1, (windowH - rect.bottom) / (windowH * 0.95) + 0.5));
 
+      // Footer reveal effect - as we approach end of section
+      // When footer starts appearing (section bottom entering viewport)
+      const footerStartReveal = Math.max(0, Math.min(1, (windowH - rect.bottom + windowH * 0.5) / (windowH * 0.5)));
+      setFooterReveal(footerStartReveal);
+
       // Text fade-in
       if (rect.top < windowH * 0.88) setTextVisible(true);
 
@@ -69,7 +75,9 @@ export default function Contact() {
 
       if (rect.bottom > 0 && rect.top < windowH) {
         const sectionShift = Math.min(stickyProgress * 84, 84);
-        inner.style.transform = `translateY(${-sectionShift}px)`;
+        // Include subtle scale as footer reveals from behind
+        const scaleEffect = 1 - footerStartReveal * 0.02;
+        inner.style.transform = `translateY(${-sectionShift}px) scale(${scaleEffect})`;
         visual.style.transform = `translate3d(0, ${-Math.min(stickyProgress * 48, 48)}px, 0)`;
         primaryBox.style.transform = `translate3d(${entered * -0.01}px, ${-Math.min(stickyProgress * 28, 28)}px, 0) scale(${1 + progress * 0.02})`;
         secondaryBox.style.transform = `translate3d(${entered * 0.012}px, ${-Math.min(stickyProgress * 18, 18)}px, 0) scale(${0.97 + progress * 0.025})`;
@@ -84,22 +92,31 @@ export default function Contact() {
 
   const scrollToFooter = () => {
     const el = document.getElementById('site-footer');
-    if (el) window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 80, behavior: 'smooth' });
+    if (el) {
+      const lenis = (window as unknown as { lenis?: { scrollTo: (target: number) => void } }).lenis;
+      const targetY = el.getBoundingClientRect().top + window.scrollY - 20;
+      if (lenis) {
+        lenis.scrollTo(targetY);
+      } else {
+        window.scrollTo({ top: targetY, behavior: 'smooth' });
+      }
+    }
   };
 
   return (
     <section
       ref={sectionRef}
       id="contact"
-      className="relative z-20 h-[155vh] bg-transparent px-4 md:px-6"
+      className="relative z-30 h-[165vh] bg-transparent"
+      style={{ marginBottom: '-20vh' }} // Overlap with footer for parallax
     >
       <div
         ref={innerRef}
         className="sticky top-0 mx-auto grid h-screen max-w-[1536px] overflow-hidden border border-black/10 bg-white xl:grid-cols-[1.02fr_0.98fr]"
         style={{
           minHeight: '100vh',
-          transition: 'transform 180ms linear',
-          boxShadow: `0 32px 90px -78px rgba(15,23,42,${0.18 + stickyPhase * 0.1})`,
+          transition: 'box-shadow 300ms ease',
+          boxShadow: `0 ${32 + footerReveal * 60}px ${90 + footerReveal * 50}px -${78 - footerReveal * 20}px rgba(15,23,42,${0.18 + stickyPhase * 0.1 + footerReveal * 0.15})`,
         }}
       >
         <div
