@@ -53,7 +53,7 @@ export default function Footer() {
       ref={sectionRef}
       id="contact"
       className="relative overflow-hidden"
-      style={{ height: '85vh', minHeight: '600px' }}
+      style={{ height: '100vh', minHeight: '600px' }}
     >
       {/* ── Full-bleed background ── */}
       <div className="absolute inset-0">
@@ -97,9 +97,12 @@ export default function Footer() {
         >
           <div
             style={{
-              background: 'rgba(14,14,14,0.92)',
-              backdropFilter: 'blur(16px)',
-              WebkitBackdropFilter: 'blur(16px)',
+              background: 'rgba(14,14,14,0.88)',
+              backdropFilter: 'blur(24px)',
+              WebkitBackdropFilter: 'blur(24px)',
+              borderRadius: '1.25rem',
+              border: '1px solid rgba(255,255,255,0.07)',
+              overflow: 'hidden',
             }}
           >
             <div className="px-8 pt-8 pb-6 md:px-10 md:pt-10 md:pb-7">
@@ -176,6 +179,7 @@ export default function Footer() {
                 style={{
                   background: 'rgba(255,255,255,0.08)',
                   border: '1px solid rgba(255,255,255,0.14)',
+                  borderRadius: '0.5rem',
                   color: 'rgba(255,255,255,0.75)',
                   fontSize: '0.7rem',
                   letterSpacing: '0.3em',
