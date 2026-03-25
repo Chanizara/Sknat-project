@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import Link from 'next/link';
 
 // 3D box vertices — oblique projection
 // Front face
@@ -60,19 +61,6 @@ export default function Contact() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const scrollToFooter = () => {
-    const el = document.getElementById('site-footer');
-    if (el) {
-      const lenis = (window as unknown as { lenis?: { scrollTo: (target: number) => void } }).lenis;
-      const targetY = el.getBoundingClientRect().top + window.scrollY - 20;
-      if (lenis) {
-        lenis.scrollTo(targetY);
-      } else {
-        window.scrollTo({ top: targetY, behavior: 'smooth' });
-      }
-    }
-  };
-
   return (
     <section
       ref={sectionRef}
@@ -128,18 +116,18 @@ export default function Contact() {
             </p>
 
             <div className="flex flex-wrap items-center gap-5">
-              <a
-                href="#about"
+              <Link
+                href="/about"
                 className="inline-flex items-center gap-3 bg-[#0a0a0a] px-7 py-3.5 text-[11px] font-semibold uppercase tracking-[0.25em] text-white transition-colors duration-200 hover:bg-[#1a40b6]"
               >
                 <span style={{ fontFamily: 'monospace' }}>↳</span> เกี่ยวกับเรา
-              </a>
-              <button
-                onClick={scrollToFooter}
+              </Link>
+              <Link
+                href="/contact"
                 className="inline-flex items-center gap-3 border-none bg-transparent px-0 py-3.5 text-[11px] font-semibold uppercase tracking-[0.25em] text-[#0a0a0a] transition-opacity duration-200 hover:opacity-40"
               >
                 <span style={{ fontFamily: 'monospace' }}>↳</span> ติดต่อเรา
-              </button>
+              </Link>
             </div>
           </div>
         </div>

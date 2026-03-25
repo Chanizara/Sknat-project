@@ -278,38 +278,7 @@ export default function About() {
                 ))}
               </div>
 
-              {/* CTA Button */}
-              <button
-                onClick={() => {
-                  const element = document.getElementById("contact");
-                  if (element) {
-                    const navbarHeight = 80;
-                    const elementPosition =
-                      element.getBoundingClientRect().top + window.scrollY;
-                    const offsetPosition = elementPosition - navbarHeight;
-                    window.scrollTo({
-                      top: offsetPosition,
-                      behavior: "smooth",
-                    });
-                  }
-                }}
-                className="group mt-4 inline-flex items-center gap-3 rounded-full bg-slate-950 px-8 py-4 text-sm font-semibold text-white transition-all hover:bg-slate-800 hover:shadow-xl hover:shadow-slate-950/20"
-              >
-                ปรึกษาเจ้าหน้าที่
-                <svg
-                  className="h-4 w-4 transition-transform group-hover:translate-x-1"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M17 8l4 4m0 0l-4 4m4-4H3"
-                  />
-                </svg>
-              </button>
+
             </div>
           </div>
         </div>

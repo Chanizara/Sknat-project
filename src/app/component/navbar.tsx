@@ -61,12 +61,12 @@ export default function Navbar() {
      {/* RIGHT : Menu */}
         <div className="col-start-3 justify-self-end flex gap-8 opacity-80">
 
-        <button
-            onClick={() => scrollToSection('about')}
+        <Link
+            href="/about"
             className="hover:opacity-100 transition cursor-pointer bg-transparent border-none text-white text-sm tracking-wide"
         >
             About
-        </button>
+        </Link>
 
         <button
             onClick={() => scrollToSection('services')}
