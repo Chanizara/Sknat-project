@@ -36,53 +36,23 @@ const EDGES: { p1: [number, number]; p2: [number, number]; hidden: boolean }[] =
 
 export default function Contact() {
   const sectionRef = useRef<HTMLElement>(null);
-  const innerRef = useRef<HTMLDivElement>(null);
-  const visualRef = useRef<HTMLDivElement>(null);
-  const primaryBoxRef = useRef<HTMLDivElement>(null);
-  const secondaryBoxRef = useRef<HTMLDivElement>(null);
-  const glowRef = useRef<HTMLDivElement>(null);
   const [drawProgress, setDrawProgress] = useState(0);
   const [textVisible, setTextVisible] = useState(false);
-  const [stickyPhase, setStickyPhase] = useState(0);
-  const [footerReveal, setFooterReveal] = useState(0);
 
   useEffect(() => {
     const handleScroll = () => {
       const section = sectionRef.current;
-      const inner = innerRef.current;
-      const visual = visualRef.current;
-      const primaryBox = primaryBoxRef.current;
-      const secondaryBox = secondaryBoxRef.current;
-      const glow = glowRef.current;
-      if (!section || !inner || !visual || !primaryBox || !secondaryBox || !glow) return;
+      if (!section) return;
 
       const rect = section.getBoundingClientRect();
       const windowH = window.innerHeight;
-      const entered = Math.max(0, windowH - rect.top);
-      const progress = Math.max(0, Math.min(1, entered / (windowH * 1.18)));
-      const stickyProgress = Math.max(0, Math.min(1, (windowH - rect.bottom) / (windowH * 0.95) + 0.5));
 
-      // Footer reveal effect - as we approach end of section
-      // When footer starts appearing (section bottom entering viewport)
-      const footerStartReveal = Math.max(0, Math.min(1, (windowH - rect.bottom + windowH * 0.5) / (windowH * 0.5)));
-      setFooterReveal(footerStartReveal);
+      const totalScrollable = Math.max(1, rect.height - windowH);
+      const paperProgress = Math.max(0, Math.min(1, (windowH - rect.top) / totalScrollable));
+      const progress = Math.max(0, Math.min(1, paperProgress * 1.12));
 
-      // Text fade-in
       if (rect.top < windowH * 0.88) setTextVisible(true);
-
       setDrawProgress(progress);
-      setStickyPhase(stickyProgress);
-
-      if (rect.bottom > 0 && rect.top < windowH) {
-        const sectionShift = Math.min(stickyProgress * 84, 84);
-        // Include subtle scale as footer reveals from behind
-        const scaleEffect = 1 - footerStartReveal * 0.02;
-        inner.style.transform = `translateY(${-sectionShift}px) scale(${scaleEffect})`;
-        visual.style.transform = `translate3d(0, ${-Math.min(stickyProgress * 48, 48)}px, 0)`;
-        primaryBox.style.transform = `translate3d(${entered * -0.01}px, ${-Math.min(stickyProgress * 28, 28)}px, 0) scale(${1 + progress * 0.02})`;
-        secondaryBox.style.transform = `translate3d(${entered * 0.012}px, ${-Math.min(stickyProgress * 18, 18)}px, 0) scale(${0.97 + progress * 0.025})`;
-        glow.style.transform = `translate3d(${entered * 0.008}px, ${-Math.min(stickyProgress * 22, 22)}px, 0) scale(${1 + progress * 0.05})`;
-      }
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
@@ -107,18 +77,16 @@ export default function Contact() {
     <section
       ref={sectionRef}
       id="contact"
-      className="relative z-30 h-[165vh] bg-transparent"
-      style={{ marginBottom: '-20vh' }} // Overlap with footer for parallax
+      className="relative z-30 min-h-screen bg-transparent"
     >
       <div
-        ref={innerRef}
-        className="sticky top-0 mx-auto grid h-screen max-w-[1536px] overflow-hidden border border-black/10 bg-white xl:grid-cols-[1.02fr_0.98fr]"
+        className="mx-auto grid h-screen max-w-[1536px] overflow-hidden border border-black/10 bg-white xl:grid-cols-[1.02fr_0.98fr]"
         style={{
           minHeight: '100vh',
-          transition: 'box-shadow 300ms ease',
-          boxShadow: `0 ${32 + footerReveal * 60}px ${90 + footerReveal * 50}px -${78 - footerReveal * 20}px rgba(15,23,42,${0.18 + stickyPhase * 0.1 + footerReveal * 0.15})`,
+          boxShadow: '0 32px 90px -78px rgba(15,23,42,0.18)',
         }}
       >
+
         <div
           className="relative flex flex-col justify-center overflow-hidden px-8 py-14 md:px-12 md:py-20 xl:px-16"
           style={{
@@ -177,18 +145,12 @@ export default function Contact() {
         </div>
 
         <div className="relative min-h-[380px] overflow-hidden border-t border-black/8 xl:min-h-[680px] xl:border-l xl:border-t-0">
-          <div
-            ref={visualRef}
-            className="absolute inset-0"
-            style={{ transition: 'transform 180ms linear' }}
-          >
+          <div className="absolute inset-0">
             <div
-              ref={glowRef}
               className="absolute left-[16%] top-[22%] h-[30%] w-[34%] rounded-full"
               style={{
                 background: 'radial-gradient(circle, rgba(26,64,182,0.05) 0%, rgba(26,64,182,0.015) 42%, rgba(255,255,255,0) 74%)',
                 filter: 'blur(18px)',
-                transition: 'transform 180ms linear',
               }}
             />
 
@@ -200,19 +162,11 @@ export default function Contact() {
               }}
             />
 
-            <div
-              ref={secondaryBoxRef}
-              className="absolute inset-y-[8%] right-[-3%] w-[88%] opacity-12"
-              style={{ transition: 'transform 180ms linear' }}
-            >
+            <div className="absolute inset-y-[8%] right-[-3%] w-[88%] opacity-12">
               <WireframeBox progress={Math.min(1, drawProgress * 1.08)} variant="echo" />
             </div>
 
-            <div
-              ref={primaryBoxRef}
-              className="absolute inset-y-[5%] right-[0%] w-[86%]"
-              style={{ transition: 'transform 180ms linear' }}
-            >
+            <div className="absolute inset-y-[5%] right-[0%] w-[86%]">
               <WireframeBox progress={drawProgress} variant="primary" />
             </div>
           </div>
