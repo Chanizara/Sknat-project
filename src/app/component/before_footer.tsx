@@ -332,76 +332,31 @@ export default function BeforeFooter() {
         </p>
       </div>
 
-      {/* ── HOME Button at Bottom Center ── */}
-      <div
-        className="absolute left-1/2 z-20"
-        style={{
-          bottom: '100px',
-          transform: isHome 
-            ? 'translateX(-50%) translateY(0) scale(1)' 
-            : isMorphing 
-              ? 'translateX(-50%) translateY(10px) scale(0.8)' 
-              : isFloating 
-                ? 'translateX(-50%) translateY(-30vh) scale(0.4)' 
-                : 'translateX(-50%) translateY(-40vh) scale(0)',
-          opacity: isHome ? 1 : isMorphing ? 0.6 : isFloating ? 0.3 : 0,
-          transition: 'all 0.5s cubic-bezier(0.22, 1, 0.36, 1)',
-          pointerEvents: isHome ? 'auto' : 'none',
-        }}
-      >
-        <Link
-          href="/"
-          className="inline-flex items-center justify-center transition-all hover:scale-105"
-          style={{
-            background: 'rgba(255,255,255,0.12)',
-            backdropFilter: 'blur(12px)',
-            WebkitBackdropFilter: 'blur(12px)',
-            border: '1px solid rgba(255,255,255,0.2)',
-            borderRadius: '0.75rem',
-            padding: '16px 48px',
-            fontSize: '11px',
-            fontWeight: 500,
-            letterSpacing: '0.25em',
-            textTransform: 'uppercase',
-            color: 'rgba(255,255,255,0.9)',
-            boxShadow: '0 8px 32px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.1)',
-          }}
-          onMouseEnter={(e) => {
-            (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.2)';
-            (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,1)';
-          }}
-          onMouseLeave={(e) => {
-            (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.12)';
-            (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.9)';
-          }}
-        >
-          HOME
-        </Link>
-      </div>
-
-      {/* ── Morphing Drop Animation ── */}
+      {/* ── Morphing Dot Animation ── */}
       {(isMorphing || isFloating || isCard) && (
         <div
           className="absolute left-1/2 z-30 pointer-events-none"
           style={{
-            bottom: isMorphing ? '80px' : isFloating ? '50%' : '50%',
+            bottom: isMorphing ? '48px' : isFloating ? '50%' : '50%',
             transform: isMorphing 
-              ? 'translateX(-50%) translateY(0) scale(1)' 
+              ? 'translateX(-50%) translateY(0) scale(0)' 
               : isFloating 
-                ? 'translateX(-50%) translateY(50%) scale(0.3)' 
+                ? 'translateX(-50%) translateY(50%) scale(1)' 
                 : 'translateX(-50%) translateY(50%) scale(0)',
-            opacity: isMorphing ? 0.8 : isFloating ? 0.6 : 0,
-            transition: 'all 0.6s cubic-bezier(0.22, 1, 0.36, 1)',
+            opacity: isMorphing ? 0 : isFloating ? 0.95 : 0,
+            transition: isMorphing 
+              ? 'all 0.01s ease 0s' 
+              : 'bottom 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.1s, transform 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.1s, opacity 0.3s ease 0.05s',
           }}
         >
+          {/* Small smooth black dot */}
           <div
             style={{
-              width: '60px',
-              height: '60px',
+              width: '16px',
+              height: '16px',
               borderRadius: '50%',
-              background: 'rgba(0,0,0,0.7)',
-              backdropFilter: 'blur(8px)',
-              boxShadow: '0 4px 20px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.1)',
+              background: 'rgba(0,0,0,0.95)',
+              boxShadow: '0 4px 20px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.1)',
             }}
           />
         </div>
@@ -577,8 +532,20 @@ export default function BeforeFooter() {
       <div className="absolute bottom-0 left-0 right-0 z-50">
         {/* ── Bottom Navigation Bar with Hover Dropdown ── */}
         <div 
-          className="absolute bottom-6 left-1/2"
-          style={{ transform: 'translateX(-50%)' }}
+          className="absolute left-1/2"
+          style={{ 
+            bottom: isCard ? '50%' : '48px',
+            transform: isCard 
+              ? 'translateX(-50%) translateY(50%) scale(0)' 
+              : isFloating 
+                ? 'translateX(-50%) translateY(0) scale(0.3)' 
+                : isMorphing 
+                  ? 'translateX(-50%) translateY(0) scale(1)' 
+                  : 'translateX(-50%) translateY(0) scale(1)',
+            opacity: isCard ? 0 : isFloating ? 0 : isMorphing ? 1 : 1,
+            transition: 'all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)',
+            pointerEvents: isCard || isFloating ? 'none' : 'auto',
+          }}
           onMouseEnter={() => setMenuHover(true)}
           onMouseLeave={() => setMenuHover(false)}
         >
@@ -589,40 +556,54 @@ export default function BeforeFooter() {
           />
 
           <div 
-            className="flex items-center gap-6 px-8 py-3 relative"
+            className="flex items-center justify-center relative overflow-hidden"
             style={{ 
-              backgroundColor: 'rgba(42,42,42,0.95)',
+              width: isMorphing ? '44px' : 'auto',
+              height: isMorphing ? '44px' : 'auto',
+              padding: isMorphing ? '0' : '12px 32px',
+              backgroundColor: isMorphing || isFloating ? 'rgba(0,0,0,0.95)' : 'rgba(42,42,42,0.95)',
               backdropFilter: 'blur(10px)',
-              borderRadius: '2px',
+              borderRadius: isMorphing ? '50%' : '2px',
+              transition: 'width 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), height 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), border-radius 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.3s ease, padding 0.4s ease',
             }}
           >
-            {/* Logo icon */}
-            <Link href="/" className="transition-opacity hover:opacity-70">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" style={{ stroke: '#f5f2ee', strokeWidth: 1.5 }}>
-                <path d="M12 2L2 7l10 5 10-5-10-5z" />
-                <path d="M2 17l10 5 10-5" />
-                <path d="M2 12l10 5 10-5" />
-              </svg>
-            </Link>
-
-            {/* Divider */}
-            <div style={{ width: '1px', height: '20px', backgroundColor: 'rgba(255,255,255,0.15)' }} />
-
-            {/* Text - Show current page name */}
-            <PageNameDisplay />
-
-            {/* Divider */}
-            <div style={{ width: '1px', height: '20px', backgroundColor: 'rgba(255,255,255,0.15)' }} />
-
-            {/* Hamburger Menu Icon */}
-            <div
-              className="flex items-center justify-center w-8 h-8 transition-opacity hover:opacity-70 cursor-pointer"
-              style={{ color: '#f5f2ee' }}
+            {/* Content - hidden when morphing */}
+            <div 
+              className="flex items-center gap-6"
+              style={{
+                opacity: isMorphing ? 0 : 1,
+                transform: isMorphing ? 'scale(0.8)' : 'scale(1)',
+                transition: 'opacity 0.25s ease, transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1)',
+              }}
             >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style={{ stroke: 'currentColor', strokeWidth: 1.5 }}>
-                <line x1="3" y1="8" x2="21" y2="8" />
-                <line x1="3" y1="16" x2="21" y2="16" />
-              </svg>
+              {/* Logo icon */}
+              <Link href="/" className="transition-opacity hover:opacity-70">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" style={{ stroke: '#f5f2ee', strokeWidth: 1.5 }}>
+                  <path d="M12 2L2 7l10 5 10-5-10-5z" />
+                  <path d="M2 17l10 5 10-5" />
+                  <path d="M2 12l10 5 10-5" />
+                </svg>
+              </Link>
+
+              {/* Divider */}
+              <div style={{ width: '1px', height: '20px', backgroundColor: 'rgba(255,255,255,0.15)' }} />
+
+              {/* Text - Show current page name */}
+              <PageNameDisplay />
+
+              {/* Divider */}
+              <div style={{ width: '1px', height: '20px', backgroundColor: 'rgba(255,255,255,0.15)' }} />
+
+              {/* Hamburger Menu Icon */}
+              <div
+                className="flex items-center justify-center w-8 h-8 transition-opacity hover:opacity-70 cursor-pointer"
+                style={{ color: '#f5f2ee' }}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style={{ stroke: 'currentColor', strokeWidth: 1.5 }}>
+                  <line x1="3" y1="8" x2="21" y2="8" />
+                  <line x1="3" y1="16" x2="21" y2="16" />
+                </svg>
+              </div>
             </div>
           </div>
         </div>
