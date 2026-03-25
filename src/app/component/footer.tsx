@@ -9,22 +9,23 @@ export default function Footer() {
   const pathname = usePathname();
   const isHomePage = pathname === '/';
   const sectionRef = useRef<HTMLElement>(null);
-  const [scrollProgress, setScrollProgress] = useState(0);
+  const [showCard, setShowCard] = useState(false);
   const [isInView, setIsInView] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
-      if (!sectionRef.current) return;
-
-      const rect = sectionRef.current.getBoundingClientRect();
+      const scrollY = window.scrollY;
       const windowH = window.innerHeight;
+      const scrollHeight = document.documentElement.scrollHeight;
 
-      // progress = 0 when footer top hits viewport bottom, = 1 when footer top reaches viewport top
-      // This means the card is fully revealed only after the footer occupies the full viewport
-      const progress = Math.max(0, Math.min(1, (windowH - rect.top) / windowH));
-      setScrollProgress(progress);
-      setIsInView(rect.top < windowH && rect.bottom > 0);
+      // Show card only when user has scrolled to absolute bottom (within 8px)
+      const atBottom = scrollY + windowH >= scrollHeight - 8;
+      setShowCard(atBottom);
 
+      if (sectionRef.current) {
+        const rect = sectionRef.current.getBoundingClientRect();
+        setIsInView(rect.top < windowH && rect.bottom > 0);
+      }
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
@@ -63,8 +64,7 @@ export default function Footer() {
     { label: 'Contact',    id: 'contact' },
   ];
 
-  const borderRadius = 0.4 - (scrollProgress * 0.1);
-  const homeBoxOpacity = Math.max(0, 1 - (scrollProgress * 1.5));
+  const homeBoxOpacity = showCard ? 0 : 1;
 
   return (
     <footer
@@ -139,37 +139,34 @@ export default function Footer() {
         }} />
       </div>
 
-      {/* ── Popup card with scroll-based animation ── */}
-      <div className="absolute inset-0 flex items-center justify-center px-4">
+      {/* ── Popup card — shown only when at absolute bottom ── */}
+      <div className="absolute inset-0 flex items-center justify-center px-4"
+        style={{ pointerEvents: showCard ? 'auto' : 'none' }}
+      >
         <div
           className="w-full max-w-[520px]"
           style={{
-            willChange: 'auto',
+            opacity: showCard ? 1 : 0,
+            transform: showCard ? 'translateY(0) scale(1)' : 'translateY(36px) scale(0.97)',
+            transition: 'opacity 0.55s cubic-bezier(0.22,1,0.36,1), transform 0.55s cubic-bezier(0.22,1,0.36,1)',
+            willChange: 'opacity, transform',
           }}
         >
           {/* Iridescent gradient border wrapper */}
           <div style={{
-            background: `linear-gradient(135deg,
-              rgba(99,102,241,${0.18 + scrollProgress * 0.22}),
-              rgba(168,85,247,${0.14 + scrollProgress * 0.18}),
-              rgba(6,182,212,${0.16 + scrollProgress * 0.20}),
-              rgba(99,102,241,${0.12 + scrollProgress * 0.16}))`,
+            background: 'linear-gradient(135deg, rgba(99,102,241,0.40), rgba(168,85,247,0.32), rgba(6,182,212,0.36), rgba(99,102,241,0.28))',
             padding: '1px',
-            borderRadius: `${borderRadius}rem`,
-            transition: 'border-radius 0.1s linear',
+            borderRadius: '0.35rem',
           }}>
           <div
             className="relative"
             style={{
-              background: 'linear-gradient(160deg, rgba(22,22,32,0.82), rgba(14,14,22,0.92))',
+              background: 'linear-gradient(160deg, rgba(22,22,32,0.88), rgba(14,14,22,0.95))',
               backdropFilter: 'blur(40px) saturate(160%) brightness(105%)',
               WebkitBackdropFilter: 'blur(40px) saturate(160%) brightness(105%)',
-              borderRadius: `calc(${borderRadius}rem - 1px)`,
+              borderRadius: 'calc(0.35rem - 1px)',
               overflow: 'hidden',
-              boxShadow: scrollProgress > 0.5
-                ? '0 42px 110px -58px rgba(0,0,0,0.85), inset 0 1px 0 rgba(255,255,255,0.12)'
-                : '0 20px 40px -30px rgba(0,0,0,0.5)',
-              transition: 'box-shadow 0.3s ease',
+              boxShadow: '0 42px 110px -58px rgba(0,0,0,0.85), inset 0 1px 0 rgba(255,255,255,0.12)',
             }}
           >
             {/* Glossy highlight */}
@@ -178,20 +175,16 @@ export default function Footer() {
               style={{
                 background: 'radial-gradient(circle at top, rgba(255,255,255,0.28), rgba(255,255,255,0) 72%)',
                 filter: 'blur(14px)',
-                opacity: 0.4 + (scrollProgress * 0.6),
-                transform: `translateY(${(1 - scrollProgress) * 18 - 8}px) scaleX(${0.5 + scrollProgress * 0.5})`,
-                transition: 'opacity 0.1s linear, transform 0.1s linear',
+                opacity: 1,
               }}
             />
-            
+
             {/* Side glow */}
             <div
               className="pointer-events-none absolute -left-8 top-14 h-28 w-28 rounded-full"
               style={{
                 background: 'radial-gradient(circle, rgba(255,255,255,0.08), rgba(255,255,255,0) 70%)',
                 filter: 'blur(8px)',
-                opacity: scrollProgress,
-                transition: 'opacity 0.1s linear',
               }}
             />
 
