@@ -35,7 +35,7 @@ export default function Hero() {
 
   return (
     <section className="relative h-[100vh] w-full overflow-hidden">
-      <div 
+      <div
         className="absolute inset-0 w-full h-full"
         style={{
           transform: `translateY(${parallaxOffset}px)`,
