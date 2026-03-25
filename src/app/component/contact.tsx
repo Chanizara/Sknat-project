@@ -37,31 +37,43 @@ const EDGES: { p1: [number, number]; p2: [number, number]; hidden: boolean }[] =
 export default function Contact() {
   const sectionRef = useRef<HTMLElement>(null);
   const innerRef = useRef<HTMLDivElement>(null);
+  const visualRef = useRef<HTMLDivElement>(null);
+  const primaryBoxRef = useRef<HTMLDivElement>(null);
+  const secondaryBoxRef = useRef<HTMLDivElement>(null);
+  const glowRef = useRef<HTMLDivElement>(null);
   const [drawProgress, setDrawProgress] = useState(0);
   const [textVisible, setTextVisible] = useState(false);
+  const [stickyPhase, setStickyPhase] = useState(0);
 
   useEffect(() => {
     const handleScroll = () => {
       const section = sectionRef.current;
       const inner = innerRef.current;
-      if (!section || !inner) return;
+      const visual = visualRef.current;
+      const primaryBox = primaryBoxRef.current;
+      const secondaryBox = secondaryBoxRef.current;
+      const glow = glowRef.current;
+      if (!section || !inner || !visual || !primaryBox || !secondaryBox || !glow) return;
 
       const rect = section.getBoundingClientRect();
       const windowH = window.innerHeight;
+      const entered = Math.max(0, windowH - rect.top);
+      const progress = Math.max(0, Math.min(1, entered / (windowH * 1.18)));
+      const stickyProgress = Math.max(0, Math.min(1, (windowH - rect.bottom) / (windowH * 0.95) + 0.5));
 
       // Text fade-in
       if (rect.top < windowH * 0.88) setTextVisible(true);
 
-      // Draw progress: 0 when section enters viewport bottom, 1 when section top reaches viewport top
-      const progress = Math.max(0, Math.min(1, (windowH - rect.top) / windowH));
       setDrawProgress(progress);
+      setStickyPhase(stickyProgress);
 
-      // Parallax: section content scrolls at ~82% of normal speed
-      // As section scrolls up (rect.top decreases), we push content DOWN by 18% of scroll amount
-      // Net effect: content moves up at 82% speed — feels slower / floating in front
       if (rect.bottom > 0 && rect.top < windowH) {
-        const entered = Math.max(0, windowH - rect.top);
-        inner.style.transform = `translateY(${entered * 0.18}px)`;
+        const sectionShift = Math.min(stickyProgress * 84, 84);
+        inner.style.transform = `translateY(${-sectionShift}px)`;
+        visual.style.transform = `translate3d(0, ${-Math.min(stickyProgress * 48, 48)}px, 0)`;
+        primaryBox.style.transform = `translate3d(${entered * -0.01}px, ${-Math.min(stickyProgress * 28, 28)}px, 0) scale(${1 + progress * 0.02})`;
+        secondaryBox.style.transform = `translate3d(${entered * 0.012}px, ${-Math.min(stickyProgress * 18, 18)}px, 0) scale(${0.97 + progress * 0.025})`;
+        glow.style.transform = `translate3d(${entered * 0.008}px, ${-Math.min(stickyProgress * 22, 22)}px, 0) scale(${1 + progress * 0.05})`;
       }
     };
 
@@ -71,110 +83,162 @@ export default function Contact() {
   }, []);
 
   const scrollToFooter = () => {
-    const el = document.getElementById('contact');
+    const el = document.getElementById('site-footer');
     if (el) window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 80, behavior: 'smooth' });
   };
 
   return (
     <section
       ref={sectionRef}
-      className="relative bg-white"
-      style={{ position: 'relative', zIndex: 2 }}
+      id="contact"
+      className="relative z-20 h-[155vh] bg-transparent px-4 md:px-6"
     >
-      {/* Inner bordered container — matches the framed layout in reference image */}
       <div
         ref={innerRef}
-        className="mx-5 md:mx-8"
+        className="sticky top-0 mx-auto grid h-screen max-w-[1536px] overflow-hidden border border-black/10 bg-white xl:grid-cols-[1.02fr_0.98fr]"
         style={{
-          border: '1px solid rgba(0,0,0,0.1)',
-          minHeight: '72vh',
-          display: 'grid',
-          gridTemplateColumns: '55% 45%',
-          overflow: 'hidden',
-          marginTop: '2.5rem',
-          marginBottom: '2.5rem',
+          minHeight: '100vh',
+          transition: 'transform 180ms linear',
+          boxShadow: `0 32px 90px -78px rgba(15,23,42,${0.18 + stickyPhase * 0.1})`,
         }}
       >
-        {/* Left: text content */}
         <div
-          className="flex flex-col justify-center px-10 py-16 md:px-14 md:py-20"
+          className="relative flex flex-col justify-center overflow-hidden px-8 py-14 md:px-12 md:py-20 xl:px-16"
           style={{
             opacity: textVisible ? 1 : 0,
             transform: textVisible ? 'none' : 'translateY(20px)',
             transition: 'opacity 0.9s ease, transform 0.9s ease',
           }}
         >
-          <p
-            className="mb-6 flex items-center gap-2 text-[11px] uppercase tracking-[0.4em]"
-            style={{ color: 'rgba(10,10,10,0.38)' }}
-          >
-            <span>◆</span> WHERE VISION MEETS EXECUTION
-          </p>
-
-          <h2
-            className="font-light leading-[1.15] text-[#0a0a0a] mb-10"
-            style={{ fontSize: 'clamp(2rem, 3.8vw, 3.6rem)' }}
-          >
-            เริ่มต้นทุกการลงทุน<br />
-            ด้วยความเข้าใจ<br />
-            ที่ถูกต้อง
-          </h2>
-
-          <div className="flex flex-wrap items-center gap-5">
-            <a
-              href="#about"
-              className="inline-flex items-center gap-3 bg-[#0a0a0a] text-white px-7 py-3.25 text-[11px] font-semibold uppercase tracking-[0.25em] transition-colors duration-200 hover:bg-[#1a40b6]"
+          <div
+            className="pointer-events-none absolute inset-0"
+            style={{
+              background: 'linear-gradient(135deg, rgba(255,255,255,0.96), rgba(255,255,255,0.92) 62%, rgba(255,255,255,0.88))',
+            }}
+          />
+          <div
+            className="pointer-events-none absolute inset-y-0 right-0 hidden w-px xl:block"
+            style={{ background: 'linear-gradient(180deg, rgba(10,10,10,0.03), rgba(10,10,10,0.12), rgba(10,10,10,0.03))' }}
+          />
+          <div className="relative">
+            <p
+              className="mb-6 flex items-center gap-2 text-[11px] uppercase tracking-[0.4em]"
+              style={{ color: 'rgba(10,10,10,0.38)' }}
             >
-              <span style={{ fontFamily: 'monospace' }}>↳</span> เกี่ยวกับเรา
-            </a>
-            <button
-              onClick={scrollToFooter}
-              className="inline-flex items-center gap-3 bg-transparent border-none text-[#0a0a0a] text-[11px] font-semibold uppercase tracking-[0.25em] transition-opacity duration-200 hover:opacity-40 cursor-pointer"
+              <span>◆</span> WHERE VISION MEETS EXECUTION
+            </p>
+
+            <h2
+              className="mb-8 font-light leading-[0.96] text-[#0a0a0a] md:mb-10"
+              style={{ fontSize: 'clamp(2.7rem, 5.3vw, 6rem)' }}
             >
-              <span style={{ fontFamily: 'monospace' }}>↳</span> ติดต่อเรา
-            </button>
+              เริ่มต้นทุกการลงทุน<br />
+              ด้วยความเข้าใจ<br />
+              ที่ถูกต้อง
+            </h2>
+
+            <p className="mb-10 max-w-xl text-sm leading-7 text-[#5c5a56] md:text-base">
+              ให้ส่วนติดต่ออยู่ด้านหน้าของฟุตเตอร์แบบชัดเจน พร้อมมิติที่ลอยช้ากว่าเนื้อหา
+              เพื่อให้ภาพรวมดูนิ่ง ละเอียด และมีความเป็นสถาปัตยกรรมมากขึ้น
+            </p>
+
+            <div className="flex flex-wrap items-center gap-5">
+              <a
+                href="#about"
+                className="inline-flex items-center gap-3 bg-[#0a0a0a] px-7 py-3.5 text-[11px] font-semibold uppercase tracking-[0.25em] text-white transition-colors duration-200 hover:bg-[#1a40b6]"
+              >
+                <span style={{ fontFamily: 'monospace' }}>↳</span> เกี่ยวกับเรา
+              </a>
+              <button
+                onClick={scrollToFooter}
+                className="inline-flex items-center gap-3 border-none bg-transparent px-0 py-3.5 text-[11px] font-semibold uppercase tracking-[0.25em] text-[#0a0a0a] transition-opacity duration-200 hover:opacity-40"
+              >
+                <span style={{ fontFamily: 'monospace' }}>↳</span> ติดต่อเรา
+              </button>
+            </div>
           </div>
         </div>
 
-        {/* Right: scroll-drawn 3D wireframe box */}
-        <div className="relative overflow-hidden">
-          <WireframeBox progress={drawProgress} />
+        <div className="relative min-h-[380px] overflow-hidden border-t border-black/8 xl:min-h-[680px] xl:border-l xl:border-t-0">
+          <div
+            ref={visualRef}
+            className="absolute inset-0"
+            style={{ transition: 'transform 180ms linear' }}
+          >
+            <div
+              ref={glowRef}
+              className="absolute left-[16%] top-[22%] h-[30%] w-[34%] rounded-full"
+              style={{
+                background: 'radial-gradient(circle, rgba(26,64,182,0.05) 0%, rgba(26,64,182,0.015) 42%, rgba(255,255,255,0) 74%)',
+                filter: 'blur(18px)',
+                transition: 'transform 180ms linear',
+              }}
+            />
+
+            <div
+              className="absolute inset-x-[7%] inset-y-[12%]"
+              style={{
+                background: 'linear-gradient(180deg, rgba(255,255,255,0.8), rgba(255,255,255,0.16))',
+                border: '1px solid rgba(10,10,10,0.04)',
+              }}
+            />
+
+            <div
+              ref={secondaryBoxRef}
+              className="absolute inset-y-[8%] right-[-3%] w-[88%] opacity-12"
+              style={{ transition: 'transform 180ms linear' }}
+            >
+              <WireframeBox progress={Math.min(1, drawProgress * 1.08)} variant="echo" />
+            </div>
+
+            <div
+              ref={primaryBoxRef}
+              className="absolute inset-y-[5%] right-[0%] w-[86%]"
+              style={{ transition: 'transform 180ms linear' }}
+            >
+              <WireframeBox progress={drawProgress} variant="primary" />
+            </div>
+          </div>
         </div>
       </div>
     </section>
   );
 }
 
-function WireframeBox({ progress }: { progress: number }) {
+function WireframeBox({ progress, variant }: { progress: number; variant: 'primary' | 'echo' }) {
   const N = EDGES.length; // 12 edges total
 
   return (
     <svg
-      viewBox="0 -10 520 430"
+      viewBox="0 -20 580 470"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       className="absolute inset-0 w-full h-full"
       preserveAspectRatio="xMidYMid meet"
     >
+      <path
+        d="M110 405C160 330 244 286 360 290"
+        stroke={variant === 'primary' ? 'rgba(10,10,10,0.18)' : 'rgba(10,10,10,0.1)'}
+        strokeWidth="1"
+        strokeDasharray="7 10"
+      />
+      <path
+        d="M210 85H560"
+        stroke={variant === 'primary' ? 'rgba(10,10,10,0.16)' : 'rgba(10,10,10,0.08)'}
+        strokeWidth="0.9"
+      />
       {EDGES.map(({ p1, p2, hidden }, i) => {
         const length = elen(p1, p2);
 
-        // Each line has a staggered draw window:
-        // Solid edges (0–8) draw first, hidden edges (9–11) draw last
-        // drawWindow = 0.55 means each line uses 55% of the total progress range
-        const drawWindow = 0.55;
+        const drawWindow = variant === 'primary' ? 0.6 : 0.48;
         const startP = (i / N) * (1 - drawWindow);
         const localP = Math.max(0, Math.min(1, (progress - startP) / drawWindow));
         const dashOffset = length * (1 - localP);
 
         if (hidden) {
-          // Hidden edges: dashed appearance + lighter color
-          // Use a trick: dasharray alternates small dash/gap, offset animates the draw
-          // We overlay a "reveal clip" by animating the overall dash length
           const dashLen = 5;
           const gapLen = 5;
           const totalPattern = dashLen + gapLen;
-          // Full dashed pattern total length (number of complete repeats)
           const patternCount = Math.ceil(length / totalPattern);
           const fullDashedLength = patternCount * totalPattern;
 
@@ -183,8 +247,8 @@ function WireframeBox({ progress }: { progress: number }) {
               key={i}
               x1={p1[0]} y1={p1[1]}
               x2={p2[0]} y2={p2[1]}
-              stroke="rgba(10,10,10,0.28)"
-              strokeWidth="0.7"
+              stroke={variant === 'primary' ? 'rgba(10,10,10,0.25)' : 'rgba(10,10,10,0.12)'}
+              strokeWidth={variant === 'primary' ? '0.78' : '0.62'}
               strokeDasharray={`${dashLen} ${gapLen}`}
               strokeDashoffset={fullDashedLength * (1 - localP)}
               strokeLinecap="round"
@@ -197,8 +261,8 @@ function WireframeBox({ progress }: { progress: number }) {
             key={i}
             x1={p1[0]} y1={p1[1]}
             x2={p2[0]} y2={p2[1]}
-            stroke="rgba(10,10,10,0.72)"
-            strokeWidth="0.85"
+            stroke={variant === 'primary' ? 'rgba(10,10,10,0.72)' : 'rgba(10,10,10,0.18)'}
+            strokeWidth={variant === 'primary' ? '0.95' : '0.72'}
             strokeDasharray={`${length} ${length}`}
             strokeDashoffset={dashOffset}
             strokeLinecap="round"

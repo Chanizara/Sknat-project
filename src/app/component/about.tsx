@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 
 const features = [
@@ -47,7 +47,7 @@ function useCountUp(
 
   useEffect(() => {
     if (!start) {
-      setCount(0);
+      startTimeRef.current = null;
       return;
     }
 

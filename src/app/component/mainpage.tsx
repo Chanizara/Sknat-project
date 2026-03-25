@@ -29,12 +29,10 @@ type Filters = {
 
 type FilterControlsProps = {
   filters: Filters;
-  areaTypeOptions: string[];
   developmentTypeOptions: string[];
   districtOptions: string[];
   handleFilterChange: (filterType: keyof Filters, value: Filters[keyof Filters]) => void;
   toggleArrayFilter: (filterType: "areaType" | "listingType" | "developmentType" | "district", value: string) => void;
-  clearFilters: () => void;
 };
 
 const DEFAULT_MAX_PRICE = 50000000;
@@ -68,11 +66,6 @@ export default function MainPage({ properties }: MainPageProps) {
       }
     }
   };
-
-  const areaTypeOptions = useMemo(
-    () => Array.from(new Set(properties.map((p) => p.category).filter(Boolean))) as string[],
-    [properties],
-  );
 
   const developmentTypeOptions = useMemo(
     () => Array.from(new Set(properties.map((p) => p.propertyType).filter(Boolean))) as string[],
@@ -162,191 +155,186 @@ export default function MainPage({ properties }: MainPageProps) {
         <div className="absolute inset-x-0 top-0 h-px bg-[#e8e8e8]" />
 
         <div className="container relative mx-auto px-4 md:px-6">
-          <div style={{ border: '1px solid #d8d8d8' }} className="p-6 md:p-10">
-          {/* Header */}
-          <div className="mb-9 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-            <div>
-              <p className="text-[11px] uppercase tracking-[0.35em] text-[#1a40b6] mb-1">SKNAT VILLA CURATION</p>
-              <h2 className="mt-2 text-3xl font-light text-[#0a0a0a] md:text-5xl">เลือกบ้านสไตล์หรูแบบพูลวิลล่า</h2>
-              <p className="mt-2 max-w-2xl text-sm text-[#666] md:text-base">ประสบการณ์ค้นหาบ้านที่ลื่นไหล โปร่งสบาย และคัดทรัพย์แบบร่วมสมัย</p>
-            </div>
-            <div className="flex items-end gap-7">
-              <CounterCard label="ผลลัพธ์" value={`${filteredProperties.length}`} />
-              <CounterCard label="ตัวกรองที่ใช้" value={`${activeFilters}`} />
-            </div>
-          </div>
-
-          {/* Search bar */}
-          <div
-            className="mb-7 flex flex-col gap-3 p-3 md:flex-row md:items-center"
-            style={{ border: '1px solid #e8e8e8' }}
-          >
-            <div className="flex h-11 flex-1 items-center gap-3 bg-[#f8f8f8] px-4">
-              <svg className="h-4 w-4 text-[#999]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M21 21l-4.35-4.35m1.85-5.15a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-              <input
-                type="text"
-                placeholder="ค้นหาโครงการ, พื้นที่, จังหวัด"
-                value={filters.searchKeyword}
-                onChange={(event) => handleFilterChange("searchKeyword", event.target.value)}
-                className="h-full w-full bg-transparent text-sm text-[#0a0a0a] outline-none placeholder:text-[#aaa]"
-              />
-            </div>
-            <button
-              type="button"
-              onClick={() => setIsFilterOpen((prev) => !prev)}
-              className="h-11 bg-[#0a0a0a] px-6 text-sm font-semibold text-white transition hover:bg-[#1a40b6]"
-            >
-              ตัวกรองขั้นสูง ({activeFilters})
-            </button>
-          </div>
-
-          {/* Filter panel */}
-          <div
-            className={`overflow-hidden transition-all duration-500 ${
-              isFilterOpen ? "mb-7 max-h-200 opacity-100" : "max-h-0 opacity-0"
-            }`}
-          >
-            <div className="p-5 md:p-6" style={{ border: '1px solid #e8e8e8' }}>
-              <div className="mb-5 flex items-start justify-between gap-4">
+          <div className="relative bg-white">
+            <div className="relative">
+              {/* Header */}
+              <div className="mb-9 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
                 <div>
-                  <h3 className="text-xs font-semibold uppercase tracking-[0.22em] text-[#0a0a0a]">Advanced Filters</h3>
-                  <p className="mt-1 text-xs text-[#999]">ปรับเงื่อนไขเพื่อคัดบ้านที่ใกล้เคียงความต้องการ</p>
+                  <p className="mb-1 text-[11px] uppercase tracking-[0.35em] text-[#1a40b6]">SKNAT VILLA CURATION</p>
+                  <h2 className="mt-2 text-3xl font-light text-[#0a0a0a] md:text-5xl">เลือกบ้านสไตล์หรูแบบพูลวิลล่า</h2>
+                  <p className="mt-2 max-w-2xl text-sm text-[#666] md:text-base">ประสบการณ์ค้นหาบ้านที่ลื่นไหล โปร่งสบาย และคัดทรัพย์แบบร่วมสมัย</p>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-end gap-4 md:gap-5">
+                  <CounterCard label="ผลลัพธ์" value={`${filteredProperties.length}`} />
+                  <CounterCard label="ตัวกรองที่ใช้" value={`${activeFilters}`} />
+                </div>
+              </div>
+
+              {/* Search bar */}
+              <div className="mb-7 flex flex-col gap-3 rounded-[28px] border border-[#ececec] bg-white p-4 shadow-[0_26px_65px_-52px_rgba(15,23,42,0.18)] md:flex-row md:items-center">
+                <div className="flex h-12 flex-1 items-center gap-3 rounded-[20px] bg-white px-5 ring-1 ring-inset ring-[#efefef]">
+                  <svg className="h-4 w-4 text-[#999]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M21 21l-4.35-4.35m1.85-5.15a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                  <input
+                    type="text"
+                    placeholder="ค้นหาโครงการ, พื้นที่, จังหวัด"
+                    value={filters.searchKeyword}
+                    onChange={(event) => handleFilterChange("searchKeyword", event.target.value)}
+                    className="h-full w-full bg-transparent text-sm text-[#0a0a0a] outline-none placeholder:text-[#aaa]"
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsFilterOpen((prev) => !prev)}
+                  className="h-12 rounded-[20px] bg-[#0a0a0a] px-7 text-sm font-semibold text-white transition hover:bg-[#1a40b6]"
+                >
+                  ตัวกรองขั้นสูง ({activeFilters})
+                </button>
+              </div>
+
+              {/* Filter panel */}
+              <div
+                className={`overflow-hidden transition-all duration-500 ${
+                  isFilterOpen ? "mb-7 max-h-200 opacity-100" : "max-h-0 opacity-0"
+                }`}
+              >
+                <div className="rounded-[26px] border border-[#ececec] bg-white p-5 shadow-[0_20px_60px_-52px_rgba(15,23,42,0.18)] md:p-6">
+                  <div className="mb-5 flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
+                    <div>
+                      <h3 className="text-xs font-semibold uppercase tracking-[0.22em] text-[#0a0a0a]">Advanced Filters</h3>
+                      <p className="mt-1 text-xs text-[#999]">ปรับเงื่อนไขเพื่อคัดบ้านที่ใกล้เคียงความต้องการ</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={clearFilters}
+                        className="rounded-full border border-[#e9e9e9] px-4 py-2 text-xs font-semibold text-[#666] transition hover:text-[#0a0a0a]"
+                      >
+                        ล้างตัวกรองทั้งหมด
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setIsFilterOpen(false)}
+                        className="rounded-full bg-[#0a0a0a] px-4 py-2 text-xs font-semibold text-white transition hover:bg-[#1a40b6]"
+                      >
+                        ซ่อน
+                      </button>
+                    </div>
+                  </div>
+                  <HorizontalFilterControls
+                    filters={filters}
+                    developmentTypeOptions={developmentTypeOptions}
+                    districtOptions={districtOptions}
+                    handleFilterChange={handleFilterChange}
+                    toggleArrayFilter={toggleArrayFilter}
+                  />
+                </div>
+              </div>
+
+              {/* Empty state */}
+              {filteredProperties.length === 0 ? (
+                <div className="rounded-[30px] border border-[#ececec] bg-white p-12 text-center shadow-[0_20px_60px_-52px_rgba(15,23,42,0.18)]">
+                  <h3 className="text-xl font-semibold text-[#0a0a0a]">ไม่พบอสังหาริมทรัพย์ตามเงื่อนไข</h3>
+                  <p className="mt-2 text-[#666]">ลองปรับช่วงราคา ประเภท หรือเขตใหม่</p>
                   <button
                     type="button"
                     onClick={clearFilters}
-                    className="px-4 py-2 text-xs font-semibold text-[#666] transition hover:text-[#0a0a0a]"
-                    style={{ border: '1px solid #e8e8e8' }}
+                    className="mt-5 rounded-full bg-[#0a0a0a] px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-[#1a40b6]"
                   >
-                    ล้างตัวกรองทั้งหมด
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setIsFilterOpen(false)}
-                    className="bg-[#0a0a0a] px-4 py-2 text-xs font-semibold text-white transition hover:bg-[#1a40b6]"
-                  >
-                    ซ่อน
+                    ล้างตัวกรอง
                   </button>
                 </div>
-              </div>
-              <HorizontalFilterControls
-                filters={filters}
-                areaTypeOptions={areaTypeOptions}
-                developmentTypeOptions={developmentTypeOptions}
-                districtOptions={districtOptions}
-                handleFilterChange={handleFilterChange}
-                toggleArrayFilter={toggleArrayFilter}
-                clearFilters={clearFilters}
-              />
-            </div>
-          </div>
-
-          {/* Empty state */}
-          {filteredProperties.length === 0 ? (
-            <div className="p-12 text-center" style={{ border: '1px solid #e8e8e8' }}>
-              <h3 className="text-xl font-semibold text-[#0a0a0a]">ไม่พบอสังหาริมทรัพย์ตามเงื่อนไข</h3>
-              <p className="mt-2 text-[#666]">ลองปรับช่วงราคา ประเภท หรือเขตใหม่</p>
-              <button
-                type="button"
-                onClick={clearFilters}
-                className="mt-5 bg-[#0a0a0a] px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-[#1a40b6]"
-              >
-                ล้างตัวกรอง
-              </button>
-            </div>
-          ) : (
-            <div>
-              <div className="mb-3 flex items-center justify-between text-[11px] uppercase tracking-[0.2em] text-[#bbb]">
-                <span>Property Grid</span>
-                <span>รายการทั้งหมด {filteredProperties.length} รายการ</span>
-              </div>
-              <div className="grid grid-cols-1 gap-7 lg:grid-cols-2">
-                {filteredProperties.map((property, idx) => (
-                  <motion.article
-                    key={property.id}
-                    initial={{ opacity: 0, y: 28 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.65, delay: (idx % 2) * 0.1, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] }}
-                    viewport={{ once: true, margin: "-40px" }}
-                    className="group overflow-hidden bg-white transition duration-300"
-                    style={{ border: '1px solid #e8e8e8' }}
-                    whileHover={{ y: -4, boxShadow: '0 16px 40px rgba(0,0,0,0.10)', transition: { duration: 0.3 } }}
-                  >
-                    <div className="relative h-64 overflow-hidden md:h-72">
-                      <Image
-                        src={property.image}
-                        alt={property.title}
-                        fill
-                        className="object-cover transition duration-700 group-hover:scale-105"
-                      />
-                      <div className="absolute inset-0 bg-linear-to-t from-[#020617]/75 via-[#020617]/15 to-transparent" />
-
-                      <div className="absolute left-4 top-4 flex flex-wrap items-center gap-2">
-                        <span className="bg-white/90 px-3 py-1 text-[11px] font-semibold text-[#0a0a0a]">{property.type}</span>
-                        {property.propertyType ? (
-                          <span className="bg-black/45 px-3 py-1 text-[11px] font-medium text-white">{property.propertyType}</span>
-                        ) : null}
-                      </div>
-
-                      <button
-                        onClick={(e) => handleToggleFavorite(property, e)}
-                        className={`absolute right-4 top-4 flex h-10 w-10 items-center justify-center transition-all ${
-                          isFavorite(property.id)
-                            ? 'bg-red-500 text-white scale-110'
-                            : 'bg-white/90 text-[#0a0a0a] hover:bg-white'
-                        }`}
-                        aria-label={isFavorite(property.id) ? 'ลบจากรายการโปรด' : 'เพิ่มในรายการโปรด'}
+              ) : (
+                <div>
+                  <div className="mb-3 flex items-center justify-between text-[11px] uppercase tracking-[0.2em] text-[#bbb]">
+                    <span>Property Grid</span>
+                    <span>รายการทั้งหมด {filteredProperties.length} รายการ</span>
+                  </div>
+                  <div className="grid grid-cols-1 gap-7 lg:grid-cols-2">
+                    {filteredProperties.map((property, idx) => (
+                      <motion.article
+                        key={property.id}
+                        initial={{ opacity: 0, y: 28 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.65, delay: (idx % 2) * 0.1, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] }}
+                        viewport={{ once: true, margin: "-40px" }}
+                        className="group overflow-hidden rounded-[28px] border border-[#ebebeb] bg-white transition duration-300"
+                        whileHover={{ y: -4, boxShadow: '0 16px 40px rgba(0,0,0,0.10)', transition: { duration: 0.3 } }}
                       >
-                        <svg
-                          className="h-5 w-5"
-                          fill={isFavorite(property.id) ? 'currentColor' : 'none'}
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                        >
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                        </svg>
-                      </button>
+                        <div className="relative h-64 overflow-hidden rounded-t-[28px] md:h-72">
+                          <Image
+                            src={property.image}
+                            alt={property.title}
+                            fill
+                            className="object-cover transition duration-700 group-hover:scale-105"
+                          />
+                          <div className="absolute inset-0 bg-linear-to-t from-[#020617]/75 via-[#020617]/15 to-transparent" />
 
-                      <div className="absolute bottom-4 left-4 right-4 space-y-1.5">
-                        <p className="line-clamp-1 text-xs text-white/85">{property.location}</p>
-                        <h3 className="line-clamp-2 text-xl font-semibold leading-tight text-white">{property.title}</h3>
-                      </div>
-                    </div>
+                          <div className="absolute left-4 top-4 flex flex-wrap items-center gap-2">
+                            <span className="rounded-full bg-white/90 px-3 py-1 text-[11px] font-semibold text-[#0a0a0a]">{property.type}</span>
+                            {property.propertyType ? (
+                              <span className="rounded-full bg-black/45 px-3 py-1 text-[11px] font-medium text-white">{property.propertyType}</span>
+                            ) : null}
+                          </div>
 
-                    <div className="space-y-4 p-5">
-                      <div className="flex flex-wrap gap-x-4 gap-y-2">
-                        {property.size ? <MetricTag label={`${property.size} ตร.ม.`} /> : null}
-                        {property.bedrooms ? <MetricTag label={`${property.bedrooms} ห้องนอน`} /> : null}
-                        {property.bathrooms ? <MetricTag label={`${property.bathrooms} ห้องน้ำ`} /> : null}
-                      </div>
+                          <button
+                            onClick={(e) => handleToggleFavorite(property, e)}
+                            className={`absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full transition-all ${
+                              isFavorite(property.id)
+                                ? 'bg-red-500 text-white scale-110'
+                                : 'bg-white/90 text-[#0a0a0a] hover:bg-white'
+                            }`}
+                            aria-label={isFavorite(property.id) ? 'ลบจากรายการโปรด' : 'เพิ่มในรายการโปรด'}
+                          >
+                            <svg
+                              className="h-5 w-5"
+                              fill={isFavorite(property.id) ? 'currentColor' : 'none'}
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                            >
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                            </svg>
+                          </button>
 
-                      <div className="flex items-end justify-between gap-4">
-                        <div>
-                          <p className="text-3xl font-semibold tracking-tight text-[#1a40b6]">{buildPriceLabel(property)}</p>
-                          {property.pricePerSqm ? (
-                            <p className="text-xs text-[#999]">{formatPrice(property.pricePerSqm)}/ตร.ม.</p>
-                          ) : null}
+                          <div className="absolute bottom-4 left-4 right-4 space-y-1.5">
+                            <p className="line-clamp-1 text-xs text-white/85">{property.location}</p>
+                            <h3 className="line-clamp-2 text-xl font-semibold leading-tight text-white">{property.title}</h3>
+                          </div>
                         </div>
-                        <Link
-                          href={`/property/${property.id}`}
-                          className="inline-flex h-10 items-center gap-2 bg-[#0a0a0a] px-4 text-sm font-semibold text-white transition hover:bg-[#1a40b6]"
-                        >
-                          รายละเอียด
-                          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
-                          </svg>
-                        </Link>
-                      </div>
-                    </div>
-                  </motion.article>
-                ))}
-              </div>
+
+                        <div className="space-y-4 p-5">
+                          <div className="flex flex-wrap gap-x-4 gap-y-2">
+                            {property.size ? <MetricTag label={`${property.size} ตร.ม.`} /> : null}
+                            {property.bedrooms ? <MetricTag label={`${property.bedrooms} ห้องนอน`} /> : null}
+                            {property.bathrooms ? <MetricTag label={`${property.bathrooms} ห้องน้ำ`} /> : null}
+                          </div>
+
+                          <div className="flex items-end justify-between gap-4">
+                            <div>
+                              <p className="text-3xl font-semibold tracking-tight text-[#1a40b6]">{buildPriceLabel(property)}</p>
+                              {property.pricePerSqm ? (
+                                <p className="text-xs text-[#999]">{formatPrice(property.pricePerSqm)}/ตร.ม.</p>
+                              ) : null}
+                            </div>
+                            <Link
+                              href={`/property/${property.id}`}
+                              className="inline-flex h-10 items-center gap-2 rounded-full bg-[#0a0a0a] px-4 text-sm font-semibold text-white transition hover:bg-[#1a40b6]"
+                            >
+                              รายละเอียด
+                              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+                              </svg>
+                            </Link>
+                          </div>
+                        </div>
+                      </motion.article>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
-          )}
           </div>
         </div>
       </section>
@@ -356,18 +344,16 @@ export default function MainPage({ properties }: MainPageProps) {
 
 function HorizontalFilterControls({
   filters,
-  areaTypeOptions: _areaTypeOptions,
   developmentTypeOptions,
   districtOptions,
   handleFilterChange,
   toggleArrayFilter,
-  clearFilters: _clearFilters,
 }: FilterControlsProps) {
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
         {/* Listing Type */}
-        <div className="p-4" style={{ border: '1px solid #e8e8e8' }}>
+        <div className="rounded-[22px] border border-[#ececec] bg-white p-4">
           <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-[#888]">ประเภทประกาศ</p>
           <div className="flex flex-wrap gap-1.5">
             {LISTING_TYPES.map((type) => (
@@ -375,7 +361,7 @@ function HorizontalFilterControls({
                 key={type}
                 type="button"
                 onClick={() => toggleArrayFilter("listingType", type)}
-                className="px-3 py-1.5 text-xs font-semibold transition"
+                className="rounded-full px-3 py-1.5 text-xs font-semibold transition"
                 style={filters.listingType.includes(type)
                   ? { background: '#0a0a0a', color: '#fff' }
                   : { background: '#fff', color: '#444', border: '1px solid #e0e0e0' }}
@@ -387,7 +373,7 @@ function HorizontalFilterControls({
         </div>
 
         {/* Development Type */}
-        <div className="p-4" style={{ border: '1px solid #e8e8e8' }}>
+        <div className="rounded-[22px] border border-[#ececec] bg-white p-4">
           <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-[#888]">ประเภทการพัฒนา</p>
           <div className="flex flex-wrap gap-1.5">
             {developmentTypeOptions.map((type) => (
@@ -395,7 +381,7 @@ function HorizontalFilterControls({
                 key={type}
                 type="button"
                 onClick={() => toggleArrayFilter("developmentType", type)}
-                className="px-2.5 py-1 text-xs transition"
+                className="rounded-full px-2.5 py-1 text-xs transition"
                 style={filters.developmentType.includes(type)
                   ? { background: '#0a0a0a', color: '#fff' }
                   : { background: '#fff', color: '#444', border: '1px solid #e0e0e0' }}
@@ -407,13 +393,12 @@ function HorizontalFilterControls({
         </div>
 
         {/* Min Bedrooms */}
-        <div className="p-4" style={{ border: '1px solid #e8e8e8' }}>
+        <div className="rounded-[22px] border border-[#ececec] bg-white p-4">
           <label className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.2em] text-[#888]">ห้องนอนขั้นต่ำ</label>
           <select
             value={filters.minBedrooms}
             onChange={(event) => handleFilterChange("minBedrooms", event.target.value)}
-            className="h-10 w-full bg-white px-3 text-sm text-[#0a0a0a] outline-none transition"
-            style={{ border: '1px solid #e0e0e0' }}
+            className="h-10 w-full rounded-[16px] border border-[#e0e0e0] bg-white px-3 text-sm text-[#0a0a0a] outline-none transition"
           >
             <option value="">ไม่ระบุ</option>
             <option value="1">1+</option>
@@ -425,7 +410,7 @@ function HorizontalFilterControls({
         </div>
 
         {/* Price Range */}
-        <div className="p-4 md:col-span-2 lg:col-span-2" style={{ border: '1px solid #e8e8e8' }}>
+        <div className="rounded-[22px] border border-[#ececec] bg-white p-4 md:col-span-2 lg:col-span-2">
           <label className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.2em] text-[#888]">
             ราคา {formatPrice(filters.priceRange[0])} - {formatPrice(filters.priceRange[1])}
           </label>
@@ -448,8 +433,7 @@ function HorizontalFilterControls({
               onChange={(event) =>
                 handleFilterChange("priceRange", [parseInt(event.target.value, 10) || 0, filters.priceRange[1]])
               }
-              className="h-9 w-full bg-white px-2.5 text-sm text-[#0a0a0a] outline-none transition placeholder:text-[#ccc]"
-              style={{ border: '1px solid #e0e0e0' }}
+              className="h-9 w-full rounded-[14px] border border-[#e0e0e0] bg-white px-2.5 text-sm text-[#0a0a0a] outline-none transition placeholder:text-[#ccc]"
             />
             <input
               type="number"
@@ -458,14 +442,13 @@ function HorizontalFilterControls({
               onChange={(event) =>
                 handleFilterChange("priceRange", [filters.priceRange[0], parseInt(event.target.value, 10) || DEFAULT_MAX_PRICE])
               }
-              className="h-9 w-full bg-white px-2.5 text-sm text-[#0a0a0a] outline-none transition placeholder:text-[#ccc]"
-              style={{ border: '1px solid #e0e0e0' }}
+              className="h-9 w-full rounded-[14px] border border-[#e0e0e0] bg-white px-2.5 text-sm text-[#0a0a0a] outline-none transition placeholder:text-[#ccc]"
             />
           </div>
         </div>
 
         {/* Area Size */}
-        <div className="p-4 md:col-span-2 lg:col-span-1" style={{ border: '1px solid #e8e8e8' }}>
+        <div className="rounded-[22px] border border-[#ececec] bg-white p-4 md:col-span-2 lg:col-span-1">
           <label className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.2em] text-[#888]">
             พื้นที่ {filters.areaSize[0]} - {filters.areaSize[1]} ตร.ม.
           </label>
@@ -488,8 +471,7 @@ function HorizontalFilterControls({
               onChange={(event) =>
                 handleFilterChange("areaSize", [parseInt(event.target.value, 10) || 0, filters.areaSize[1]])
               }
-              className="h-9 w-full bg-white px-2.5 text-sm text-[#0a0a0a] outline-none transition placeholder:text-[#ccc]"
-              style={{ border: '1px solid #e0e0e0' }}
+              className="h-9 w-full rounded-[14px] border border-[#e0e0e0] bg-white px-2.5 text-sm text-[#0a0a0a] outline-none transition placeholder:text-[#ccc]"
             />
             <input
               type="number"
@@ -498,15 +480,14 @@ function HorizontalFilterControls({
               onChange={(event) =>
                 handleFilterChange("areaSize", [filters.areaSize[0], parseInt(event.target.value, 10) || DEFAULT_MAX_AREA])
               }
-              className="h-9 w-full bg-white px-2.5 text-sm text-[#0a0a0a] outline-none transition placeholder:text-[#ccc]"
-              style={{ border: '1px solid #e0e0e0' }}
+              className="h-9 w-full rounded-[14px] border border-[#e0e0e0] bg-white px-2.5 text-sm text-[#0a0a0a] outline-none transition placeholder:text-[#ccc]"
             />
           </div>
         </div>
       </div>
 
       {/* District */}
-      <div className="p-4" style={{ border: '1px solid #e8e8e8' }}>
+      <div className="rounded-[22px] border border-[#ececec] bg-white p-4">
         <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-[#888]">เขต/อำเภอ</p>
         <div className="flex flex-wrap gap-2">
           {districtOptions.map((district) => (
@@ -514,7 +495,7 @@ function HorizontalFilterControls({
               key={district}
               type="button"
               onClick={() => toggleArrayFilter("district", district)}
-              className="px-3 py-1.5 text-xs font-medium transition"
+              className="rounded-full px-3 py-1.5 text-xs font-medium transition"
               style={filters.district.includes(district)
                 ? { background: '#0a0a0a', color: '#fff' }
                 : { background: '#fff', color: '#444', border: '1px solid #e0e0e0' }}
@@ -532,7 +513,7 @@ type CounterCardProps = { label: string; value: string };
 
 function CounterCard({ label, value }: CounterCardProps) {
   return (
-    <div>
+    <div className="min-w-[108px] rounded-[22px] border border-[#ececec] bg-white px-4 py-3 shadow-[0_14px_30px_-28px_rgba(15,23,42,0.14)]">
       <p className="text-[11px] uppercase tracking-[0.16em] text-[#999]">{label}</p>
       <p className="mt-1 text-[2.05rem] leading-none font-semibold text-[#0a0a0a]">{value}</p>
     </div>
@@ -543,8 +524,8 @@ type MetricTagProps = { label: string };
 
 function MetricTag({ label }: MetricTagProps) {
   return (
-    <span className="inline-flex items-center gap-1.5 text-xs text-[#888]">
-      <span className="h-1.5 w-1.5" style={{ background: '#ccc' }} />
+    <span className="inline-flex items-center gap-1.5 rounded-full border border-[#ececec] bg-white px-3 py-1.5 text-xs text-[#888]">
+      <span className="h-1.5 w-1.5 rounded-full" style={{ background: '#ccc' }} />
       {label}
     </span>
   );

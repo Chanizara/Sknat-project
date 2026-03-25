@@ -51,7 +51,7 @@ export default function Footer() {
   return (
     <footer
       ref={sectionRef}
-      id="contact"
+      id="site-footer"
       className="relative overflow-hidden"
       style={{ height: '100vh', minHeight: '600px', zIndex: 1 }}
     >
@@ -90,21 +90,44 @@ export default function Footer() {
         <div
           className="w-full max-w-[520px]"
           style={{
-            transform: isVisible ? 'translateY(0)' : 'translateY(72px)',
+            transform: isVisible ? 'translateY(0) scale(1)' : 'translateY(92px) scale(0.92)',
             opacity: isVisible ? 1 : 0,
-            transition: 'transform 0.75s cubic-bezier(0.22,1,0.36,1), opacity 0.75s ease',
+            filter: isVisible ? 'blur(0px)' : 'blur(14px)',
+            transition: 'transform 0.95s cubic-bezier(0.16,1,0.3,1), opacity 0.95s ease, filter 0.95s ease',
           }}
         >
           <div
+            className="relative"
             style={{
-              background: 'rgba(14,14,14,0.88)',
-              backdropFilter: 'blur(24px)',
-              WebkitBackdropFilter: 'blur(24px)',
-              borderRadius: '1.25rem',
-              border: '1px solid rgba(255,255,255,0.07)',
+              background: 'linear-gradient(180deg, rgba(28,28,30,0.78), rgba(18,18,20,0.9))',
+              backdropFilter: 'blur(32px) saturate(135%)',
+              WebkitBackdropFilter: 'blur(32px) saturate(135%)',
+              borderRadius: isVisible ? '2rem' : '2.7rem',
+              border: '1px solid rgba(255,255,255,0.12)',
               overflow: 'hidden',
+              boxShadow: isVisible
+                ? '0 42px 110px -58px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.15)'
+                : '0 20px 40px -30px rgba(0,0,0,0.45)',
+              transition: 'border-radius 0.95s cubic-bezier(0.16,1,0.3,1), box-shadow 0.95s ease',
             }}
           >
+            <div
+              className="pointer-events-none absolute inset-x-[12%] top-0 h-20 rounded-full"
+              style={{
+                background: 'radial-gradient(circle at top, rgba(255,255,255,0.28), rgba(255,255,255,0) 72%)',
+                filter: 'blur(14px)',
+                opacity: isVisible ? 1 : 0.4,
+                transform: isVisible ? 'translateY(-8px) scaleX(1)' : 'translateY(10px) scaleX(0.8)',
+                transition: 'transform 0.95s cubic-bezier(0.16,1,0.3,1), opacity 0.95s ease',
+              }}
+            />
+            <div
+              className="pointer-events-none absolute -left-8 top-14 h-28 w-28 rounded-full"
+              style={{
+                background: 'radial-gradient(circle, rgba(255,255,255,0.08), rgba(255,255,255,0) 70%)',
+                filter: 'blur(8px)',
+              }}
+            />
             <div className="px-8 pt-8 pb-6 md:px-10 md:pt-10 md:pb-7">
 
               {/* MENU label */}
@@ -177,9 +200,10 @@ export default function Footer() {
                 rel="noopener noreferrer"
                 className="flex w-full items-center justify-center gap-3 py-[14px] transition-all duration-200"
                 style={{
-                  background: 'rgba(255,255,255,0.08)',
-                  border: '1px solid rgba(255,255,255,0.14)',
-                  borderRadius: '0.5rem',
+                  background: 'linear-gradient(180deg, rgba(255,255,255,0.12), rgba(255,255,255,0.06))',
+                  border: '1px solid rgba(255,255,255,0.16)',
+                  borderRadius: '1rem',
+                  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.08)',
                   color: 'rgba(255,255,255,0.75)',
                   fontSize: '0.7rem',
                   letterSpacing: '0.3em',
