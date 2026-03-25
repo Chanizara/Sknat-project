@@ -11,6 +11,7 @@ export default function Footer() {
   const sectionRef = useRef<HTMLElement>(null);
   const [showCard, setShowCard] = useState(false);
   const [isInView, setIsInView] = useState(false);
+  const [animationPhase, setAnimationPhase] = useState<'home' | 'morphing' | 'floating' | 'card'>('home');
 
   useEffect(() => {
     const handleScroll = () => {
@@ -20,7 +21,18 @@ export default function Footer() {
 
       // Show card only when user has scrolled to absolute bottom (within 8px)
       const atBottom = scrollY + windowH >= scrollHeight - 8;
-      setShowCard(atBottom);
+      
+      // Animate phases
+      if (atBottom && !showCard) {
+        setShowCard(true);
+        // Start animation sequence
+        setAnimationPhase('morphing');
+        setTimeout(() => setAnimationPhase('floating'), 200);
+        setTimeout(() => setAnimationPhase('card'), 500);
+      } else if (!atBottom && showCard) {
+        setShowCard(false);
+        setAnimationPhase('home');
+      }
 
       if (sectionRef.current) {
         const rect = sectionRef.current.getBoundingClientRect();
@@ -31,7 +43,7 @@ export default function Footer() {
     window.addEventListener('scroll', handleScroll, { passive: true });
     handleScroll();
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  }, [showCard]);
 
   const scrollToSection = (sectionId: string) => {
     if (!isHomePage) {
@@ -64,7 +76,11 @@ export default function Footer() {
     { label: 'Contact',    id: 'contact' },
   ];
 
-  const homeBoxOpacity = showCard ? 0 : 1;
+  // Animation states
+  const isHome = animationPhase === 'home';
+  const isMorphing = animationPhase === 'morphing';
+  const isFloating = animationPhase === 'floating';
+  const isCard = animationPhase === 'card';
 
   return (
     <footer
@@ -139,119 +155,199 @@ export default function Footer() {
         }} />
       </div>
 
-      {/* ── Popup card — shown only when at absolute bottom ── */}
-      <div className="absolute inset-0 flex items-center justify-center px-4"
-        style={{ pointerEvents: showCard ? 'auto' : 'none' }}
+      {/* ── HOME Button at Bottom Center ── */}
+      <div
+        className="absolute left-1/2 z-20"
+        style={{
+          bottom: '80px',
+          transform: isHome 
+            ? 'translateX(-50%) translateY(0) scale(1)' 
+            : isMorphing 
+              ? 'translateX(-50%) translateY(10px) scale(0.8)' 
+              : isFloating 
+                ? 'translateX(-50%) translateY(-30vh) scale(0.4)' 
+                : 'translateX(-50%) translateY(-40vh) scale(0)',
+          opacity: isHome ? 1 : isMorphing ? 0.6 : isFloating ? 0.3 : 0,
+          transition: 'all 0.5s cubic-bezier(0.22, 1, 0.36, 1)',
+          pointerEvents: isHome ? 'auto' : 'none',
+        }}
       >
-        <div
-          className="w-full max-w-[520px]"
+        <button
+          onClick={() => scrollToSection('home')}
+          className="cursor-pointer bg-transparent border-none"
           style={{
-            opacity: showCard ? 1 : 0,
-            transform: showCard ? 'translateY(0) scale(1)' : 'translateY(36px) scale(0.97)',
-            transition: 'opacity 0.55s cubic-bezier(0.22,1,0.36,1), transform 0.55s cubic-bezier(0.22,1,0.36,1)',
-            willChange: 'opacity, transform',
+            background: 'rgba(0,0,0,0.5)',
+            backdropFilter: 'blur(12px)',
+            WebkitBackdropFilter: 'blur(12px)',
+            border: '1px solid rgba(255,255,255,0.15)',
+            borderRadius: '0.4rem',
+            padding: '14px 32px',
+            fontSize: '12px',
+            fontWeight: 500,
+            letterSpacing: '0.2em',
+            textTransform: 'uppercase',
+            color: 'rgba(255,255,255,0.85)',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.08)',
+            transition: 'all 0.3s ease',
+          }}
+          onMouseEnter={(e) => {
+            (e.currentTarget as HTMLElement).style.background = 'rgba(0,0,0,0.7)';
+            (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,1)';
+            (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.25)';
+          }}
+          onMouseLeave={(e) => {
+            (e.currentTarget as HTMLElement).style.background = 'rgba(0,0,0,0.5)';
+            (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.85)';
+            (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.15)';
           }}
         >
-          {/* Iridescent gradient border wrapper */}
-          <div style={{
-            background: 'linear-gradient(135deg, rgba(99,102,241,0.40), rgba(168,85,247,0.32), rgba(6,182,212,0.36), rgba(99,102,241,0.28))',
-            padding: '1px',
-            borderRadius: '0.35rem',
-          }}>
+          HOME
+        </button>
+      </div>
+
+      {/* ── Morphing Drop Animation ── */}
+      {(isMorphing || isFloating || isCard) && (
+        <div
+          className="absolute left-1/2 z-30 pointer-events-none"
+          style={{
+            bottom: isMorphing ? '80px' : isFloating ? '50%' : '50%',
+            transform: isMorphing 
+              ? 'translateX(-50%) translateY(0) scale(1)' 
+              : isFloating 
+                ? 'translateX(-50%) translateY(50%) scale(0.3)' 
+                : 'translateX(-50%) translateY(50%) scale(0)',
+            opacity: isMorphing ? 0.8 : isFloating ? 0.6 : 0,
+            transition: 'all 0.6s cubic-bezier(0.22, 1, 0.36, 1)',
+          }}
+        >
+          <div
+            style={{
+              width: '60px',
+              height: '60px',
+              borderRadius: '50%',
+              background: 'rgba(0,0,0,0.7)',
+              backdropFilter: 'blur(8px)',
+              boxShadow: '0 4px 20px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.1)',
+            }}
+          />
+        </div>
+      )}
+
+      {/* ── Menu Card at Center ── */}
+      <div
+        className="absolute left-1/2 top-1/2 z-40 pointer-events-none"
+        style={{
+          transform: isCard 
+            ? 'translate(-50%, -50%) scale(1)' 
+            : 'translate(-50%, -30%) scale(0.85)',
+          opacity: isCard ? 1 : 0,
+          transition: 'all 0.7s cubic-bezier(0.22, 1, 0.36, 1)',
+          pointerEvents: isCard ? 'auto' : 'none',
+        }}
+      >
+        {/* Card with soft blurred edges */}
+        <div
+          className="relative"
+          style={{
+            width: '320px',
+            borderRadius: '12px',
+          }}
+        >
+          {/* Soft outer glow */}
+          <div 
+            className="absolute -inset-3 rounded-[20px] pointer-events-none"
+            style={{
+              background: 'radial-gradient(circle, rgba(0,0,0,0.3) 0%, transparent 70%)',
+              filter: 'blur(20px)',
+            }}
+          />
+          
+          {/* Main card content */}
           <div
             className="relative"
             style={{
-              background: 'linear-gradient(160deg, rgba(22,22,32,0.88), rgba(14,14,22,0.95))',
-              backdropFilter: 'blur(40px) saturate(160%) brightness(105%)',
-              WebkitBackdropFilter: 'blur(40px) saturate(160%) brightness(105%)',
-              borderRadius: 'calc(0.35rem - 1px)',
-              overflow: 'hidden',
-              boxShadow: '0 42px 110px -58px rgba(0,0,0,0.85), inset 0 1px 0 rgba(255,255,255,0.12)',
+              background: 'rgba(0,0,0,0.75)',
+              backdropFilter: 'blur(20px) saturate(160%)',
+              WebkitBackdropFilter: 'blur(20px) saturate(160%)',
+              borderRadius: '12px',
+              border: '1px solid rgba(255,255,255,0.08)',
+              boxShadow: `
+                0 0 0 1px rgba(255,255,255,0.04),
+                0 40px 100px -30px rgba(0,0,0,0.6),
+                0 0 80px -20px rgba(0,0,0,0.4)
+              `,
             }}
           >
-            {/* Glossy highlight */}
-            <div
-              className="pointer-events-none absolute inset-x-[12%] top-0 h-20 rounded-full"
-              style={{
-                background: 'radial-gradient(circle at top, rgba(255,255,255,0.28), rgba(255,255,255,0) 72%)',
-                filter: 'blur(14px)',
-                opacity: 1,
-              }}
-            />
-
-            {/* Side glow */}
-            <div
-              className="pointer-events-none absolute -left-8 top-14 h-28 w-28 rounded-full"
-              style={{
-                background: 'radial-gradient(circle, rgba(255,255,255,0.08), rgba(255,255,255,0) 70%)',
-                filter: 'blur(8px)',
-              }}
-            />
-
-            {/* Card Content - fades in as card expands */}
+            {/* Top highlight line */}
             <div 
-              className="px-8 pt-8 pb-6 md:px-10 md:pt-10 md:pb-7"
-            >
+              className="absolute inset-x-4 top-0 h-px pointer-events-none"
+              style={{
+                background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent)',
+              }}
+            />
+
+            {/* Card Content */}
+            <div className="px-7 pt-8 pb-7">
               {/* MENU label */}
               <p
-                className="mb-5 text-[10px] font-light tracking-[0.5em] uppercase"
-                style={{ color: 'rgba(255,255,255,0.35)' }}
+                className="mb-5 text-[10px] font-medium tracking-[0.2em] uppercase"
+                style={{ color: 'rgba(255,255,255,0.45)' }}
               >
                 MENU
               </p>
 
               {/* Nav items */}
-              <nav className="mb-7">
-                {navItems.map((item) => (
+              <nav className="mb-6">
+                {navItems.map((item, index) => (
                   <button
                     key={item.label}
                     onClick={() => scrollToSection(item.id)}
                     className="group flex w-full items-baseline justify-between bg-transparent border-none cursor-pointer py-[7px] text-left"
-                    style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}
+                    style={{
+                      borderBottom: index < navItems.length - 1 ? '1px solid rgba(255,255,255,0.05)' : 'none',
+                    }}
                   >
                     <span
-                      className="text-[2.1rem] font-extralight leading-tight transition-all duration-200 group-hover:pl-1"
-                      style={{ color: 'rgba(255,255,255,0.82)', fontFamily: 'inherit' }}
+                      className="text-[1.5rem] font-light leading-tight transition-all duration-200 group-hover:pl-1"
+                      style={{ color: 'rgba(255,255,255,0.92)' }}
                     >
                       {item.label}
                     </span>
                     <svg
-                      className="h-3.5 w-3.5 opacity-0 -translate-x-1 transition-all duration-200 group-hover:opacity-60 group-hover:translate-x-0"
-                      fill="none" viewBox="0 0 24 24" stroke="rgba(255,255,255,0.7)"
+                      className="h-3 w-3 opacity-0 -translate-x-2 transition-all duration-200 group-hover:opacity-50 group-hover:translate-x-0"
+                      fill="none" viewBox="0 0 24 24" stroke="rgba(255,255,255,0.6)"
                     >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5l7 7-7 7" />
                     </svg>
                   </button>
                 ))}
               </nav>
 
               {/* Two-column contact */}
-              <div className="mb-7 grid grid-cols-2 gap-x-6 text-sm">
+              <div className="mb-6 grid grid-cols-2 gap-x-4 text-[11px]">
                 <div className="space-y-1.5">
                   <a
-                    href="https://line.me/R/ti/p/@sknat"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="block transition-colors duration-150"
-                    style={{ color: 'rgba(255,255,255,0.5)' }}
+                    href="#"
+                    className="block transition-colors duration-200"
+                    style={{ color: 'rgba(255,255,255,0.45)' }}
                     onMouseEnter={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.9)')}
-                    onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.5)')}
+                    onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.45)')}
                   >
-                    Line: @sknat
+                    News
                   </a>
                   <a
-                    href="mailto:hello@sknat.co.th"
-                    className="block transition-colors duration-150"
-                    style={{ color: 'rgba(255,255,255,0.5)' }}
+                    href="#"
+                    className="block transition-colors duration-200"
+                    style={{ color: 'rgba(255,255,255,0.45)' }}
                     onMouseEnter={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.9)')}
-                    onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.5)')}
+                    onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.45)')}
                   >
-                    hello@sknat.co.th
+                    Showroom
                   </a>
                 </div>
                 <div className="space-y-1.5">
-                  <p style={{ color: 'rgba(255,255,255,0.5)' }}>089-999-9999</p>
-                  <p style={{ color: 'rgba(255,255,255,0.5)' }}>02-123-4567</p>
+                  <p style={{ color: 'rgba(255,255,255,0.45)' }}>089-999-9999</p>
+                  <p style={{ color: 'rgba(255,255,255,0.45)' }}>hello@sknat.co.th</p>
                 </div>
               </div>
 
@@ -260,93 +356,54 @@ export default function Footer() {
                 href="https://line.me/R/ti/p/@sknat"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex w-full items-center justify-center gap-3 py-[14px] transition-all duration-200"
+                className="flex w-full items-center justify-center gap-2 py-[11px] transition-all duration-200"
                 style={{
-                  background: 'linear-gradient(180deg, rgba(255,255,255,0.12), rgba(255,255,255,0.06))',
-                  border: '1px solid rgba(255,255,255,0.16)',
-                  borderRadius: '1rem',
-                  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.08)',
-                  color: 'rgba(255,255,255,0.75)',
-                  fontSize: '0.7rem',
-                  letterSpacing: '0.3em',
+                  background: 'transparent',
+                  border: '1px solid rgba(255,255,255,0.12)',
+                  borderRadius: '6px',
+                  color: 'rgba(255,255,255,0.8)',
+                  fontSize: '0.65rem',
+                  letterSpacing: '0.18em',
                   textTransform: 'uppercase',
                   fontWeight: 500,
                 }}
                 onMouseEnter={e => {
-                  (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.14)';
-                  (e.currentTarget as HTMLElement).style.color = '#fff';
+                  (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.05)';
+                  (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.2)';
+                  (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.95)';
                 }}
                 onMouseLeave={e => {
-                  (e.currentTarget as HTMLElement).style.background = 'linear-gradient(180deg, rgba(255,255,255,0.12), rgba(255,255,255,0.06))';
-                  (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.75)';
+                  (e.currentTarget as HTMLElement).style.background = 'transparent';
+                  (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.12)';
+                  (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.8)';
                 }}
               >
-                <span style={{ fontFamily: 'monospace', fontSize: '1rem' }}>↳</span>
+                <span style={{ fontSize: '0.7rem' }}>→</span>
                 GET IN TOUCH
               </a>
             </div>
           </div>
-          </div>{/* end iridescent border wrapper */}
         </div>
       </div>
-  {/* ── Simple minimal HOME box ── */}
+
+      {/* ── Bottom corner bars with enhanced readability ── */}
       <div
-        className="absolute bottom-6 left-1/2 z-20"
-        style={{
-          transform: isInView
-            ? 'translateX(-50%) translateY(0)'
-            : 'translateX(-50%) translateY(24px)',
-          opacity: isInView ? 1 : 0,
-          transition: 'transform 0.75s 0.2s cubic-bezier(0.22,1,0.36,1), opacity 0.75s 0.2s ease',
+        className="absolute bottom-0 left-0 right-0 z-10 flex items-center justify-between px-6 py-4 md:px-10"
+        style={{ 
+          borderTop: '1px solid rgba(255,255,255,0.08)',
+          background: 'linear-gradient(to top, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.2) 50%, transparent 100%)',
         }}
       >
-          {/* Simple HOME box - minimal design */}
-          <button
-            onClick={() => scrollToSection('home')}
-            className="cursor-pointer bg-transparent border-none p-0 transition-all duration-300 hover:opacity-100 relative"
-            style={{
-              opacity: homeBoxOpacity,
-              background: 'rgba(0,0,0,0.4)',
-              backdropFilter: 'blur(8px)',
-              WebkitBackdropFilter: 'blur(8px)',
-              border: '1px solid rgba(255,255,255,0.15)',
-              borderRadius: '0.5rem',
-              padding: '10px 20px',
-              minWidth: '100px',
-              fontSize: '13px',
-              fontWeight: 500,
-              letterSpacing: '0.15em',
-              textTransform: 'uppercase',
-              color: 'rgba(255,255,255,0.8)',
-              boxShadow: '0 4px 16px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.08)',
-            }}
-            onMouseEnter={(e) => {
-              (e.currentTarget as HTMLElement).style.opacity = '1';
-              (e.currentTarget as HTMLElement).style.background = 'rgba(0,0,0,0.5)';
-              (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,1)';
-            }}
-            onMouseLeave={(e) => {
-              (e.currentTarget as HTMLElement).style.opacity = String(homeBoxOpacity);
-              (e.currentTarget as HTMLElement).style.background = 'rgba(0,0,0,0.4)';
-              (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.8)';
-            }}
-          >
-            HOME
-          </button>
-      </div>
-
-      {/* ── Bottom corner bars ── */}
-      <div
-        className="absolute bottom-0 left-0 right-0 z-10 flex items-center justify-between px-6 py-3.5 md:px-10"
-        style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}
-      >
-        <div className="flex items-center gap-4 text-[11px]" style={{ color: 'rgba(255,255,255,0.28)' }}>
+        <div className="flex items-center gap-4 text-[12px]" style={{ 
+          color: 'rgba(255,255,255,0.55)',
+          textShadow: '0 1px 3px rgba(0,0,0,0.5), 0 2px 8px rgba(0,0,0,0.3)',
+        }}>
           <span>&copy; {new Date().getFullYear()}, SKNAT Property</span>
           <a
             href="https://line.me/R/ti/p/@sknat"
             target="_blank"
             rel="noopener noreferrer"
-            className="transition hover:text-white/60"
+            className="transition hover:text-white/80"
             style={{ color: 'inherit' }}
           >
             Line
@@ -355,20 +412,23 @@ export default function Footer() {
             href="https://instagram.com"
             target="_blank"
             rel="noopener noreferrer"
-            className="transition hover:text-white/60"
+            className="transition hover:text-white/80"
             style={{ color: 'inherit' }}
           >
             Instagram
           </a>
         </div>
-        <div className="flex items-center gap-4 text-[11px]" style={{ color: 'rgba(255,255,255,0.28)' }}>
+        <div className="flex items-center gap-4 text-[12px]" style={{ 
+          color: 'rgba(255,255,255,0.55)',
+          textShadow: '0 1px 3px rgba(0,0,0,0.5), 0 2px 8px rgba(0,0,0,0.3)',
+        }}>
           <span>นโยบายความเป็นส่วนตัว</span>
           <span>·</span>
           <span>ข้อตกลงการใช้งาน</span>
           <span>·</span>
           <Link
             href="/admin/properties"
-            className="transition hover:text-white/60"
+            className="transition hover:text-white/80"
             style={{ color: 'inherit' }}
           >
             Admin
