@@ -3,6 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
+import BeforeFooter from "../component/before_footer";
 
 // ============================================
 // HERO TEXT SECTION - Initial text display
@@ -61,7 +62,8 @@ function HeroRevealSection() {
       const sectionHeight = rect.height;
       
       // Progress from 0 (wireframe only) to 1 (fully revealed)
-      const progress = Math.max(0, Math.min(1, -sectionTop / (sectionHeight * 0.5)));
+      // Adjusted for longer scroll distance (300vh)
+      const progress = Math.max(0, Math.min(1, -sectionTop / (sectionHeight * 0.3)));
       setRevealProgress(progress);
     };
 
@@ -76,7 +78,7 @@ function HeroRevealSection() {
       ref={containerRef}
       className="relative"
       style={{ 
-        height: '180vh',
+        height: '300vh',
         backgroundColor: '#ffffff'
       }}
     >
@@ -353,21 +355,24 @@ function ClientStoriesSection() {
       <div className="flex items-center gap-2 mb-16">
         <span style={{ color: '#999' }}>◆</span>
         <span className="text-[10px] font-medium tracking-[0.2em] uppercase" style={{ color: '#666' }}>
-          CLIENT STORIES
+          FROM THE FOUNDER
         </span>
       </div>
 
       {/* Main Content */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
-        {/* Client Image */}
+        {/* Founder Image */}
         <div className="lg:col-span-3">
           <div 
             className="relative aspect-[3/4] w-full max-w-[280px] overflow-hidden"
             style={{ backgroundColor: '#e8e4e0' }}
           >
-            <div className="absolute inset-0 flex items-center justify-center text-6xl" style={{ color: '#c4c0b8' }}>
-              👤
-            </div>
+            <Image
+              src="/fake_ownerr.jpg"
+              alt="Founder"
+              fill
+              className="object-cover"
+            />
           </div>
         </div>
 
@@ -378,27 +383,26 @@ function ClientStoriesSection() {
             className="text-2xl md:text-3xl lg:text-4xl font-light leading-snug mb-12 -mt-4"
             style={{ color: '#1a1a1a', lineHeight: '1.3' }}
           >
-            การบริการจาก SKNAT นั้นยอดเยี่ยมมาก
-            ตั้งแต่เริ่มต้นจนถึงขั้นตอนสุดท้าย
-            ทีมงานแสดงให้เห็นถึงความเป็นมืออาชีพ
-            และมาตรฐานการทำงานที่สูง
-            เราไม่ลังเลที่จะแนะนำ SKNAT เลย
+            ทุกบ้านหลังใหญ่
+            เริ่มต้นจากความฝันเล็กๆ
+            ที่มุ่งมั่นสร้างด้วยใจ
+            ผมเชื่อว่าความจริงใจและความตั้งใจ
+            คือรากฐานของทุกความสำเร็จ
           </blockquote>
 
-          {/* Client Info */}
+          {/* Founder Info */}
           <div className="flex items-end justify-between">
             <div>
               <p className="text-xl font-medium mb-1" style={{ color: '#1a1a1a' }}>
-                คุณสมชาย ใจดี
+                คำมี ศรีนวล
               </p>
               <p className="text-xs tracking-[0.2em] uppercase" style={{ color: '#666' }}>
-                HOMEOWNER
+                FOUNDER & CEO
               </p>
             </div>
             <div className="flex items-center gap-3">
-              <span className="text-xl">⭐</span>
               <span className="text-xs tracking-[0.1em]" style={{ color: '#666' }}>
-                GOOGLE REVIEW SCORE: 5.0 OF 5
+                SINCE 2014
               </span>
             </div>
           </div>
@@ -590,187 +594,6 @@ function HorizontalProcessSection() {
 }
 
 // ============================================
-// STICKY NAVIGATION BAR
-// ============================================
-function StickyNavBar() {
-  const [menuHover, setMenuHover] = useState(false);
-
-  const navItems = [
-    { label: 'Home', href: '/' },
-    { label: 'About', href: '/about' },
-    { label: 'Services', href: '/about' },
-    { label: 'Properties', href: '/#properties' },
-    { label: 'Approach', href: '/about' },
-    { label: 'Contact', href: '/contact' },
-  ];
-
-  return (
-    <div 
-      className="fixed bottom-6 left-1/2 z-[100]"
-      style={{ transform: 'translateX(-50%)' }}
-      onMouseEnter={() => setMenuHover(true)}
-      onMouseLeave={() => setMenuHover(false)}
-    >
-      {/* Dropdown Menu */}
-      <div 
-        className="absolute left-1/2 w-56 overflow-hidden pointer-events-none"
-        style={{
-          bottom: '100%',
-          transform: `translateX(-50%) translateY(${menuHover ? '0' : '10px'})`,
-          opacity: menuHover ? 1 : 0,
-          transition: 'all 0.35s cubic-bezier(0.22, 1, 0.36, 1)',
-          marginBottom: '8px',
-        }}
-      >
-        <div 
-          className="pointer-events-auto"
-          style={{
-            background: 'rgba(0,0,0,0.92)',
-            backdropFilter: 'blur(20px)',
-            WebkitBackdropFilter: 'blur(20px)',
-            borderRadius: '8px',
-            border: '1px solid rgba(255,255,255,0.1)',
-            boxShadow: '0 -20px 60px -20px rgba(0,0,0,0.5)',
-          }}
-        >
-          <div className="px-3 py-3">
-            <nav>
-              {navItems.map((item, index) => (
-              <div
-                key={item.label}
-                style={{
-                  borderBottom: index < navItems.length - 1 ? '1px solid rgba(255,255,255,0.05)' : 'none',
-                }}
-              >
-                <Link
-                  href={item.href}
-                  className="group flex w-full items-center justify-between py-2.5 px-2 transition-all hover:pl-3"
-                >
-                  <span className="text-sm font-light" style={{ color: 'rgba(255,255,255,0.85)' }}>
-                    {item.label}
-                  </span>
-                  <svg className="h-3 w-3 opacity-0 -translate-x-1 transition-all group-hover:opacity-40 group-hover:translate-x-0" fill="none" viewBox="0 0 24 24" stroke="rgba(255,255,255,0.5)">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5l7 7-7 7" />
-                  </svg>
-                </Link>
-              </div>
-            ))}
-            </nav>
-          </div>
-        </div>
-      </div>
-
-      {/* Navigation Bar */}
-      <div 
-        className="flex items-center gap-6 px-8 py-3"
-        style={{ 
-          backgroundColor: 'rgba(42,42,42,0.95)',
-          backdropFilter: 'blur(10px)',
-          borderRadius: '2px',
-        }}
-      >
-        {/* Logo icon */}
-        <Link href="/" className="transition-opacity hover:opacity-70">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" style={{ stroke: '#f5f2ee', strokeWidth: 1.5 }}>
-            <path d="M12 2L2 7l10 5 10-5-10-5z" />
-            <path d="M2 17l10 5 10-5" />
-            <path d="M2 12l10 5 10-5" />
-          </svg>
-        </Link>
-
-        <div style={{ width: '1px', height: '20px', backgroundColor: 'rgba(255,255,255,0.15)' }} />
-
-        <span className="text-xs font-medium tracking-[0.2em] uppercase" style={{ color: '#f5f2ee' }}>
-          APPROACH
-        </span>
-
-        <div style={{ width: '1px', height: '20px', backgroundColor: 'rgba(255,255,255,0.15)' }} />
-
-        <div className="flex items-center justify-center w-8 h-8 cursor-pointer" style={{ color: '#f5f2ee' }}>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style={{ stroke: 'currentColor', strokeWidth: 1.5 }}>
-            <line x1="3" y1="8" x2="21" y2="8" />
-            <line x1="3" y1="16" x2="21" y2="16" />
-          </svg>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ============================================
-// FULL MENU FOOTER - Dark center menu
-// ============================================
-function AboutFooter() {
-  const footerLinks = [
-    { label: 'About', href: '/about' },
-    { label: 'Services', href: '/about' },
-    { label: 'Properties', href: '/#properties' },
-    { label: 'Approach', href: '/about' },
-    { label: 'Contact', href: '/contact' },
-  ];
-
-  return (
-    <footer 
-      className="relative min-h-[60vh] flex flex-col items-center justify-center px-8 py-16"
-      style={{ 
-        backgroundColor: '#1a1a1a'
-      }}
-    >
-      {/* Home Icon */}
-      <div className="mb-8">
-        <Link href="/" className="inline-block">
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.6)" strokeWidth="1.5">
-            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-            <polyline points="9 22 9 12 15 12 15 22" />
-          </svg>
-        </Link>
-      </div>
-
-      {/* Menu Label */}
-      <p className="text-[10px] tracking-[0.2em] uppercase mb-12" style={{ color: '#666' }}>
-        Menu
-      </p>
-
-      {/* Main Menu Links */}
-      <nav className="space-y-5 mb-16">
-        {footerLinks.map((link) => (
-          <Link
-            key={link.label}
-            href={link.href}
-            className="block text-3xl md:text-4xl font-light transition-colors hover:text-white text-center"
-            style={{ color: 'rgba(255,255,255,0.85)' }}
-          >
-            {link.label}
-          </Link>
-        ))}
-      </nav>
-
-      {/* Secondary Links */}
-      <div className="flex items-center justify-center gap-12 text-sm mb-6" style={{ color: '#666' }}>
-        <Link href="/" className="hover:text-white transition-colors">News</Link>
-        <Link href="/" className="hover:text-white transition-colors">Showroom</Link>
-      </div>
-
-      {/* Contact Info */}
-      <div className="space-y-1 text-sm mb-10" style={{ color: '#666' }}>
-        <p>089-999-9999</p>
-        <p>hello@sknat.co.th</p>
-      </div>
-
-      {/* CTA Button */}
-      <Link
-        href="/contact"
-        className="inline-flex items-center gap-3 px-8 py-4 border border-gray-700 rounded-full text-sm tracking-[0.1em] uppercase transition-all hover:bg-white hover:text-black hover:border-white"
-        style={{ color: 'rgba(255,255,255,0.9)' }}
-      >
-        <span>→</span>
-        <span>Get in touch</span>
-      </Link>
-    </footer>
-  );
-}
-
-// ============================================
 // MAIN PAGE
 // ============================================
 export default function AboutPage() {
@@ -791,11 +614,8 @@ export default function AboutPage() {
       {/* Section 4: Our Process (Horizontal Scroll) */}
       <HorizontalProcessSection />
       
-      {/* Section 5: Footer */}
-      <AboutFooter />
-      
-      {/* Sticky Navigation Bar */}
-      <StickyNavBar />
+      {/* Section 5: Before Footer */}
+      <BeforeFooter />
     </main>
   );
 }

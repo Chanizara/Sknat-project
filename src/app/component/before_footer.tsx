@@ -5,6 +5,31 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
+// Component to display current page name
+function PageNameDisplay() {
+  const pathname = usePathname();
+  
+  const getPageName = () => {
+    if (pathname === '/') return 'Home';
+    if (pathname === '/about') return 'About';
+    if (pathname === '/contact') return 'Contact';
+    if (pathname.startsWith('/property')) return 'Property';
+    if (pathname.startsWith('/admin')) return 'Admin';
+    // Remove leading slash and capitalize
+    const cleanPath = pathname.replace(/^\//, '');
+    return cleanPath.charAt(0).toUpperCase() + cleanPath.slice(1) || 'Home';
+  };
+  
+  return (
+    <span 
+      className="text-xs font-medium tracking-[0.2em] uppercase"
+      style={{ color: '#f5f2ee' }}
+    >
+      {getPageName()}
+    </span>
+  );
+}
+
 // Animated Nav Link with text slide up effect
 function AnimatedNavLink({ 
   href, 
@@ -583,13 +608,8 @@ export default function BeforeFooter() {
             {/* Divider */}
             <div style={{ width: '1px', height: '20px', backgroundColor: 'rgba(255,255,255,0.15)' }} />
 
-            {/* Text */}
-            <span 
-              className="text-xs font-medium tracking-[0.2em] uppercase"
-              style={{ color: '#f5f2ee' }}
-            >
-              CONTACT
-            </span>
+            {/* Text - Show current page name */}
+            <PageNameDisplay />
 
             {/* Divider */}
             <div style={{ width: '1px', height: '20px', backgroundColor: 'rgba(255,255,255,0.15)' }} />
