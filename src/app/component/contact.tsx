@@ -128,7 +128,7 @@ export default function Contact() {
                 เกี่ยวกับเรา
               </Link>
               <Link
-                href="/contact"
+                href="/about#contact"
                 className="inline-flex items-center gap-3 px-0 py-3.5 text-[11px] font-semibold uppercase tracking-[0.24em] text-[#171717] transition-opacity duration-200 hover:opacity-45"
               >
                 <span style={{ fontFamily: 'monospace' }}>↳</span>

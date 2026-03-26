@@ -197,12 +197,15 @@ function HoverDropdownMenu({
   );
 }
 
-export default function Footer() {
+export default function Footer({
+  variant = "default",
+}: {
+  variant?: "default" | "neutral";
+}) {
   const pathname = usePathname();
   const isHomePage = pathname === '/';
   const sectionRef = useRef<HTMLElement>(null);
   const [showCard, setShowCard] = useState(false);
-  const [isInView, setIsInView] = useState(false);
   const [animationPhase, setAnimationPhase] = useState<'home' | 'morphing' | 'floating' | 'card'>('home');
   const [menuHover, setMenuHover] = useState(false);
 
@@ -225,11 +228,6 @@ export default function Footer() {
       } else if (!atBottom && showCard) {
         setShowCard(false);
         setAnimationPhase('home');
-      }
-
-      if (sectionRef.current) {
-        const rect = sectionRef.current.getBoundingClientRect();
-        setIsInView(rect.top < windowH && rect.bottom > 0);
       }
     };
 
@@ -264,15 +262,16 @@ export default function Footer() {
   const navItems = [
     { label: 'About Us',   href: '/about' },
     { label: 'Properties', id: 'properties' },
-    { label: 'Contact',    href: '/contact' },
+    { label: 'Contact',    href: '/about#contact' },
   ];
   const allNavItems = [{ label: 'Home', href: '/' }, ...navItems];
 
   // Animation states
-  const isHome = animationPhase === 'home';
   const isMorphing = animationPhase === 'morphing';
   const isFloating = animationPhase === 'floating';
   const isCard = animationPhase === 'card';
+
+  const isNeutral = variant === "neutral";
 
   return (
     <footer
@@ -314,37 +313,60 @@ export default function Footer() {
         </p>
       </div>
 
-      {/* ── Fluid glass animated blobs (blurred by the card's backdrop-filter) ── */}
+      {/* ── Background glow ── */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div style={{
-          position: 'absolute', width: '440px', height: '440px',
-          background: 'radial-gradient(circle, rgba(99,102,241,0.52) 0%, transparent 66%)',
-          filter: 'blur(32px)',
-          top: '50%', left: '50%',
-          transform: 'translate(-62%, -52%)',
-          animation: 'blob-drift-1 18s ease-in-out infinite',
-          willChange: 'transform',
-        }} />
-        <div style={{
-          position: 'absolute', width: '380px', height: '380px',
-          background: 'radial-gradient(circle, rgba(168,85,247,0.44) 0%, transparent 66%)',
-          filter: 'blur(38px)',
-          top: '50%', left: '50%',
-          transform: 'translate(-38%, -40%)',
-          animation: 'blob-drift-2 23s ease-in-out infinite',
-          animationDelay: '-9s',
-          willChange: 'transform',
-        }} />
-        <div style={{
-          position: 'absolute', width: '320px', height: '320px',
-          background: 'radial-gradient(circle, rgba(6,182,212,0.38) 0%, transparent 66%)',
-          filter: 'blur(28px)',
-          top: '50%', left: '50%',
-          transform: 'translate(-48%, -62%)',
-          animation: 'blob-drift-3 20s ease-in-out infinite',
-          animationDelay: '-5s',
-          willChange: 'transform',
-        }} />
+        {isNeutral ? (
+          <>
+            <div style={{
+              position: 'absolute', width: '420px', height: '420px',
+              background: 'radial-gradient(circle, rgba(255,255,255,0.18) 0%, transparent 68%)',
+              filter: 'blur(34px)',
+              top: '50%', left: '50%',
+              transform: 'translate(-55%, -52%)',
+              willChange: 'transform',
+            }} />
+            <div style={{
+              position: 'absolute', width: '340px', height: '340px',
+              background: 'radial-gradient(circle, rgba(0,0,0,0.14) 0%, transparent 70%)',
+              filter: 'blur(38px)',
+              top: '50%', left: '50%',
+              transform: 'translate(-42%, -42%)',
+              willChange: 'transform',
+            }} />
+          </>
+        ) : (
+          <>
+            <div style={{
+              position: 'absolute', width: '440px', height: '440px',
+              background: 'radial-gradient(circle, rgba(99,102,241,0.52) 0%, transparent 66%)',
+              filter: 'blur(32px)',
+              top: '50%', left: '50%',
+              transform: 'translate(-62%, -52%)',
+              animation: 'blob-drift-1 18s ease-in-out infinite',
+              willChange: 'transform',
+            }} />
+            <div style={{
+              position: 'absolute', width: '380px', height: '380px',
+              background: 'radial-gradient(circle, rgba(168,85,247,0.44) 0%, transparent 66%)',
+              filter: 'blur(38px)',
+              top: '50%', left: '50%',
+              transform: 'translate(-38%, -40%)',
+              animation: 'blob-drift-2 23s ease-in-out infinite',
+              animationDelay: '-9s',
+              willChange: 'transform',
+            }} />
+            <div style={{
+              position: 'absolute', width: '320px', height: '320px',
+              background: 'radial-gradient(circle, rgba(6,182,212,0.38) 0%, transparent 66%)',
+              filter: 'blur(28px)',
+              top: '50%', left: '50%',
+              transform: 'translate(-48%, -62%)',
+              animation: 'blob-drift-3 20s ease-in-out infinite',
+              animationDelay: '-5s',
+              willChange: 'transform',
+            }} />
+          </>
+        )}
       </div>
 
       {/* ── Morphing Dot Animation ── */}
@@ -512,7 +534,7 @@ export default function Footer() {
 
               {/* CTA button */}
               <Link
-                href="/contact"
+                href="/about#contact"
                 className="flex w-full items-center justify-center gap-2 py-[11px] transition-all duration-200"
                 style={{
                   background: 'transparent',

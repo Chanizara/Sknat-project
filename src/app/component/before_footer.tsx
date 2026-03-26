@@ -283,12 +283,11 @@ export default function BeforeFooter() {
   const navItems = [
     { label: 'About Us',   href: '/about' },
     { label: 'Properties', id: 'properties' },
-    { label: 'Contact',    href: '/contact' },
+    { label: 'Contact',    href: '/about#contact' },
   ];
   const allNavItems = [{ label: 'Home', href: '/' }, ...navItems];
 
   // Animation states
-  const isHome = animationPhase === 'home';
   const isMorphing = animationPhase === 'morphing';
   const isFloating = animationPhase === 'floating';
   const isCard = animationPhase === 'card';
@@ -496,7 +495,7 @@ export default function BeforeFooter() {
 
               {/* CTA button */}
               <Link
-                href="/contact"
+                href="/about#contact"
                 className="flex w-full items-center justify-center gap-2 py-[11px] transition-all duration-200"
                 style={{
                   background: 'transparent',

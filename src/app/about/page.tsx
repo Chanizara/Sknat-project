@@ -1,8 +1,8 @@
 'use client';
 
-import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
+import AboutContactSection from "../component/AboutContactSection";
 import BeforeFooter from "../component/before_footer";
 
 // ============================================
@@ -414,7 +414,7 @@ function ClientStoriesSection() {
 
         {/* Quote */}
         <div className="lg:col-span-9">
-          <span className="text-6xl md:text-8xl font-serif leading-none" style={{ color: '#1a1a1a' }}>"</span>
+          <span className="text-6xl md:text-8xl font-serif leading-none" style={{ color: '#1a1a1a' }}>&quot;</span>
           <blockquote 
             className="text-2xl md:text-3xl lg:text-4xl font-light leading-snug mb-12 -mt-4"
             style={{ color: '#1a1a1a', lineHeight: '1.3' }}
@@ -719,8 +719,11 @@ export default function AboutPage() {
       
       {/* Section 4: Our Process */}
       <OurProcessSection />
+
+      {/* Section 5: Contact */}
+      <AboutContactSection />
       
-      {/* Section 5: Before Footer */}
+      {/* Section 6: Before Footer */}
       <BeforeFooter />
     </main>
   );
