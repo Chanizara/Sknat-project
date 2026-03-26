@@ -8,7 +8,6 @@ import { useParams } from "next/navigation";
 import { buildPriceLabel, formatPrice } from "@/lib/property-format";
 import { type Property } from "@/types/property";
 import { useFavoritesStore } from "@/lib/favorites-store";
-import Navbar from "@/app/component/navbar";
 import Footer from "@/app/component/footer";
 
 export default function PropertyDetailPage() {
@@ -155,10 +154,19 @@ export default function PropertyDetailPage() {
 
   return (
     <>
-      <Navbar />
+      {/* Back to Home Button */}
+      <Link 
+        href="/"
+        className="fixed top-6 left-6 z-50 flex items-center gap-2 px-5 py-3 bg-white/90 backdrop-blur-sm rounded-full text-slate-900 font-semibold shadow-lg hover:shadow-xl transition-all hover:bg-white group"
+      >
+        <svg className="w-5 h-5 transition-transform group-hover:-translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+        </svg>
+        <span className="hidden sm:inline">กลับหน้าหลัก</span>
+      </Link>
       
-      {/* Hero Section - Similar to Main Page Hero */}
-      <section className="relative h-[100vh] w-full overflow-hidden">
+      {/* Hero Section with Dynamic Parallax */}
+      <section className="relative h-screen w-full overflow-hidden">
         <div 
           className="absolute inset-0 w-full h-full"
           style={{

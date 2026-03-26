@@ -306,7 +306,7 @@ export default function MainPage({ properties }: MainPageProps) {
                       </div>
                     </div>
 
-                    <div id="properties-list" className="mt-[4.5rem] border-t border-[#ddd8d2]" />
+                    <div id="properties-list" className="mt-[4.5rem] border-t border-[#8f877d]" />
 
                     <div className="relative bg-white">
                       {filteredProperties.map((property, idx) => {
@@ -328,11 +328,11 @@ export default function MainPage({ properties }: MainPageProps) {
                               onFocus={() => setHoveredPropertyId(property.id)}
                               onMouseLeave={() => setHoveredPropertyId((current) => (current === property.id ? null : current))}
                               onBlur={() => setHoveredPropertyId((current) => (current === property.id ? null : current))}
-                              className="group relative grid items-center gap-3 border-b border-[#ddd8d2] bg-white px-1 py-3 transition-colors duration-300 md:px-2 lg:grid-cols-[0.95fr_1.45fr_42px]"
+                              className="group relative grid items-center gap-3 border-b border-[#8f877d] bg-white px-1 py-3 transition-colors duration-300 md:px-2 lg:grid-cols-[0.95fr_1.45fr_42px]"
                             >
                               <div className="min-w-0 lg:pr-8">
                                 <div className="flex items-center gap-2">
-                                  <h3 className="truncate text-[1.28rem] font-light tracking-[-0.035em] text-[#a9a39c] transition-colors duration-300 group-hover:text-[#1b1b1b] md:text-[1.4rem]">
+                                  <h3 className="truncate text-[1.28rem] font-light tracking-[-0.035em] text-[#49443f] transition-colors duration-300 group-hover:text-[#171717] md:text-[1.4rem]">
                                     {property.title}
                                   </h3>
                                   <button
@@ -340,7 +340,7 @@ export default function MainPage({ properties }: MainPageProps) {
                                     className={`hidden h-8 w-8 items-center justify-center rounded-full border transition md:inline-flex ${
                                       isFavorite(property.id)
                                         ? 'border-red-500 bg-red-500 text-white'
-                                        : 'border-[#ddd8d2] bg-white text-[#1a1a1a] hover:border-[#171717]'
+                                        : 'border-[#8f877d] bg-white text-[#2a2724] hover:border-[#171717]'
                                     }`}
                                     aria-label={isFavorite(property.id) ? 'ลบจากรายการโปรด' : 'เพิ่มในรายการโปรด'}
                                   >
@@ -355,7 +355,7 @@ export default function MainPage({ properties }: MainPageProps) {
                                     </svg>
                                   </button>
                                 </div>
-                                <p className="mt-1 truncate text-[0.8rem] text-[#9d968f] md:text-[0.84rem]">
+                                <p className="mt-1 truncate text-[0.8rem] text-[#625c56] md:text-[0.84rem]">
                                   {property.location}
                                 </p>
                                 <div className="mt-2 flex flex-wrap gap-1.5 lg:hidden">
@@ -393,7 +393,7 @@ export default function MainPage({ properties }: MainPageProps) {
                                 </div>
                               </div>
 
-                              <div className="hidden items-center justify-end text-[#a29b93] transition-transform duration-300 group-hover:translate-x-1 group-hover:text-[#171717] lg:flex">
+                              <div className="hidden items-center justify-end text-[#6b645c] transition-transform duration-300 group-hover:translate-x-1 group-hover:text-[#171717] lg:flex">
                                 <svg className="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.6">
                                   <path strokeLinecap="round" strokeLinejoin="round" d="M5 12h14M13 5l7 7-7 7" />
                                 </svg>
@@ -429,7 +429,7 @@ function buildPropertyTags(property: Property) {
 
 function InlinePill({ label }: { label: string }) {
   return (
-    <span className="rounded-full border border-[#ddd8d2] px-2.5 py-1 text-[9px] font-medium uppercase tracking-[0.18em] text-[#9a948c]">
+    <span className="rounded-full border border-[#8f877d] px-2.5 py-1 text-[9px] font-medium uppercase tracking-[0.18em] text-[#625c56]">
       {label}
     </span>
   );
