@@ -464,16 +464,20 @@ function OurProcessSection() {
   // type 'image'  → รูป step (แก้ width ได้)
   const flatPanels = [
     {
-      type: 'intro' as const,
-      width: 100, // vw
+      type: 'intro-text' as const,
+      width: 50,
       headline: 'Built with vision\nFinished with care',
       description: 'At SKNAT, every project follows a clear and refined process. Ensuring precision, transparency, and peace of mind from start to finish.',
-      image: '/our_process_1.jpg',
+    },
+    {
+      type: 'image' as const,
+      width: 95,
+      src: '/our_process_1.jpg', isVideo: false,
     },
     // ── Step 1 ──
     {
       type: 'text' as const,
-      width: 80,
+      width: 67,
       number: '1', title: 'DESIGN PHASE',
       headline: 'You imagine,\nwe make it real.',
       description: 'เมื่อได้รับการอนุมัติใบเสนอราคา เราจะเริ่มต้นด้วยการรับฟังวิสัยทัศน์ของคุณ ศึกษาแบบแปลนของคุณ และสำรวจโซลูชันที่ดีที่สุดเพื่อสร้างสรรค์วิสัยทัศน์นั้น',
@@ -487,7 +491,7 @@ function OurProcessSection() {
     // ── Step 2 ──
     {
       type: 'text' as const,
-      width: 90,
+      width: 67,
       number: '2', title: 'PLANNING PHASE',
       headline: 'Precision in\nevery detail.',
       description: 'ทีมวิศวกรและสถาปนิกของเราจะวางแผนทุกขั้นตอนอย่างละเอียด คำนึงถึงโครงสร้าง วัสดุ และเวลาที่เหมาะสม เพื่อให้โครงการเสร็จสมบูรณ์ตามมาตรฐานสูงสุด',
@@ -501,7 +505,7 @@ function OurProcessSection() {
     // ── Step 3 ──
     {
       type: 'text' as const,
-      width: 90,
+      width: 67,
       number: '3', title: 'EXECUTION PHASE',
       headline: 'Crafted with\nexcellence.',
       description: 'ทีมช่างฝีมือของเราดำเนินการก่อสร้างด้วยความประณีต ใส่ใจในทุกรายละเอียด ตรวจสอบคุณภาพในแต่ละขั้นตอน เพื่อให้ผลงานออกมาสมบูรณ์แบบ',
@@ -594,33 +598,16 @@ function OurProcessSection() {
           }}
         >
           {flatPanels.map((panel, i) => {
-            // ── Intro ──
-            if (panel.type === 'intro') {
+            // ── Intro Text ──
+            if (panel.type === 'intro-text') {
               return (
-                <div key={i} style={{ width: `${panel.width}vw`, height: '100%', display: 'flex', flexShrink: 0 }}>
-                  <div style={{ width: '55%', display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '5rem 4rem' }}>
-                    <h2 className="text-4xl md:text-5xl lg:text-6xl font-light mb-8 whitespace-pre-line" style={{ color: '#f5f2ee', lineHeight: '1.15' }}>
-                      {panel.headline}
-                    </h2>
-                    <p className="text-base leading-relaxed max-w-sm" style={{ color: '#777', lineHeight: '1.85' }}>
-                      {panel.description}
-                    </p>
-                  </div>
-                  <div style={{
-                    flex: 1,
-                    position: 'relative',
-                    overflow: 'hidden',
-                    clipPath: getClip(i, panel.width * 0.45),
-                  }}>
-                    <div style={{
-                      position: 'absolute',
-                      inset: '-20%',
-                      transform: `translateX(${translateX * 0.25}vw)`,
-                      willChange: 'transform',
-                    }}>
-                      <Image src={panel.image} alt="Process intro" fill className="object-cover" priority />
-                    </div>
-                  </div>
+                <div key={i} style={{ width: `${panel.width}vw`, height: '100%', display: 'flex', flexShrink: 0, flexDirection: 'column', justifyContent: 'center', padding: '5rem 4rem' }}>
+                  <h2 className="text-4xl md:text-5xl lg:text-6xl font-light mb-8 whitespace-pre-line" style={{ color: '#f5f2ee', lineHeight: '1.15' }}>
+                    {panel.headline}
+                  </h2>
+                  <p className="text-base leading-relaxed max-w-sm" style={{ color: '#777', lineHeight: '1.85' }}>
+                    {panel.description}
+                  </p>
                 </div>
               );
             }
@@ -685,7 +672,7 @@ function OurProcessSection() {
                     width: `${panel.width}vw`,
                     height: '100%',
                     flexShrink: 0,
-                    padding: '1.5rem 2rem',
+                    padding: '0 2rem 1.5rem',
                   }}
                 >
                   <div style={{
