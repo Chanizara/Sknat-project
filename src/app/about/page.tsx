@@ -57,12 +57,14 @@ function HeroRevealSection() {
     const handleScroll = () => {
       const rect = container.getBoundingClientRect();
       const windowHeight = window.innerHeight;
-      
+
       const sectionTop = rect.top;
       const sectionHeight = rect.height;
-      
-      // Progress from 0 (wireframe only) to 1 (fully revealed)
-      const progress = Math.max(0, Math.min(1, -sectionTop / (sectionHeight * 0.8)));
+
+      // Sticky duration = section height - viewport height
+      // Use 70% of sticky duration for reveal, leaving 30% buffer after reveal=100%
+      const stickyDuration = sectionHeight - windowHeight;
+      const progress = Math.max(0, Math.min(1, -sectionTop / (stickyDuration * 0.7)));
       setRevealProgress(progress);
     };
 
@@ -76,8 +78,8 @@ function HeroRevealSection() {
     <section 
       ref={containerRef}
       className="relative"
-      style={{ 
-        height: '150vh',
+      style={{
+        height: '300vh',
         backgroundColor: '#ffffff'
       }}
     >
@@ -105,20 +107,29 @@ function HeroRevealSection() {
             />
           </div>
 
-          {/* Real Image (Reveals from bottom with curtain effect) */}
-          <div 
+          {/* Real Image (Reveals from bottom with curtain effect + zoom) */}
+          <div
             className="absolute inset-0 z-20 overflow-hidden"
             style={{
               clipPath: `inset(${100 - revealProgress * 100}% 0 0 0)`,
             }}
           >
-            <Image
-              src="/hero_about.jpg"
-              alt="House Real"
-              fill
-              className="object-cover"
-              priority
-            />
+            <div
+              className="absolute inset-0"
+              style={{
+                transform: `scale(${1 + revealProgress * 0.08})`,
+                transformOrigin: 'center center',
+                transition: 'transform 0.1s ease-out',
+              }}
+            >
+              <Image
+                src="/hero_about.jpg"
+                alt="House Real"
+                fill
+                className="object-cover"
+                priority
+              />
+            </div>
           </div>
 
           {/* Smooth transition line */}
@@ -196,11 +207,9 @@ function ServicesSection() {
   return (
     <section 
       ref={sectionRef}
-      className="relative py-24 md:py-32 px-8 md:px-16 lg:px-24"
+      className="relative pt-24 md:pt-32 pb-0 px-8 md:px-16 lg:px-24"
       style={{ 
         backgroundColor: '#ffffff',
-        zIndex: 50,
-        marginTop: '-30vh', // Overlap with hero
         transform: `translateY(${parallaxY}px)`,
         willChange: 'transform'
       }}
@@ -373,7 +382,7 @@ function ServicesSection() {
 function ClientStoriesSection() {
   return (
     <section 
-      className="min-h-screen py-24 md:py-32 px-8 md:px-16 lg:px-24"
+      className="pt-0 pb-32 px-8 md:px-16 lg:px-24"
       style={{ backgroundColor: '#ffffff' }}
     >
       {/* Section Divider */}
