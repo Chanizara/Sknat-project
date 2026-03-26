@@ -3,7 +3,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
+import { useRouter } from "next/navigation";
 
 import { buildPriceLabel, formatPrice, getDistrict } from "@/lib/property-format";
 import { LISTING_TYPES, type Property } from "@/types/property";
@@ -39,6 +40,7 @@ const DEFAULT_MAX_PRICE = 50000000;
 const DEFAULT_MAX_AREA = 500;
 
 export default function MainPage({ properties }: MainPageProps) {
+  const router = useRouter();
   const { addFavorite, removeFavorite, isFavorite } = useFavoritesStore();
 
   const [filters, setFilters] = useState<Filters>({
@@ -53,6 +55,8 @@ export default function MainPage({ properties }: MainPageProps) {
   });
 
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [hoveredPropertyId, setHoveredPropertyId] = useState<number | null>(null);
+  const [transitioningProperty, setTransitioningProperty] = useState<Property | null>(null);
 
   const handleToggleFavorite = (property: Property, event: React.MouseEvent) => {
     event.preventDefault();
@@ -145,8 +149,58 @@ export default function MainPage({ properties }: MainPageProps) {
     });
   };
 
+  const handlePropertyNavigate = (property: Property, event: React.MouseEvent<HTMLAnchorElement>) => {
+    event.preventDefault();
+    setTransitioningProperty(property);
+
+    window.setTimeout(() => {
+      router.push(`/property/${property.id}`);
+    }, 520);
+  };
+
   return (
     <div className="min-h-screen bg-white text-[#0a0a0a]">
+      <AnimatePresence>
+        {transitioningProperty ? (
+          <motion.div
+            className="fixed inset-0 z-[120] bg-white"
+            initial={{ y: "100%", scale: 0.92, borderTopLeftRadius: 28, borderTopRightRadius: 28 }}
+            animate={{ y: 0, scale: 1, borderTopLeftRadius: 0, borderTopRightRadius: 0 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <div className="relative flex h-full w-full items-center justify-center overflow-hidden bg-white px-6 py-10">
+              <motion.div
+                initial={{ y: 120, opacity: 0.45, scale: 0.9 }}
+                animate={{ y: 0, opacity: 1, scale: 1 }}
+                transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1], delay: 0.06 }}
+                className="grid w-full max-w-[1380px] items-center gap-10 lg:grid-cols-[0.44fr_0.56fr]"
+              >
+                <div className="relative aspect-[0.9] overflow-hidden bg-[#ede7df]">
+                  <Image
+                    src={transitioningProperty.image}
+                    alt={transitioningProperty.title}
+                    fill
+                    className="object-cover"
+                  />
+                </div>
+                <div className="space-y-5">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-[#2d2d2d]">
+                    Opening Project
+                  </p>
+                  <h2 className="text-[clamp(2.8rem,5vw,5.6rem)] font-light leading-[0.92] tracking-[-0.05em] text-[#111]">
+                    {transitioningProperty.title}
+                  </h2>
+                  <p className="text-sm uppercase tracking-[0.18em] text-[#8f8881]">
+                    {transitioningProperty.location}
+                  </p>
+                </div>
+              </motion.div>
+            </div>
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
+
       <About />
       <Services />
       <ParallaxImageSection />
@@ -154,84 +208,9 @@ export default function MainPage({ properties }: MainPageProps) {
       <section id="properties" className="relative bg-white py-16 md:py-20">
         <div className="absolute inset-x-0 top-0 h-px bg-[#e8e8e8]" />
 
-        <div className="container relative mx-auto px-4 md:px-6">
+        <div className="relative mx-auto max-w-[1720px] px-3 md:px-5">
           <div className="relative bg-white">
             <div className="relative">
-              {/* Header */}
-              <div className="mb-9 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-                <div>
-                  <p className="mb-1 text-[11px] uppercase tracking-[0.35em] text-[#1a40b6]">SKNAT VILLA CURATION</p>
-                  <h2 className="mt-2 text-3xl font-light text-[#0a0a0a] md:text-5xl">เลือกบ้านสไตล์หรูแบบพูลวิลล่า</h2>
-                  <p className="mt-2 max-w-2xl text-sm text-[#666] md:text-base">ประสบการณ์ค้นหาบ้านที่ลื่นไหล โปร่งสบาย และคัดทรัพย์แบบร่วมสมัย</p>
-                </div>
-                <div className="flex flex-wrap items-end gap-4 md:gap-5">
-                  <CounterCard label="ผลลัพธ์" value={`${filteredProperties.length}`} />
-                  <CounterCard label="ตัวกรองที่ใช้" value={`${activeFilters}`} />
-                </div>
-              </div>
-
-              {/* Search bar */}
-              <div className="mb-7 flex flex-col gap-3 rounded-[28px] border border-[#ececec] bg-white p-4 shadow-[0_26px_65px_-52px_rgba(15,23,42,0.18)] md:flex-row md:items-center">
-                <div className="flex h-12 flex-1 items-center gap-3 rounded-[20px] bg-white px-5 ring-1 ring-inset ring-[#efefef]">
-                  <svg className="h-4 w-4 text-[#999]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M21 21l-4.35-4.35m1.85-5.15a7 7 0 11-14 0 7 7 0 0114 0z" />
-                  </svg>
-                  <input
-                    type="text"
-                    placeholder="ค้นหาโครงการ, พื้นที่, จังหวัด"
-                    value={filters.searchKeyword}
-                    onChange={(event) => handleFilterChange("searchKeyword", event.target.value)}
-                    className="h-full w-full bg-transparent text-sm text-[#0a0a0a] outline-none placeholder:text-[#aaa]"
-                  />
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setIsFilterOpen((prev) => !prev)}
-                  className="h-12 rounded-[20px] bg-[#0a0a0a] px-7 text-sm font-semibold text-white transition hover:bg-[#1a40b6]"
-                >
-                  ตัวกรองขั้นสูง ({activeFilters})
-                </button>
-              </div>
-
-              {/* Filter panel */}
-              <div
-                className={`overflow-hidden transition-all duration-500 ${
-                  isFilterOpen ? "mb-7 max-h-200 opacity-100" : "max-h-0 opacity-0"
-                }`}
-              >
-                <div className="rounded-[26px] border border-[#ececec] bg-white p-5 shadow-[0_20px_60px_-52px_rgba(15,23,42,0.18)] md:p-6">
-                  <div className="mb-5 flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
-                    <div>
-                      <h3 className="text-xs font-semibold uppercase tracking-[0.22em] text-[#0a0a0a]">Advanced Filters</h3>
-                      <p className="mt-1 text-xs text-[#999]">ปรับเงื่อนไขเพื่อคัดบ้านที่ใกล้เคียงความต้องการ</p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={clearFilters}
-                        className="rounded-full border border-[#e9e9e9] px-4 py-2 text-xs font-semibold text-[#666] transition hover:text-[#0a0a0a]"
-                      >
-                        ล้างตัวกรองทั้งหมด
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setIsFilterOpen(false)}
-                        className="rounded-full bg-[#0a0a0a] px-4 py-2 text-xs font-semibold text-white transition hover:bg-[#1a40b6]"
-                      >
-                        ซ่อน
-                      </button>
-                    </div>
-                  </div>
-                  <HorizontalFilterControls
-                    filters={filters}
-                    developmentTypeOptions={developmentTypeOptions}
-                    districtOptions={districtOptions}
-                    handleFilterChange={handleFilterChange}
-                    toggleArrayFilter={toggleArrayFilter}
-                  />
-                </div>
-              </div>
-
               {/* Empty state */}
               {filteredProperties.length === 0 ? (
                 <div className="rounded-[30px] border border-[#ececec] bg-white p-12 text-center shadow-[0_20px_60px_-52px_rgba(15,23,42,0.18)]">
@@ -248,89 +227,182 @@ export default function MainPage({ properties }: MainPageProps) {
               ) : (
                 <div>
                   <div className="mb-3 flex items-center justify-between text-[11px] uppercase tracking-[0.2em] text-[#bbb]">
-                    <span>Property Grid</span>
+                    <span>Featured Projects</span>
                     <span>รายการทั้งหมด {filteredProperties.length} รายการ</span>
                   </div>
-                  <div className="grid grid-cols-1 gap-7 lg:grid-cols-2">
-                    {filteredProperties.map((property, idx) => (
-                      <motion.article
-                        key={property.id}
-                        initial={{ opacity: 0, y: 28 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.65, delay: (idx % 2) * 0.1, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] }}
-                        viewport={{ once: true, margin: "-40px" }}
-                        className="group overflow-hidden rounded-[28px] border border-[#ebebeb] bg-white transition duration-300"
-                        whileHover={{ y: -4, boxShadow: '0 16px 40px rgba(0,0,0,0.10)', transition: { duration: 0.3 } }}
-                      >
-                        <div className="relative h-64 overflow-hidden rounded-t-[28px] md:h-72">
-                          <Image
-                            src={property.image}
-                            alt={property.title}
-                            fill
-                            className="object-cover transition duration-700 group-hover:scale-105"
-                          />
-                          <div className="absolute inset-0 bg-linear-to-t from-[#020617]/75 via-[#020617]/15 to-transparent" />
+                  <div className="bg-white">
+                    <div className="grid gap-10 py-5 md:py-8 lg:grid-cols-[0.38fr_0.62fr] lg:gap-14">
+                      <div>
+                        <p className="mb-5 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.28em] text-[#2d2d2d]">
+                          <span>◆</span>
+                          FEATURED PROJECTS
+                        </p>
+                      </div>
 
-                          <div className="absolute left-4 top-4 flex flex-wrap items-center gap-2">
-                            <span className="rounded-full bg-white/90 px-3 py-1 text-[11px] font-semibold text-[#0a0a0a]">{property.type}</span>
-                            {property.propertyType ? (
-                              <span className="rounded-full bg-black/45 px-3 py-1 text-[11px] font-medium text-white">{property.propertyType}</span>
-                            ) : null}
-                          </div>
-
-                          <button
-                            onClick={(e) => handleToggleFavorite(property, e)}
-                            className={`absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full transition-all ${
-                              isFavorite(property.id)
-                                ? 'bg-red-500 text-white scale-110'
-                                : 'bg-white/90 text-[#0a0a0a] hover:bg-white'
-                            }`}
-                            aria-label={isFavorite(property.id) ? 'ลบจากรายการโปรด' : 'เพิ่มในรายการโปรด'}
+                      <div>
+                        <h2 className="max-w-5xl text-[clamp(2.7rem,5.2vw,5.6rem)] font-light leading-[0.92] tracking-[-0.05em] text-[#171717]">
+                          Each project tells its own story
+                          <br />
+                          of collaboration and precision.
+                        </h2>
+                        <div className="mt-7 flex flex-wrap items-center gap-3">
+                          <Link
+                            href="#properties-list"
+                            className="inline-flex items-center gap-3 bg-[#0f1214] px-7 py-4 text-[12px] font-semibold uppercase tracking-[0.22em] text-white transition hover:bg-[#20262b]"
                           >
-                            <svg
-                              className="h-5 w-5"
-                              fill={isFavorite(property.id) ? 'currentColor' : 'none'}
-                              viewBox="0 0 24 24"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                            >
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                            </svg>
+                            <span style={{ fontFamily: "monospace" }}>↳</span>
+                            VIEW PROJECTS
+                          </Link>
+                          <button
+                            type="button"
+                            onClick={() => setIsFilterOpen((prev) => !prev)}
+                            className="inline-flex items-center gap-3 border border-[#171717] px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.24em] text-[#171717] transition hover:bg-[#171717] hover:text-white"
+                          >
+                            <span className="inline-block h-[1px] w-4 bg-current" />
+                            ตัวกรองขั้นสูง
+                            <span className="text-[10px] text-current/60">{activeFilters}</span>
                           </button>
+                        </div>
+                      </div>
+                    </div>
 
-                          <div className="absolute bottom-4 left-4 right-4 space-y-1.5">
-                            <p className="line-clamp-1 text-xs text-white/85">{property.location}</p>
-                            <h3 className="line-clamp-2 text-xl font-semibold leading-tight text-white">{property.title}</h3>
+                    <div
+                      className={`overflow-hidden transition-all duration-500 ${
+                        isFilterOpen ? "mt-8 max-h-[720px] opacity-100" : "mt-0 max-h-0 opacity-0"
+                      }`}
+                    >
+                      <div className="border-y border-[#ddd8d2] bg-white py-5">
+                        <div className="mb-4 flex flex-col items-start justify-between gap-3 md:flex-row md:items-center">
+                          <div>
+                            <h3 className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#0a0a0a]">
+                              Advanced Filters
+                            </h3>
+                            <p className="mt-1 text-xs text-[#8f8881]">ปรับเงื่อนไขเพื่อคัดบ้านที่ใกล้เคียงความต้องการ</p>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={clearFilters}
+                              className="border border-[#d8d2ca] px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#666] transition hover:border-[#171717] hover:text-[#0a0a0a]"
+                            >
+                              ล้างตัวกรอง
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setIsFilterOpen(false)}
+                              className="border border-[#171717] px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#171717] transition hover:bg-[#171717] hover:text-white"
+                            >
+                              ปิด
+                            </button>
                           </div>
                         </div>
+                        <HorizontalFilterControls
+                          filters={filters}
+                          developmentTypeOptions={developmentTypeOptions}
+                          districtOptions={districtOptions}
+                          handleFilterChange={handleFilterChange}
+                          toggleArrayFilter={toggleArrayFilter}
+                        />
+                      </div>
+                    </div>
 
-                        <div className="space-y-4 p-5">
-                          <div className="flex flex-wrap gap-x-4 gap-y-2">
-                            {property.size ? <MetricTag label={`${property.size} ตร.ม.`} /> : null}
-                            {property.bedrooms ? <MetricTag label={`${property.bedrooms} ห้องนอน`} /> : null}
-                            {property.bathrooms ? <MetricTag label={`${property.bathrooms} ห้องน้ำ`} /> : null}
-                          </div>
+                    <div id="properties-list" className="mt-[4.5rem] border-t border-[#ddd8d2]" />
 
-                          <div className="flex items-end justify-between gap-4">
-                            <div>
-                              <p className="text-3xl font-semibold tracking-tight text-[#1a40b6]">{buildPriceLabel(property)}</p>
-                              {property.pricePerSqm ? (
-                                <p className="text-xs text-[#999]">{formatPrice(property.pricePerSqm)}/ตร.ม.</p>
-                              ) : null}
-                            </div>
+                    <div className="relative bg-white">
+                      {filteredProperties.map((property, idx) => {
+                        const isHovered = hoveredPropertyId === property.id;
+
+                        return (
+                          <motion.div
+                            key={property.id}
+                            initial={{ opacity: 0, y: 18 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.45, delay: idx * 0.04, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] }}
+                            viewport={{ once: true, margin: "-40px" }}
+                            className="relative"
+                          >
                             <Link
                               href={`/property/${property.id}`}
-                              className="inline-flex h-10 items-center gap-2 rounded-full bg-[#0a0a0a] px-4 text-sm font-semibold text-white transition hover:bg-[#1a40b6]"
+                              onClick={(event) => handlePropertyNavigate(property, event)}
+                              onMouseEnter={() => setHoveredPropertyId(property.id)}
+                              onFocus={() => setHoveredPropertyId(property.id)}
+                              onMouseLeave={() => setHoveredPropertyId((current) => (current === property.id ? null : current))}
+                              onBlur={() => setHoveredPropertyId((current) => (current === property.id ? null : current))}
+                              className="group relative grid items-center gap-3 border-b border-[#ddd8d2] bg-white px-1 py-3 transition-colors duration-300 md:px-2 lg:grid-cols-[0.95fr_1.45fr_42px]"
                             >
-                              รายละเอียด
-                              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
-                              </svg>
+                              <div className="min-w-0 lg:pr-8">
+                                <div className="flex items-center gap-2">
+                                  <h3 className="truncate text-[1.28rem] font-light tracking-[-0.035em] text-[#a9a39c] transition-colors duration-300 group-hover:text-[#1b1b1b] md:text-[1.4rem]">
+                                    {property.title}
+                                  </h3>
+                                  <button
+                                    onClick={(event) => handleToggleFavorite(property, event)}
+                                    className={`hidden h-8 w-8 items-center justify-center rounded-full border transition md:inline-flex ${
+                                      isFavorite(property.id)
+                                        ? 'border-red-500 bg-red-500 text-white'
+                                        : 'border-[#ddd8d2] bg-white text-[#1a1a1a] hover:border-[#171717]'
+                                    }`}
+                                    aria-label={isFavorite(property.id) ? 'ลบจากรายการโปรด' : 'เพิ่มในรายการโปรด'}
+                                  >
+                                    <svg
+                                      className="h-3 w-3"
+                                      fill={isFavorite(property.id) ? 'currentColor' : 'none'}
+                                      viewBox="0 0 24 24"
+                                      stroke="currentColor"
+                                      strokeWidth="2"
+                                    >
+                                      <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                                    </svg>
+                                  </button>
+                                </div>
+                                <p className="mt-1 truncate text-[0.8rem] text-[#9d968f] md:text-[0.84rem]">
+                                  {property.location}
+                                </p>
+                                <div className="mt-2 flex flex-wrap gap-1.5 lg:hidden">
+                                  {buildPropertyTags(property).map((tag) => (
+                                    <InlinePill key={`${property.id}-${tag}`} label={tag} />
+                                  ))}
+                                </div>
+                              </div>
+
+                              <div className="relative hidden min-h-[54px] items-center lg:flex">
+                                <AnimatePresence mode="wait">
+                                  {isHovered ? (
+                                    <motion.div
+                                      key={`preview-${property.id}`}
+                                      initial={{ opacity: 0, scale: 0.97, y: 8 }}
+                                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                                      exit={{ opacity: 0, scale: 0.985, y: 4 }}
+                                      transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+                                      className="absolute left-[-22px] top-1/2 z-10 h-[156px] w-[282px] -translate-y-1/2 overflow-hidden bg-[#ece7df] shadow-[0_22px_60px_-34px_rgba(0,0,0,0.32)]"
+                                    >
+                                      <Image
+                                        src={property.image}
+                                        alt={property.title}
+                                        fill
+                                        className="object-cover"
+                                      />
+                                    </motion.div>
+                                  ) : null}
+                                </AnimatePresence>
+
+                                <div className="flex flex-wrap gap-1.5 pl-[50%]">
+                                  {buildPropertyTags(property).map((tag) => (
+                                    <InlinePill key={`${property.id}-${tag}`} label={tag} />
+                                  ))}
+                                </div>
+                              </div>
+
+                              <div className="hidden items-center justify-end text-[#a29b93] transition-transform duration-300 group-hover:translate-x-1 group-hover:text-[#171717] lg:flex">
+                                <svg className="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.6">
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 12h14M13 5l7 7-7 7" />
+                                </svg>
+                              </div>
                             </Link>
-                          </div>
-                        </div>
-                      </motion.article>
-                    ))}
+                          </motion.div>
+                        );
+                      })}
+                    </div>
                   </div>
                 </div>
               )}
@@ -342,6 +414,27 @@ export default function MainPage({ properties }: MainPageProps) {
   );
 }
 
+function buildPropertyTags(property: Property) {
+  const tags = [
+    property.type === "เช่า" ? "RENTAL" : "FOR SALE",
+    property.propertyType?.toUpperCase(),
+    property.size ? `${property.size} SQ.M.` : undefined,
+    property.bedrooms ? `${property.bedrooms} BEDROOMS` : undefined,
+    property.bathrooms ? `${property.bathrooms} BATHROOMS` : undefined,
+    buildPriceLabel(property).toUpperCase(),
+  ].filter(Boolean) as string[];
+
+  return tags.slice(0, 4);
+}
+
+function InlinePill({ label }: { label: string }) {
+  return (
+    <span className="rounded-full border border-[#ddd8d2] px-2.5 py-1 text-[9px] font-medium uppercase tracking-[0.18em] text-[#9a948c]">
+      {label}
+    </span>
+  );
+}
+
 function HorizontalFilterControls({
   filters,
   developmentTypeOptions,
@@ -350,21 +443,21 @@ function HorizontalFilterControls({
   toggleArrayFilter,
 }: FilterControlsProps) {
   return (
-    <div className="space-y-4">
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+    <div className="space-y-3">
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-[1.05fr_1.15fr_0.8fr]">
         {/* Listing Type */}
-        <div className="rounded-[22px] border border-[#ececec] bg-white p-4">
-          <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-[#888]">ประเภทประกาศ</p>
+        <div className="border-b border-[#ebe4dc] pb-3">
+          <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.22em] text-[#888]">ประเภทประกาศ</p>
           <div className="flex flex-wrap gap-1.5">
             {LISTING_TYPES.map((type) => (
               <button
                 key={type}
                 type="button"
                 onClick={() => toggleArrayFilter("listingType", type)}
-                className="rounded-full px-3 py-1.5 text-xs font-semibold transition"
+                className="border px-3 py-1 text-[11px] font-semibold transition"
                 style={filters.listingType.includes(type)
-                  ? { background: '#0a0a0a', color: '#fff' }
-                  : { background: '#fff', color: '#444', border: '1px solid #e0e0e0' }}
+                  ? { background: '#0a0a0a', color: '#fff', borderColor: '#0a0a0a' }
+                  : { background: '#fff', color: '#444', borderColor: '#d8d2ca' }}
               >
                 {type}
               </button>
@@ -373,18 +466,18 @@ function HorizontalFilterControls({
         </div>
 
         {/* Development Type */}
-        <div className="rounded-[22px] border border-[#ececec] bg-white p-4">
-          <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-[#888]">ประเภทการพัฒนา</p>
+        <div className="border-b border-[#ebe4dc] pb-3">
+          <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.22em] text-[#888]">ประเภทการพัฒนา</p>
           <div className="flex flex-wrap gap-1.5">
             {developmentTypeOptions.map((type) => (
               <button
                 key={type}
                 type="button"
                 onClick={() => toggleArrayFilter("developmentType", type)}
-                className="rounded-full px-2.5 py-1 text-xs transition"
+                className="border px-2.5 py-1 text-[11px] transition"
                 style={filters.developmentType.includes(type)
-                  ? { background: '#0a0a0a', color: '#fff' }
-                  : { background: '#fff', color: '#444', border: '1px solid #e0e0e0' }}
+                  ? { background: '#0a0a0a', color: '#fff', borderColor: '#0a0a0a' }
+                  : { background: '#fff', color: '#444', borderColor: '#d8d2ca' }}
               >
                 {type}
               </button>
@@ -393,12 +486,12 @@ function HorizontalFilterControls({
         </div>
 
         {/* Min Bedrooms */}
-        <div className="rounded-[22px] border border-[#ececec] bg-white p-4">
-          <label className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.2em] text-[#888]">ห้องนอนขั้นต่ำ</label>
+        <div className="border-b border-[#ebe4dc] pb-3">
+          <label className="mb-2 block text-[10px] font-semibold uppercase tracking-[0.22em] text-[#888]">ห้องนอนขั้นต่ำ</label>
           <select
             value={filters.minBedrooms}
             onChange={(event) => handleFilterChange("minBedrooms", event.target.value)}
-            className="h-10 w-full rounded-[16px] border border-[#e0e0e0] bg-white px-3 text-sm text-[#0a0a0a] outline-none transition"
+            className="h-9 w-full border border-[#d8d2ca] bg-white px-3 text-sm text-[#0a0a0a] outline-none transition"
           >
             <option value="">ไม่ระบุ</option>
             <option value="1">1+</option>
@@ -410,8 +503,8 @@ function HorizontalFilterControls({
         </div>
 
         {/* Price Range */}
-        <div className="rounded-[22px] border border-[#ececec] bg-white p-4 md:col-span-2 lg:col-span-2">
-          <label className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.2em] text-[#888]">
+        <div className="border-b border-[#ebe4dc] pb-3 md:col-span-2 lg:col-span-2">
+          <label className="mb-2 block text-[10px] font-semibold uppercase tracking-[0.22em] text-[#888]">
             ราคา {formatPrice(filters.priceRange[0])} - {formatPrice(filters.priceRange[1])}
           </label>
           <input
@@ -423,7 +516,7 @@ function HorizontalFilterControls({
             onChange={(event) =>
               handleFilterChange("priceRange", [filters.priceRange[0], parseInt(event.target.value, 10)])
             }
-            className="mb-2 h-1 w-full cursor-pointer appearance-none bg-[#e0e0e0] accent-[#1a40b6]"
+            className="mb-2 h-1 w-full cursor-pointer appearance-none bg-[#e0e0e0] accent-[#111111]"
           />
           <div className="grid grid-cols-2 gap-2">
             <input
@@ -433,7 +526,7 @@ function HorizontalFilterControls({
               onChange={(event) =>
                 handleFilterChange("priceRange", [parseInt(event.target.value, 10) || 0, filters.priceRange[1]])
               }
-              className="h-9 w-full rounded-[14px] border border-[#e0e0e0] bg-white px-2.5 text-sm text-[#0a0a0a] outline-none transition placeholder:text-[#ccc]"
+              className="h-9 w-full border border-[#d8d2ca] bg-white px-2.5 text-sm text-[#0a0a0a] outline-none transition placeholder:text-[#ccc]"
             />
             <input
               type="number"
@@ -442,14 +535,14 @@ function HorizontalFilterControls({
               onChange={(event) =>
                 handleFilterChange("priceRange", [filters.priceRange[0], parseInt(event.target.value, 10) || DEFAULT_MAX_PRICE])
               }
-              className="h-9 w-full rounded-[14px] border border-[#e0e0e0] bg-white px-2.5 text-sm text-[#0a0a0a] outline-none transition placeholder:text-[#ccc]"
+              className="h-9 w-full border border-[#d8d2ca] bg-white px-2.5 text-sm text-[#0a0a0a] outline-none transition placeholder:text-[#ccc]"
             />
           </div>
         </div>
 
         {/* Area Size */}
-        <div className="rounded-[22px] border border-[#ececec] bg-white p-4 md:col-span-2 lg:col-span-1">
-          <label className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.2em] text-[#888]">
+        <div className="border-b border-[#ebe4dc] pb-3 md:col-span-2 lg:col-span-1">
+          <label className="mb-2 block text-[10px] font-semibold uppercase tracking-[0.22em] text-[#888]">
             พื้นที่ {filters.areaSize[0]} - {filters.areaSize[1]} ตร.ม.
           </label>
           <input
@@ -461,7 +554,7 @@ function HorizontalFilterControls({
             onChange={(event) =>
               handleFilterChange("areaSize", [filters.areaSize[0], parseInt(event.target.value, 10)])
             }
-            className="mb-2 h-1 w-full cursor-pointer appearance-none bg-[#e0e0e0] accent-[#1a40b6]"
+            className="mb-2 h-1 w-full cursor-pointer appearance-none bg-[#e0e0e0] accent-[#111111]"
           />
           <div className="grid grid-cols-2 gap-2">
             <input
@@ -471,7 +564,7 @@ function HorizontalFilterControls({
               onChange={(event) =>
                 handleFilterChange("areaSize", [parseInt(event.target.value, 10) || 0, filters.areaSize[1]])
               }
-              className="h-9 w-full rounded-[14px] border border-[#e0e0e0] bg-white px-2.5 text-sm text-[#0a0a0a] outline-none transition placeholder:text-[#ccc]"
+              className="h-9 w-full border border-[#d8d2ca] bg-white px-2.5 text-sm text-[#0a0a0a] outline-none transition placeholder:text-[#ccc]"
             />
             <input
               type="number"
@@ -480,25 +573,25 @@ function HorizontalFilterControls({
               onChange={(event) =>
                 handleFilterChange("areaSize", [filters.areaSize[0], parseInt(event.target.value, 10) || DEFAULT_MAX_AREA])
               }
-              className="h-9 w-full rounded-[14px] border border-[#e0e0e0] bg-white px-2.5 text-sm text-[#0a0a0a] outline-none transition placeholder:text-[#ccc]"
+              className="h-9 w-full border border-[#d8d2ca] bg-white px-2.5 text-sm text-[#0a0a0a] outline-none transition placeholder:text-[#ccc]"
             />
           </div>
         </div>
       </div>
 
       {/* District */}
-      <div className="rounded-[22px] border border-[#ececec] bg-white p-4">
-        <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-[#888]">เขต/อำเภอ</p>
-        <div className="flex flex-wrap gap-2">
+      <div className="pt-1">
+        <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.22em] text-[#888]">เขต/อำเภอ</p>
+        <div className="flex flex-wrap gap-1.5">
           {districtOptions.map((district) => (
             <button
               key={district}
               type="button"
               onClick={() => toggleArrayFilter("district", district)}
-              className="rounded-full px-3 py-1.5 text-xs font-medium transition"
+              className="border px-3 py-1 text-[11px] font-medium transition"
               style={filters.district.includes(district)
-                ? { background: '#0a0a0a', color: '#fff' }
-                : { background: '#fff', color: '#444', border: '1px solid #e0e0e0' }}
+                ? { background: '#0a0a0a', color: '#fff', borderColor: '#0a0a0a' }
+                : { background: '#fff', color: '#444', borderColor: '#d8d2ca' }}
             >
               {district}
             </button>
@@ -506,27 +599,5 @@ function HorizontalFilterControls({
         </div>
       </div>
     </div>
-  );
-}
-
-type CounterCardProps = { label: string; value: string };
-
-function CounterCard({ label, value }: CounterCardProps) {
-  return (
-    <div className="min-w-[108px] rounded-[22px] border border-[#ececec] bg-white px-4 py-3 shadow-[0_14px_30px_-28px_rgba(15,23,42,0.14)]">
-      <p className="text-[11px] uppercase tracking-[0.16em] text-[#999]">{label}</p>
-      <p className="mt-1 text-[2.05rem] leading-none font-semibold text-[#0a0a0a]">{value}</p>
-    </div>
-  );
-}
-
-type MetricTagProps = { label: string };
-
-function MetricTag({ label }: MetricTagProps) {
-  return (
-    <span className="inline-flex items-center gap-1.5 rounded-full border border-[#ececec] bg-white px-3 py-1.5 text-xs text-[#888]">
-      <span className="h-1.5 w-1.5 rounded-full" style={{ background: '#ccc' }} />
-      {label}
-    </span>
   );
 }
