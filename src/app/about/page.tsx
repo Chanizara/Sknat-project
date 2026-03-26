@@ -588,24 +588,17 @@ function OurProcessSection() {
               </p>
             </div>
 
-            {/* Right: hero image with parallax — moves slower so it lingers as panel exits */}
+            {/* Right: our_process_1 with parallax */}
             <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
               <div
                 style={{
                   position: 'absolute',
                   inset: 0,
-                  // translateX(+offset): as panel moves left, image moves right relative to panel → appears slower
                   transform: `scale(1.2) translateX(${imgParallax(0)}%)`,
                   willChange: 'transform',
                 }}
               >
-                <Image
-                  src="/hero_about.jpg"
-                  alt="Built with vision"
-                  fill
-                  className="object-cover"
-                  priority
-                />
+                <Image src="/our_process_1.jpg" alt="Process" fill className="object-cover" priority />
               </div>
             </div>
           </div>
@@ -619,7 +612,7 @@ function OurProcessSection() {
                 key={panelIdx}
                 style={{ width: '100vw', height: '100%', display: 'flex', flexShrink: 0 }}
               >
-                {/* Left 55%: step label + placeholder overlapping frames + headline + description */}
+                {/* Left 55%: step label + overlapping frames + headline + description */}
                 <div
                   style={{
                     width: '55%',
@@ -635,8 +628,8 @@ function OurProcessSection() {
                     {panel.number}. {panel.title}
                   </span>
 
-                  {/* Placeholder overlapping frames — fill with photos later */}
-                  <div style={{ position: 'relative', width: '100%', maxWidth: '400px', aspectRatio: '4/3' }}>
+                  {/* Overlapping frames */}
+                  <div style={{ position: 'relative', width: '100%', height: '38vh' }}>
                     {/* Top-left placeholder */}
                     <div style={{
                       position: 'absolute', top: 0, left: 0,
@@ -666,24 +659,28 @@ function OurProcessSection() {
                   </div>
                 </div>
 
-                {/* Right 45%: large step image (our_process_N) with parallax — same as intro */}
-                <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
-                  <div
-                    style={{
-                      position: 'absolute',
-                      inset: 0,
-                      transform: `scale(1.2) translateX(${imgParallax(panelIdx)}%)`,
-                      willChange: 'transform',
-                    }}
-                  >
-                    {panel.isVideo ? (
-                      <video src={panel.image} autoPlay muted loop playsInline
-                        style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                    ) : (
-                      <Image src={panel.image} alt={panel.title ?? ''} fill className="object-cover" />
-                    )}
+                {/* Right 45%: next panel's image with parallax, last step gets no image */}
+                {panels[panelIdx + 1] ? (
+                  <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
+                    <div
+                      style={{
+                        position: 'absolute',
+                        inset: 0,
+                        transform: `scale(1.2) translateX(${imgParallax(panelIdx)}%)`,
+                        willChange: 'transform',
+                      }}
+                    >
+                      {panels[panelIdx + 1].isVideo ? (
+                        <video src={panels[panelIdx + 1].image} autoPlay muted loop playsInline
+                          style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      ) : (
+                        <Image src={panels[panelIdx + 1].image} alt={panels[panelIdx + 1].title ?? ''} fill className="object-cover" />
+                      )}
+                    </div>
                   </div>
-                </div>
+                ) : (
+                  <div style={{ flex: 1 }} />
+                )}
               </div>
             );
           })}
