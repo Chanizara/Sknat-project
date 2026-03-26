@@ -539,11 +539,16 @@ function OurProcessSection() {
 
   const translateX = scrollProgress * scrollableVw;
 
-  // leftClip(i): กรอบถูก clip ทางซ้ายตอนเข้า → ค่อยๆ เปิดออกทางซ้ายเหมือนดึงกรอบให้กว้าง
-  // 0 = กรอบเต็ม, 100 = ซ่อนทั้งหมด
-  const leftClip = (i: number, panelWidth: number) => {
+  // clip(i): คำนวณ clipPath ทั้งสองข้าง
+  // ซ้าย: เปิดออกตอนเข้า (ดึงกรอบซ้ายออก)
+  // ขวา: ปิดตอนออก (ดึงกรอบขวาปิด)
+  const getClip = (i: number, panelWidth: number) => {
     const entered = translateX + 100 - panelStarts[i]; // 0 = right edge just entered
-    return Math.max(0, PARALLAX * 100 * (1 - entered / (panelWidth * 0.85)));
+    const exited  = translateX - panelStarts[i];        // 0 = left edge at viewport left
+    const travel  = panelWidth * 0.85;
+    const left  = Math.max(0, PARALLAX * 100 * (1 - entered / travel));
+    const right = Math.max(0, PARALLAX * 100 * (exited  / travel));
+    return `inset(0 ${right.toFixed(2)}% 0 ${left.toFixed(2)}%)`;
   };
 
   return (
@@ -557,24 +562,24 @@ function OurProcessSection() {
     >
       <div className="sticky top-0 h-screen overflow-hidden">
 
-        {/* Progress bar */}
-        <div className="absolute top-0 left-0 right-0 z-50 h-px" style={{ backgroundColor: '#252525' }}>
-          <div
-            style={{
-              height: '100%',
+        {/* Progress bar + OUR PROCESS label */}
+        <div className="absolute z-50" style={{ top: '2rem', left: '2rem', right: '2rem' }}>
+          {/* Track line */}
+          <div style={{ height: '1px', backgroundColor: '#2e2e2e', position: 'relative' }}>
+            <div style={{
+              position: 'absolute', top: 0, left: 0, height: '100%',
               backgroundColor: '#f5f2ee',
               width: `${scrollProgress * 100}%`,
               transition: 'width 0.1s linear',
-            }}
-          />
-        </div>
-
-        {/* OUR PROCESS label */}
-        <div className="absolute top-8 left-8 z-50 flex items-center gap-2">
-          <span style={{ color: '#555' }}>◆</span>
-          <span className="text-[10px] font-medium tracking-[0.2em] uppercase" style={{ color: '#666' }}>
-            OUR PROCESS
-          </span>
+            }} />
+          </div>
+          {/* Label row */}
+          <div className="flex items-center gap-2 pt-4">
+            <span style={{ color: '#555' }}>◆</span>
+            <span className="text-[10px] font-medium tracking-[0.2em] uppercase" style={{ color: '#666' }}>
+              OUR PROCESS
+            </span>
+          </div>
         </div>
 
         {/* Horizontal slider */}
@@ -605,9 +610,16 @@ function OurProcessSection() {
                     flex: 1,
                     position: 'relative',
                     overflow: 'hidden',
-                    clipPath: `inset(0 0 0 ${leftClip(i, panel.width * 0.45)}%)`,
+                    clipPath: getClip(i, panel.width * 0.45),
                   }}>
-                    <Image src={panel.image} alt="Process intro" fill className="object-cover" priority />
+                    <div style={{
+                      position: 'absolute',
+                      inset: '-20%',
+                      transform: `translateX(${translateX * 0.25}vw)`,
+                      willChange: 'transform',
+                    }}>
+                      <Image src={panel.image} alt="Process intro" fill className="object-cover" priority />
+                    </div>
                   </div>
                 </div>
               );
@@ -673,17 +685,23 @@ function OurProcessSection() {
                     width: `${panel.width}vw`,
                     height: '100%',
                     flexShrink: 0,
-                    position: 'relative',
-                    overflow: 'hidden',
-                    clipPath: `inset(0 0 0 ${leftClip(i, panel.width)}%)`,
+                    padding: '1.5rem 2rem',
                   }}
                 >
-                  {panel.isVideo ? (
-                    <video src={panel.src} autoPlay muted loop playsInline
-                      style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  ) : (
-                    <Image src={panel.src} alt="" fill className="object-cover" />
-                  )}
+                  <div style={{
+                    width: '100%',
+                    height: '100%',
+                    position: 'relative',
+                    overflow: 'hidden',
+                    clipPath: getClip(i, panel.width),
+                  }}>
+                    {panel.isVideo ? (
+                      <video src={panel.src} autoPlay muted loop playsInline
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    ) : (
+                      <Image src={panel.src} alt="" fill className="object-cover" />
+                    )}
+                  </div>
                 </div>
               );
             }
