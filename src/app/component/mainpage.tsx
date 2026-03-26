@@ -10,7 +10,7 @@ import { buildPriceLabel, formatPrice, getDistrict } from "@/lib/property-format
 import { LISTING_TYPES, type Property } from "@/types/property";
 import { useFavoritesStore } from "@/lib/favorites-store";
 import About from "./about";
-import Services from "./services";
+import OurExperience from "./OurExperience";
 import ParallaxImageSection from "./ParallaxImageSection";
 
 type MainPageProps = {
@@ -202,7 +202,7 @@ export default function MainPage({ properties }: MainPageProps) {
       </AnimatePresence>
 
       <About />
-      <Services />
+      <OurExperience />
       <ParallaxImageSection />
 
       <section id="properties" className="relative bg-white py-16 md:py-20">

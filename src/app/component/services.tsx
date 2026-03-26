@@ -148,10 +148,10 @@ export default function Services() {
           }`}
         >
           <p className="text-[11px] uppercase tracking-[0.3em] text-slate-500">
-            Our Services
+            Our Expertise
           </p>
           <h2 className="mt-3 text-3xl font-semibold tracking-tight text-slate-950 md:text-5xl">
-            บริการครบวงจรของเรา
+            สิ่งที่เราทำเพื่อคุณ
           </h2>
           <p className="mx-auto mt-4 max-w-2xl text-slate-600">
             เราพร้อมดูแลและตอบโจทย์ทุกความต้องการด้านอสังหาริมทรัพย์ของคุณ
