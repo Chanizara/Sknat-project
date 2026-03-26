@@ -2,98 +2,71 @@
 
 import { useEffect, useState } from "react";
 
-
-const images = [
-  "/hero_1.jpg",
-  "/hero_2.jpg",
-  "/hero_3.jpg",
-];
-
 export default function Hero() {
-  const [index, setIndex] = useState(0);
   const [scrollY, setScrollY] = useState(0);
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setIndex((prev) => (prev + 1) % images.length);
-    }, 4500);
-
-    return () => clearInterval(interval);
+    const handleScroll = () => setScrollY(window.scrollY);
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setScrollY(window.scrollY);
-    };
-
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  // Calculate parallax effect - slower movement creates depth
-  const parallaxOffset = scrollY * 0.5;
 
   return (
-    <section className="relative h-[100vh] w-full overflow-hidden">
+    <section className="relative w-full" style={{ height: "155vh", zIndex: 1 }}>
+
+      {/* Video — parallax: moves up slower than scroll */}
       <div
-        className="absolute inset-0 w-full h-full"
-        style={{
-          transform: `translateY(${parallaxOffset}px)`,
-          transition: 'transform 0.1s ease-out'
-        }}
+        className="absolute inset-0 overflow-hidden"
+        style={{ transform: `translateY(${scrollY * 0.3}px)` }}
       >
-        {images.map((src, i) => (
-          <img
-            key={i}
-            src={src}
-            alt="Hero"
-            className={`
-              absolute inset-0 h-full w-full object-cover
-              transition-opacity duration-[2000ms] ease-in-out
-              ${i === index ? "opacity-100" : "opacity-0"}
-            `}
-            style={{ animation: 'hero-zoom 9s ease-in-out alternate infinite' }}
-          />
-        ))}
-
-        {/* Gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-black/25" style={{ zIndex: 2 }} />
+        <video
+          src="/mainpage_hero_2.mp4"
+          autoPlay
+          muted
+          loop
+          playsInline
+          className="absolute inset-0 h-full w-full object-cover"
+        />
+        <div className="absolute inset-0 bg-linear-to-b from-black/10 via-black/15 to-black/65" />
       </div>
 
-      <div className="hero-scroll-cue hero-ui-reveal absolute bottom-9 left-1/2 z-40 -translate-x-1/2 text-white/80 md:bottom-11" style={{ animationDelay: '0.9s' }}>
-        <span className="hero-scroll-cue__label">SCROLL DOWN</span>
-        <span className="hero-scroll-cue__line">
-          <span className="hero-scroll-cue__dot" />
-        </span>
+      {/* Brand name — center top */}
+      <div className="absolute top-0 left-0 right-0 z-20 flex justify-center pt-8">
+        <span className="text-white text-sm font-medium tracking-[0.2em] uppercase">sknat</span>
       </div>
 
-      {/* Slide Indicator */}
-        <div
-        className="
-            hero-ui-reveal
-            absolute
-            right-12
-            bottom-16
-            z-50
-            flex flex-col items-center
-            text-white/80
-            text-xs
-            tracking-widest
-        "
-        style={{ animationDelay: '1.1s' }}
-        >
-        {/* Current / Total */}
-        <span>
-            {(index + 1).toString().padStart(2, "0")}
-        </span>
+      {/* Text block — parallax: moves up faster than video, slower than scroll */}
+      <div
+        className="absolute bottom-0 left-0 right-0 z-10 px-10 pb-16"
+        style={{ transform: `translateY(${scrollY * -0.15}px)` }}
+      >
+        <div className="max-w-6xl mx-auto">
 
-        {/* Line */}
-        <div className="h-10 w-px bg-white/40 my-2" />
+          {/* Headline */}
+          <h1
+            className="text-white font-light leading-tight mb-16"
+            style={{ fontSize: "clamp(2.6rem, 5.8vw, 5.2rem)" }}
+          >
+            Exceptional properties for those<br />who live with vision.
+          </h1>
 
-        <span>
-            {images.length.toString().padStart(2, "0")}
-        </span>
+          {/* Divider */}
+          <div className="w-full h-px bg-white/30 mb-8" />
+
+          {/* Label + description */}
+          <div className="flex flex-col md:flex-row md:items-start gap-6">
+            <span className="text-white/55 text-xs tracking-[0.25em] uppercase whitespace-nowrap pt-0.5">
+              ✦ Property Specialists
+            </span>
+            <p className="text-white/65 text-sm leading-relaxed max-w-sm md:ml-auto md:text-right">
+              We curate and present bespoke residential properties for discerning
+              buyers and investors. Every listing reflects our commitment to
+              quality, location, and lifestyle.
+            </p>
+          </div>
+
         </div>
+      </div>
 
     </section>
   );

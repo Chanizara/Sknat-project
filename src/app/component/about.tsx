@@ -133,13 +133,13 @@ export default function About() {
   const sectionRef = useRef<HTMLElement>(null);
   const [isVisible, setIsVisible] = useState(false);
   const [startCounting, setStartCounting] = useState(false);
+  const [slideProgress, setSlideProgress] = useState(0);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
           setIsVisible(true);
-          // Start counting animation after a small delay for better visual effect
           setTimeout(() => setStartCounting(true), 300);
           observer.disconnect();
         }
@@ -147,18 +147,37 @@ export default function About() {
       { threshold: 0.2 }
     );
 
-    if (sectionRef.current) {
-      observer.observe(sectionRef.current);
-    }
-
+    if (sectionRef.current) observer.observe(sectionRef.current);
     return () => observer.disconnect();
   }, []);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (!sectionRef.current) return;
+      const rect = sectionRef.current.getBoundingClientRect();
+      const vh = window.innerHeight;
+      // progress: 0 when section top at viewport bottom, 1 when at viewport top
+      const progress = Math.max(0, Math.min(1, 1 - rect.top / vh));
+      setSlideProgress(progress);
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    handleScroll();
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const translateY = (1 - slideProgress) * 160;
 
   return (
     <section
       ref={sectionRef}
       id="about"
       className="relative overflow-hidden bg-white py-24 md:py-32"
+      style={{
+        transform: `translateY(${translateY}px)`,
+        zIndex: 10,
+        boxShadow: slideProgress > 0.05 ? `0 -8px 40px rgba(0,0,0,${0.15 * slideProgress})` : 'none',
+        willChange: 'transform',
+      }}
     >
       {/* Decorative Elements */}
       <div className="pointer-events-none absolute -left-32 top-1/3 h-64 w-64 rounded-full bg-blue-100/20 blur-2xl" />
