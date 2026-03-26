@@ -62,7 +62,7 @@ function HeroRevealSection() {
       const sectionHeight = rect.height;
       
       // Progress from 0 (wireframe only) to 1 (fully revealed)
-      const progress = Math.max(0, Math.min(1, -sectionTop / (sectionHeight * 0.2)));
+      const progress = Math.max(0, Math.min(1, -sectionTop / (sectionHeight * 0.8)));
       setRevealProgress(progress);
     };
 
@@ -77,7 +77,7 @@ function HeroRevealSection() {
       ref={containerRef}
       className="relative"
       style={{ 
-        height: '300vh',
+        height: '150vh',
         backgroundColor: '#ffffff'
       }}
     >
