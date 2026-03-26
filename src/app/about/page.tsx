@@ -458,47 +458,58 @@ function OurProcessSection() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [scrollProgress, setScrollProgress] = useState(0);
 
-  const panels = [
+  // ─── Flat panel array — แต่ละ section แยกกันสมบูรณ์ แก้ width ได้อิสระ ───
+  // type 'intro'  → intro panel (text left + image right, 100vw)
+  // type 'text'   → เนื้อหา step (แก้ width ได้)
+  // type 'image'  → รูป step (แก้ width ได้)
+  const flatPanels = [
     {
       type: 'intro' as const,
+      width: 100, // vw
       headline: 'Built with vision\nFinished with care',
       description: 'At SKNAT, every project follows a clear and refined process. Ensuring precision, transparency, and peace of mind from start to finish.',
-      image: '/hero_about.jpg',
-      isVideo: false,
+      image: '/our_process_1.jpg',
     },
+    // ── Step 1 ──
     {
-      type: 'step' as const,
-      number: '1',
-      title: 'DESIGN PHASE',
+      type: 'text' as const,
+      width: 80, // vw — แก้ได้อิสระ
+      number: '1', title: 'DESIGN PHASE',
       headline: 'You imagine,\nwe make it real.',
       description: 'เมื่อได้รับการอนุมัติใบเสนอราคา เราจะเริ่มต้นด้วยการรับฟังวิสัยทัศน์ของคุณ ศึกษาแบบแปลนของคุณ และสำรวจโซลูชันที่ดีที่สุดเพื่อสร้างสรรค์วิสัยทัศน์นั้น',
-      image: '/our_process_1.jpg',
-      isVideo: false,
     },
     {
-      type: 'step' as const,
-      number: '2',
-      title: 'PLANNING PHASE',
+      type: 'image' as const,
+      width: 80, // vw — แก้ได้อิสระ
+      src: '/our_process_2.jpg', isVideo: false,
+    },
+    // ── Step 2 ──
+    {
+      type: 'text' as const,
+      width: 80,
+      number: '2', title: 'PLANNING PHASE',
       headline: 'Precision in\nevery detail.',
       description: 'ทีมวิศวกรและสถาปนิกของเราจะวางแผนทุกขั้นตอนอย่างละเอียด คำนึงถึงโครงสร้าง วัสดุ และเวลาที่เหมาะสม เพื่อให้โครงการเสร็จสมบูรณ์ตามมาตรฐานสูงสุด',
-      image: '/our_process_2.jpg',
-      isVideo: false,
     },
     {
-      type: 'step' as const,
-      number: '3',
-      title: 'EXECUTION PHASE',
+      type: 'image' as const,
+      width: 80,
+      src: '/our_process_3.mp4', isVideo: true,
+    },
+    // ── Step 3 ──
+    {
+      type: 'text' as const,
+      width: 80,
+      number: '3', title: 'EXECUTION PHASE',
       headline: 'Crafted with\nexcellence.',
       description: 'ทีมช่างฝีมือของเราดำเนินการก่อสร้างด้วยความประณีต ใส่ใจในทุกรายละเอียด ตรวจสอบคุณภาพในแต่ละขั้นตอน เพื่อให้ผลงานออกมาสมบูรณ์แบบ',
-      image: '/our_process_3.mp4',
-      isVideo: true,
     },
+    
   ];
 
-  const numPanels = panels.length; // 4
-  // Parallax factor: images move at (1 - PARALLAX_FACTOR) speed relative to panels
-  // Higher = more lag = more "linger" effect
-  const PARALLAX = 0.35;
+  // รวม width ทั้งหมด และ scroll range
+  const totalWidthVw = flatPanels.reduce((sum, p) => sum + p.width, 0); // เช่น 400vw
+  const scrollableVw = totalWidthVw - 100; // vw ที่ต้อง translate
 
   useEffect(() => {
     const container = containerRef.current;
@@ -514,14 +525,7 @@ function OurProcessSection() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // panelOffset: 0 → numPanels-1 (how many panels have scrolled past)
-  const panelOffset = scrollProgress * (numPanels - 1);
-
-  // Image parallax offset for panel i (in vw units):
-  // Images move at PARALLAX_FACTOR slower → they appear to lag/linger
-  // When panel i exits left, its image is still partially visible
-  const imgParallax = (panelIdx: number) =>
-    (panelOffset - panelIdx) * PARALLAX * 100; // vw %
+  const translateX = scrollProgress * scrollableVw;
 
   return (
     <section
@@ -529,7 +533,7 @@ function OurProcessSection() {
       className="relative"
       style={{
         backgroundColor: '#1a1a1a',
-        height: `${(numPanels + 1) * 100}vh`,
+        height: `${(totalWidthVw / 100 + 1) * 100}vh`,
       }}
     >
       <div className="sticky top-0 h-screen overflow-hidden">
@@ -546,7 +550,7 @@ function OurProcessSection() {
           />
         </div>
 
-        {/* OUR PROCESS label — always visible top-left */}
+        {/* OUR PROCESS label */}
         <div className="absolute top-8 left-8 z-50 flex items-center gap-2">
           <span style={{ color: '#555' }}>◆</span>
           <span className="text-[10px] font-medium tracking-[0.2em] uppercase" style={{ color: '#666' }}>
@@ -554,147 +558,88 @@ function OurProcessSection() {
           </span>
         </div>
 
-        {/* Horizontal panels slider */}
+        {/* Horizontal slider */}
         <div
           style={{
             display: 'flex',
-            width: `${numPanels * 100}vw`,
+            width: `${totalWidthVw}vw`,
             height: '100%',
-            transform: `translateX(-${panelOffset * 100}vw)`,
+            transform: `translateX(-${translateX}vw)`,
             transition: 'transform 0.08s ease-out',
             willChange: 'transform',
           }}
         >
-          {/* ─── PANEL 0: Intro ─── */}
-          <div style={{ width: '100vw', height: '100%', display: 'flex', flexShrink: 0 }}>
-            {/* Left: dark text */}
-            <div
-              style={{
-                width: '55%',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'center',
-                padding: '5rem 4rem',
-              }}
-            >
-              <h2
-                className="text-4xl md:text-5xl lg:text-6xl font-light mb-8 whitespace-pre-line"
-                style={{ color: '#f5f2ee', lineHeight: '1.15' }}
-              >
-                {panels[0].headline}
-              </h2>
-              <p className="text-base leading-relaxed max-w-sm" style={{ color: '#777', lineHeight: '1.85' }}>
-                {panels[0].description}
-              </p>
-            </div>
-
-            {/* Right: our_process_1 with parallax */}
-            <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
-              <div
-                style={{
-                  position: 'absolute',
-                  inset: 0,
-                  transform: `scale(1.2) translateX(${imgParallax(0)}%)`,
-                  willChange: 'transform',
-                }}
-              >
-                <Image src="/our_process_1.jpg" alt="Process" fill className="object-cover" priority />
-              </div>
-            </div>
-          </div>
-
-          {/* ─── PANELS 1-3: Steps ─── left 62% [portrait images + text] + right image ─── */}
-          {panels.slice(1).map((panel, idx) => {
-            const panelIdx = idx + 1;
-
-            return (
-              <div
-                key={panelIdx}
-                style={{ width: '100vw', height: '100%', display: 'flex', flexShrink: 0 }}
-              >
-                {/* Left 38%: portrait overlapping images (left) + text (right) */}
-                <div
-                  style={{
-                    width: '38%',
-                    display: 'flex',
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    padding: '4rem 3.5rem',
-                    gap: '3rem',
-                  }}
-                >
-                  {/* Portrait overlapping frames */}
-                  <div style={{ position: 'relative', width: '38vh', height: '52vh', flexShrink: 0 }}>
-                    {/* Top-left portrait */}
-                    <div style={{
-                      position: 'absolute', top: 0, left: 0,
-                      width: '72%', height: '72%',
-                      overflow: 'hidden',
-                    }}>
-                      {panel.isVideo ? (
-                        <video src={panel.image} autoPlay muted loop playsInline
-                          style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                      ) : (
-                        <Image src={panel.image} alt={panel.title ?? ''} fill className="object-cover" />
-                      )}
-                    </div>
-                    {/* Bottom-right portrait */}
-                    <div style={{
-                      position: 'absolute', bottom: 0, right: 0,
-                      width: '62%', height: '62%',
-                      overflow: 'hidden',
-                      zIndex: 10,
-                    }}>
-                      {panel.isVideo ? (
-                        <video src={panel.image} autoPlay muted loop playsInline
-                          style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                      ) : (
-                        <Image src={panel.image} alt={panel.title ?? ''} fill className="object-cover" />
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Text content */}
-                  <div style={{ flex: 1 }}>
-                    <span className="text-[11px] tracking-[0.3em] uppercase" style={{ color: '#555', display: 'block', marginBottom: '1.5rem' }}>
-                      {panel.number}. {panel.title}
-                    </span>
-                    <h3
-                      className="text-4xl md:text-5xl lg:text-6xl font-light mb-6 whitespace-pre-line"
-                      style={{ color: '#f5f2ee', lineHeight: '1.15' }}
-                    >
+          {flatPanels.map((panel, i) => {
+            // ── Intro ──
+            if (panel.type === 'intro') {
+              return (
+                <div key={i} style={{ width: `${panel.width}vw`, height: '100%', display: 'flex', flexShrink: 0 }}>
+                  <div style={{ width: '55%', display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '5rem 4rem' }}>
+                    <h2 className="text-4xl md:text-5xl lg:text-6xl font-light mb-8 whitespace-pre-line" style={{ color: '#f5f2ee', lineHeight: '1.15' }}>
                       {panel.headline}
-                    </h3>
-                    <p className="text-base leading-relaxed" style={{ color: '#777', lineHeight: '1.85' }}>
+                    </h2>
+                    <p className="text-base leading-relaxed max-w-sm" style={{ color: '#777', lineHeight: '1.85' }}>
                       {panel.description}
                     </p>
                   </div>
-                </div>
-
-                {/* Right 38%: next panel's image with parallax */}
-                {panels[panelIdx + 1] ? (
                   <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
-                    <div
-                      style={{
-                        position: 'absolute',
-                        inset: 0,
-                        transform: `scale(1.2) translateX(${imgParallax(panelIdx)}%)`,
-                        willChange: 'transform',
-                      }}
-                    >
-                      {panels[panelIdx + 1].isVideo ? (
-                        <video src={panels[panelIdx + 1].image} autoPlay muted loop playsInline
-                          style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                      ) : (
-                        <Image src={panels[panelIdx + 1].image} alt={panels[panelIdx + 1].title ?? ''} fill className="object-cover" />
-                      )}
-                    </div>
+                    <Image src={panel.image} alt="Process intro" fill className="object-cover" priority />
                   </div>
-                ) : (
-                  <div style={{ flex: 1 }} />
-                )}
-              </div>
-            );
+                </div>
+              );
+            }
+
+            // ── Text panel ──
+            if (panel.type === 'text') {
+              return (
+                <div
+                  key={i}
+                  style={{
+                    width: `${panel.width}vw`,
+                    height: '100%',
+                    flexShrink: 0,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'center',
+                    padding: '5rem 5rem 5rem 6rem',
+                    backgroundColor: '#1a1a1a',
+                  }}
+                >
+                  <span className="text-[11px] tracking-[0.3em] uppercase" style={{ color: '#555', display: 'block', marginBottom: '1.5rem' }}>
+                    {panel.number}. {panel.title}
+                  </span>
+                  <h3 className="text-4xl md:text-5xl lg:text-6xl font-light mb-8 whitespace-pre-line" style={{ color: '#f5f2ee', lineHeight: '1.15' }}>
+                    {panel.headline}
+                  </h3>
+                  <p className="text-base leading-relaxed" style={{ color: '#777', lineHeight: '1.85', maxWidth: '36ch' }}>
+                    {panel.description}
+                  </p>
+                </div>
+              );
+            }
+
+            // ── Image panel ──
+            if (panel.type === 'image') {
+              return (
+                <div
+                  key={i}
+                  style={{
+                    width: `${panel.width}vw`,
+                    height: '100%',
+                    flexShrink: 0,
+                    position: 'relative',
+                    overflow: 'hidden',
+                  }}
+                >
+                  {panel.isVideo ? (
+                    <video src={panel.src} autoPlay muted loop playsInline
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  ) : (
+                    <Image src={panel.src} alt="" fill className="object-cover" />
+                  )}
+                </div>
+              );
+            }
           })}
         </div>
       </div>
