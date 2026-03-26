@@ -473,36 +473,39 @@ function OurProcessSection() {
     // ── Step 1 ──
     {
       type: 'text' as const,
-      width: 80, // vw — แก้ได้อิสระ
+      width: 80,
       number: '1', title: 'DESIGN PHASE',
       headline: 'You imagine,\nwe make it real.',
       description: 'เมื่อได้รับการอนุมัติใบเสนอราคา เราจะเริ่มต้นด้วยการรับฟังวิสัยทัศน์ของคุณ ศึกษาแบบแปลนของคุณ และสำรวจโซลูชันที่ดีที่สุดเพื่อสร้างสรรค์วิสัยทัศน์นั้น',
+      image: '/our_process_1.jpg',
     },
     {
       type: 'image' as const,
-      width: 80, // vw — แก้ได้อิสระ
+      width: 95,
       src: '/our_process_2.jpg', isVideo: false,
     },
     // ── Step 2 ──
     {
       type: 'text' as const,
-      width: 80,
+      width: 90,
       number: '2', title: 'PLANNING PHASE',
       headline: 'Precision in\nevery detail.',
       description: 'ทีมวิศวกรและสถาปนิกของเราจะวางแผนทุกขั้นตอนอย่างละเอียด คำนึงถึงโครงสร้าง วัสดุ และเวลาที่เหมาะสม เพื่อให้โครงการเสร็จสมบูรณ์ตามมาตรฐานสูงสุด',
+      image: '/our_process_2.jpg',
     },
     {
       type: 'image' as const,
-      width: 80,
+      width: 95,
       src: '/our_process_3.mp4', isVideo: true,
     },
     // ── Step 3 ──
     {
       type: 'text' as const,
-      width: 80,
+      width: 90,
       number: '3', title: 'EXECUTION PHASE',
       headline: 'Crafted with\nexcellence.',
       description: 'ทีมช่างฝีมือของเราดำเนินการก่อสร้างด้วยความประณีต ใส่ใจในทุกรายละเอียด ตรวจสอบคุณภาพในแต่ละขั้นตอน เพื่อให้ผลงานออกมาสมบูรณ์แบบ',
+      image: '/our_process_3.mp4',
     },
     
   ];
@@ -591,6 +594,7 @@ function OurProcessSection() {
 
             // ── Text panel ──
             if (panel.type === 'text') {
+              const isVid = panel.image?.endsWith('.mp4');
               return (
                 <div
                   key={i}
@@ -599,21 +603,45 @@ function OurProcessSection() {
                     height: '100%',
                     flexShrink: 0,
                     display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'center',
-                    padding: '5rem 5rem 5rem 6rem',
+                    flexDirection: 'row',
+                    alignItems: 'center',
                     backgroundColor: '#1a1a1a',
+                    padding: '4rem 4rem 4rem 5rem',
+                    gap: '4rem',
                   }}
                 >
-                  <span className="text-[11px] tracking-[0.3em] uppercase" style={{ color: '#555', display: 'block', marginBottom: '1.5rem' }}>
-                    {panel.number}. {panel.title}
-                  </span>
-                  <h3 className="text-4xl md:text-5xl lg:text-6xl font-light mb-8 whitespace-pre-line" style={{ color: '#f5f2ee', lineHeight: '1.15' }}>
-                    {panel.headline}
-                  </h3>
-                  <p className="text-base leading-relaxed" style={{ color: '#777', lineHeight: '1.85', maxWidth: '36ch' }}>
-                    {panel.description}
-                  </p>
+                  {/* Overlapping portrait images (ซ้าย) */}
+                  <div style={{ position: 'relative', width: '38vh', height: '54vh', flexShrink: 0 }}>
+                    {/* Top-left */}
+                    <div style={{ position: 'absolute', top: 0, left: 0, width: '72%', height: '72%', overflow: 'hidden' }}>
+                      {isVid ? (
+                        <video src={panel.image} autoPlay muted loop playsInline style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      ) : (
+                        <Image src={panel.image!} alt="" fill className="object-cover" />
+                      )}
+                    </div>
+                    {/* Bottom-right */}
+                    <div style={{ position: 'absolute', bottom: 0, right: 0, width: '62%', height: '62%', overflow: 'hidden', zIndex: 10 }}>
+                      {isVid ? (
+                        <video src={panel.image} autoPlay muted loop playsInline style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      ) : (
+                        <Image src={panel.image!} alt="" fill className="object-cover" />
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Text (ขวา) */}
+                  <div style={{ flex: 1 }}>
+                    <span className="text-[11px] tracking-[0.3em] uppercase" style={{ color: '#555', display: 'block', marginBottom: '1.5rem' }}>
+                      {panel.number}. {panel.title}
+                    </span>
+                    <h3 className="text-4xl md:text-5xl lg:text-6xl font-light mb-8 whitespace-pre-line" style={{ color: '#f5f2ee', lineHeight: '1.15' }}>
+                      {panel.headline}
+                    </h3>
+                    <p className="text-base leading-relaxed" style={{ color: '#777', lineHeight: '1.85', maxWidth: '36ch' }}>
+                      {panel.description}
+                    </p>
+                  </div>
                 </div>
               );
             }
