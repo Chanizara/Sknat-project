@@ -3,37 +3,41 @@
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 
-// 3D box vertices — oblique projection
-// Front face
-const A = [40, 410] as [number, number];   // bottom-left
-const B = [320, 410] as [number, number];  // bottom-right
-const C = [320, 110] as [number, number];  // top-right
-const D = [40, 110] as [number, number];   // top-left
-// Depth vector: (+185, -110)
-const E = [225, 300] as [number, number];  // back bottom-left  (hidden)
-const F = [505, 300] as [number, number];  // back bottom-right
-const G = [505, 0] as [number, number];    // back top-right
-const H = [225, 0] as [number, number];    // back top-left
+type Segment = {
+  from: [number, number];
+  to: [number, number];
+  delay: number;
+  hidden?: boolean;
+  weight?: 'light' | 'regular' | 'strong';
+  parallax?: 'slow' | 'medium';
+};
 
-function elen(p1: [number, number], p2: [number, number]) {
-  return Math.sqrt((p2[0] - p1[0]) ** 2 + (p2[1] - p1[1]) ** 2);
+const FRAME_SEGMENTS: Segment[] = [
+  { from: [6, 488], to: [794, 488], delay: 0.02, weight: 'light', parallax: 'medium' },
+  { from: [396, 0], to: [396, 488], delay: 0.06, weight: 'light', parallax: 'slow' },
+
+  { from: [560, 488], to: [560, 236], delay: 0.14, weight: 'regular' },
+  { from: [560, 236], to: [792, 236], delay: 0.2, weight: 'regular' },
+  { from: [792, 236], to: [792, 420], delay: 0.26, weight: 'regular' },
+
+  { from: [560, 236], to: [678, 178], delay: 0.34, weight: 'light' },
+  { from: [678, 178], to: [792, 120], delay: 0.4, weight: 'light' },
+  { from: [560, 236], to: [678, 128], delay: 0.46, weight: 'light' },
+  { from: [678, 128], to: [792, 20], delay: 0.52, weight: 'light' },
+
+  { from: [560, 322], to: [680, 266], delay: 0.24, hidden: true, weight: 'light' },
+  { from: [680, 266], to: [792, 266], delay: 0.3, hidden: true, weight: 'light' },
+  { from: [560, 436], to: [676, 380], delay: 0.1, hidden: true, weight: 'light' },
+  { from: [676, 380], to: [792, 380], delay: 0.16, hidden: true, weight: 'light' },
+];
+
+function segmentLength([x1, y1]: [number, number], [x2, y2]: [number, number]) {
+  return Math.hypot(x2 - x1, y2 - y1);
 }
 
-// Draw order: front face first, then depth lines, then back edges, hidden last
-const EDGES: { p1: [number, number]; p2: [number, number]; hidden: boolean }[] = [
-  { p1: D, p2: A, hidden: false },  // front left
-  { p1: A, p2: B, hidden: false },  // front bottom
-  { p1: B, p2: C, hidden: false },  // front right
-  { p1: C, p2: D, hidden: false },  // front top
-  { p1: D, p2: H, hidden: false },  // depth top-left
-  { p1: H, p2: G, hidden: false },  // back top
-  { p1: G, p2: C, hidden: false },  // depth top-right
-  { p1: B, p2: F, hidden: false },  // depth bottom-right
-  { p1: F, p2: G, hidden: false },  // back right
-  { p1: A, p2: E, hidden: true },   // hidden depth bottom-left
-  { p1: E, p2: F, hidden: true },   // hidden back bottom
-  { p1: E, p2: H, hidden: true },   // hidden back left
-];
+function clamp(value: number, min = 0, max = 1) {
+  return Math.min(max, Math.max(min, value));
+}
 
 export default function Contact() {
   const sectionRef = useRef<HTMLElement>(null);
@@ -47,13 +51,12 @@ export default function Contact() {
 
       const rect = section.getBoundingClientRect();
       const windowH = window.innerHeight;
+      const start = windowH * 0.88;
+      const end = -rect.height * 0.45;
+      const progress = clamp((start - rect.top) / (start - end));
 
-      const totalScrollable = Math.max(1, rect.height - windowH);
-      const paperProgress = Math.max(0, Math.min(1, (windowH - rect.top) / totalScrollable));
-      const progress = Math.max(0, Math.min(1, paperProgress * 1.12));
-
-      if (rect.top < windowH * 0.88) setTextVisible(true);
       setDrawProgress(progress);
+      if (rect.top < windowH * 0.9) setTextVisible(true);
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
@@ -61,102 +64,107 @@ export default function Contact() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  const frameOffsetY = (1 - drawProgress) * 38;
+  const glowOffsetX = (1 - drawProgress) * 18;
+
   return (
     <section
       ref={sectionRef}
       id="contact"
-      className="relative z-30 min-h-screen bg-transparent"
+      className="relative z-30 overflow-hidden bg-white px-3 py-3 md:px-5 md:py-5"
     >
       <div
-        className="mx-auto grid h-screen max-w-[1536px] overflow-hidden border border-black/10 bg-white xl:grid-cols-[1.02fr_0.98fr]"
+        className="mx-auto grid min-h-[72vh] max-w-[1880px] overflow-hidden bg-white xl:min-h-[78vh] xl:grid-cols-[1.04fr_0.96fr]"
         style={{
-          minHeight: '100vh',
           boxShadow: '0 32px 90px -78px rgba(15,23,42,0.18)',
         }}
       >
-
         <div
-          className="relative flex flex-col justify-center overflow-hidden px-8 py-14 md:px-12 md:py-20 xl:px-16"
+          className="relative flex min-h-[42vh] flex-col justify-center overflow-hidden px-8 py-14 md:px-12 md:py-16 xl:px-14 xl:py-14"
           style={{
             opacity: textVisible ? 1 : 0,
-            transform: textVisible ? 'none' : 'translateY(20px)',
+            transform: textVisible ? 'translateY(0)' : 'translateY(18px)',
             transition: 'opacity 0.9s ease, transform 0.9s ease',
           }}
         >
           <div
             className="pointer-events-none absolute inset-0"
             style={{
-              background: 'linear-gradient(135deg, rgba(255,255,255,0.96), rgba(255,255,255,0.92) 62%, rgba(255,255,255,0.88))',
+              background:
+                'radial-gradient(circle at 18% 24%, rgba(255,255,255,0.98), rgba(255,255,255,0.18) 34%, transparent 58%)',
             }}
           />
-          <div
-            className="pointer-events-none absolute inset-y-0 right-0 hidden w-px xl:block"
-            style={{ background: 'linear-gradient(180deg, rgba(10,10,10,0.03), rgba(10,10,10,0.12), rgba(10,10,10,0.03))' }}
-          />
-          <div className="relative">
+          <div className="relative z-10 max-w-[46rem]">
             <p
-              className="mb-6 flex items-center gap-2 text-[11px] uppercase tracking-[0.4em]"
-              style={{ color: 'rgba(10,10,10,0.38)' }}
+              className="mb-8 flex items-center gap-3 text-[11px] font-semibold uppercase tracking-[0.34em]"
+              style={{ color: 'rgba(10,10,10,0.78)' }}
             >
-              <span>◆</span> WHERE VISION MEETS EXECUTION
+              <span className="text-[12px]">◆</span>
+              WHERE VISION MEETS EXECUTION
             </p>
 
             <h2
-              className="mb-8 font-light leading-[0.96] text-[#0a0a0a] md:mb-10"
-              style={{ fontSize: 'clamp(2.7rem, 5.3vw, 6rem)' }}
+              className="mb-8 font-light leading-[0.95] text-[#171717] md:mb-10"
+              style={{ fontSize: 'clamp(2.85rem, 5vw, 5.9rem)', letterSpacing: '-0.045em' }}
             >
-              เริ่มต้นทุกการลงทุน<br />
-              ด้วยความเข้าใจ<br />
+              เริ่มต้นทุกการลงทุน
+              <br />
+              ด้วยความเข้าใจ
+              <br />
               ที่ถูกต้อง
             </h2>
 
-            <p className="mb-10 max-w-xl text-sm leading-7 text-[#5c5a56] md:text-base">
-              ให้ส่วนติดต่ออยู่ด้านหน้าของฟุตเตอร์แบบชัดเจน พร้อมมิติที่ลอยช้ากว่าเนื้อหา
-              เพื่อให้ภาพรวมดูนิ่ง ละเอียด และมีความเป็นสถาปัตยกรรมมากขึ้น
+            <p className="mb-10 max-w-xl text-sm leading-7 text-[#5f5a54] md:text-base">
+              เราปรับ section นี้ให้มีน้ำหนักแบบสถาปัตยกรรมมากขึ้น ด้วยเส้นโครงที่ค่อย ๆ ถูกวาดขึ้นตามจังหวะการ scroll
+              เพื่อให้ภาพรวมรู้สึกนิ่ง โปร่ง และร่วมสมัยเหมือน reference ที่ต้องการ
             </p>
 
             <div className="flex flex-wrap items-center gap-5">
               <Link
                 href="/about"
-                className="inline-flex items-center gap-3 bg-[#0a0a0a] px-7 py-3.5 text-[11px] font-semibold uppercase tracking-[0.25em] text-white transition-colors duration-200 hover:bg-[#1a40b6]"
+                className="inline-flex items-center gap-3 bg-[#111111] px-7 py-3.5 text-[11px] font-semibold uppercase tracking-[0.24em] text-[#f7f2ec] transition-colors duration-200 hover:bg-[#202020]"
               >
-                <span style={{ fontFamily: 'monospace' }}>↳</span> เกี่ยวกับเรา
+                <span style={{ fontFamily: 'monospace' }}>↳</span>
+                เกี่ยวกับเรา
               </Link>
               <Link
                 href="/contact"
-                className="inline-flex items-center gap-3 border-none bg-transparent px-0 py-3.5 text-[11px] font-semibold uppercase tracking-[0.25em] text-[#0a0a0a] transition-opacity duration-200 hover:opacity-40"
+                className="inline-flex items-center gap-3 px-0 py-3.5 text-[11px] font-semibold uppercase tracking-[0.24em] text-[#171717] transition-opacity duration-200 hover:opacity-45"
               >
-                <span style={{ fontFamily: 'monospace' }}>↳</span> ติดต่อเรา
+                <span style={{ fontFamily: 'monospace' }}>↳</span>
+                ติดต่อเรา
               </Link>
             </div>
           </div>
         </div>
 
-        <div className="relative min-h-[380px] overflow-hidden border-t border-black/8 xl:min-h-[680px] xl:border-l xl:border-t-0">
-          <div className="absolute inset-0">
-            <div
-              className="absolute left-[16%] top-[22%] h-[30%] w-[34%] rounded-full"
-              style={{
-                background: 'radial-gradient(circle, rgba(26,64,182,0.05) 0%, rgba(26,64,182,0.015) 42%, rgba(255,255,255,0) 74%)',
-                filter: 'blur(18px)',
-              }}
-            />
+        <div className="relative min-h-[300px] overflow-hidden border-t border-black/8 xl:min-h-[560px] xl:border-l xl:border-t-0">
+          <div
+            className="pointer-events-none absolute inset-0"
+            style={{
+              background:
+                'radial-gradient(circle at 74% 20%, rgba(255,255,255,0.94), rgba(255,255,255,0.12) 36%, transparent 60%)',
+            }}
+          />
 
-            <div
-              className="absolute inset-x-[7%] inset-y-[12%]"
-              style={{
-                background: 'linear-gradient(180deg, rgba(255,255,255,0.8), rgba(255,255,255,0.16))',
-                border: '1px solid rgba(10,10,10,0.04)',
-              }}
-            />
+          <div
+            className="absolute inset-0 opacity-[0.16]"
+            style={{
+              transform: `translate3d(${glowOffsetX}px, ${frameOffsetY * 0.42}px, 0)`,
+              transition: 'transform 0.12s linear',
+            }}
+          >
+            <LineStructure progress={clamp(drawProgress * 1.06)} offsetY={frameOffsetY * 0.3} ghost />
+          </div>
 
-            <div className="absolute inset-y-[8%] right-[-3%] w-[88%] opacity-12">
-              <WireframeBox progress={Math.min(1, drawProgress * 1.08)} variant="echo" />
-            </div>
-
-            <div className="absolute inset-y-[5%] right-[0%] w-[86%]">
-              <WireframeBox progress={drawProgress} variant="primary" />
-            </div>
+          <div
+            className="absolute inset-0"
+            style={{
+              transform: `translate3d(0, ${frameOffsetY}px, 0)`,
+              transition: 'transform 0.12s linear',
+            }}
+          >
+            <LineStructure progress={drawProgress} offsetY={frameOffsetY} />
           </div>
         </div>
       </div>
@@ -164,66 +172,63 @@ export default function Contact() {
   );
 }
 
-function WireframeBox({ progress, variant }: { progress: number; variant: 'primary' | 'echo' }) {
-  const N = EDGES.length; // 12 edges total
-
+function LineStructure({
+  progress,
+  offsetY = 0,
+  ghost = false,
+}: {
+  progress: number;
+  offsetY?: number;
+  ghost?: boolean;
+}) {
   return (
     <svg
-      viewBox="0 -20 580 470"
+      viewBox="0 0 800 488"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      className="absolute inset-0 w-full h-full"
-      preserveAspectRatio="xMidYMid meet"
+      className="h-full w-full"
+      preserveAspectRatio="xMidYMid slice"
     >
-      <path
-        d="M110 405C160 330 244 286 360 290"
-        stroke={variant === 'primary' ? 'rgba(10,10,10,0.18)' : 'rgba(10,10,10,0.1)'}
-        strokeWidth="1"
-        strokeDasharray="7 10"
-      />
-      <path
-        d="M210 85H560"
-        stroke={variant === 'primary' ? 'rgba(10,10,10,0.16)' : 'rgba(10,10,10,0.08)'}
-        strokeWidth="0.9"
-      />
-      {EDGES.map(({ p1, p2, hidden }, i) => {
-        const length = elen(p1, p2);
+      {FRAME_SEGMENTS.map((segment, index) => {
+        const length = segmentLength(segment.from, segment.to);
+        const localProgress = clamp((progress - segment.delay) / 0.4);
+        const dash = segment.hidden ? '7 10' : `${length} ${length}`;
 
-        const drawWindow = variant === 'primary' ? 0.6 : 0.48;
-        const startP = (i / N) * (1 - drawWindow);
-        const localP = Math.max(0, Math.min(1, (progress - startP) / drawWindow));
-        const dashOffset = length * (1 - localP);
+        let stroke = 'rgba(28, 28, 28, 0.16)';
+        let strokeWidth = 1;
 
-        if (hidden) {
-          const dashLen = 5;
-          const gapLen = 5;
-          const totalPattern = dashLen + gapLen;
-          const patternCount = Math.ceil(length / totalPattern);
-          const fullDashedLength = patternCount * totalPattern;
+        if (segment.weight === 'regular') {
+          stroke = 'rgba(28, 28, 28, 0.32)';
+          strokeWidth = 1.05;
+        }
 
-          return (
-            <line
-              key={i}
-              x1={p1[0]} y1={p1[1]}
-              x2={p2[0]} y2={p2[1]}
-              stroke={variant === 'primary' ? 'rgba(10,10,10,0.25)' : 'rgba(10,10,10,0.12)'}
-              strokeWidth={variant === 'primary' ? '0.78' : '0.62'}
-              strokeDasharray={`${dashLen} ${gapLen}`}
-              strokeDashoffset={fullDashedLength * (1 - localP)}
-              strokeLinecap="round"
-            />
-          );
+        if (segment.weight === 'strong') {
+          stroke = 'rgba(28, 28, 28, 0.46)';
+          strokeWidth = 1.15;
+        }
+
+        if (ghost) {
+          stroke = segment.hidden ? 'rgba(28, 28, 28, 0.04)' : 'rgba(28, 28, 28, 0.08)';
+          strokeWidth *= 0.92;
         }
 
         return (
           <line
-            key={i}
-            x1={p1[0]} y1={p1[1]}
-            x2={p2[0]} y2={p2[1]}
-            stroke={variant === 'primary' ? 'rgba(10,10,10,0.72)' : 'rgba(10,10,10,0.18)'}
-            strokeWidth={variant === 'primary' ? '0.95' : '0.72'}
-            strokeDasharray={`${length} ${length}`}
-            strokeDashoffset={dashOffset}
+            key={`${segment.from.join(',')}-${segment.to.join(',')}-${index}`}
+            x1={segment.from[0]}
+            y1={
+              segment.from[1] +
+              (segment.parallax === 'slow' ? offsetY * 0.45 : segment.parallax === 'medium' ? offsetY * 0.7 : 0)
+            }
+            x2={segment.to[0]}
+            y2={
+              segment.to[1] +
+              (segment.parallax === 'slow' ? offsetY * 0.45 : segment.parallax === 'medium' ? offsetY * 0.7 : 0)
+            }
+            stroke={stroke}
+            strokeWidth={strokeWidth}
+            strokeDasharray={dash}
+            strokeDashoffset={length * (1 - localProgress)}
             strokeLinecap="round"
           />
         );

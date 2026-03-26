@@ -262,12 +262,11 @@ export default function Footer() {
   };
 
   const navItems = [
-    { label: 'About',      href: '/about' },
-    { label: 'Services',   href: '/about' },
+    { label: 'About Us',   href: '/about' },
     { label: 'Properties', id: 'properties' },
-    { label: 'Approach',   href: '/about' },
     { label: 'Contact',    href: '/contact' },
   ];
+  const allNavItems = [{ label: 'Home', href: '/' }, ...navItems];
 
   // Animation states
   const isHome = animationPhase === 'home';
@@ -459,14 +458,14 @@ export default function Footer() {
 
               {/* Nav items */}
               <nav className="mb-6">
-                {navItems.map((item, index) => {
+                {allNavItems.map((item, index) => {
                   const isLink = 'href' in item;
                   
                   return (
                     <div
                       key={item.label}
                       style={{
-                        borderBottom: index < navItems.length - 1 ? '1px solid rgba(255,255,255,0.05)' : 'none',
+                        borderBottom: index < allNavItems.length - 1 ? '1px solid rgba(255,255,255,0.05)' : 'none',
                       }}
                     >
                       {isLink ? (
