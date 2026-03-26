@@ -477,7 +477,7 @@ function OurProcessSection() {
       number: '1', title: 'DESIGN PHASE',
       headline: 'You imagine,\nwe make it real.',
       description: 'เมื่อได้รับการอนุมัติใบเสนอราคา เราจะเริ่มต้นด้วยการรับฟังวิสัยทัศน์ของคุณ ศึกษาแบบแปลนของคุณ และสำรวจโซลูชันที่ดีที่สุดเพื่อสร้างสรรค์วิสัยทัศน์นั้น',
-      image: '/our_process_1.jpg',
+      image: '/house1.jpg', image2: '/house2.jpg',
     },
     {
       type: 'image' as const,
@@ -491,7 +491,7 @@ function OurProcessSection() {
       number: '2', title: 'PLANNING PHASE',
       headline: 'Precision in\nevery detail.',
       description: 'ทีมวิศวกรและสถาปนิกของเราจะวางแผนทุกขั้นตอนอย่างละเอียด คำนึงถึงโครงสร้าง วัสดุ และเวลาที่เหมาะสม เพื่อให้โครงการเสร็จสมบูรณ์ตามมาตรฐานสูงสุด',
-      image: '/our_process_2.jpg',
+      image: '/house3.jpg', image2: '/house4.jpg',
     },
     {
       type: 'image' as const,
@@ -505,7 +505,7 @@ function OurProcessSection() {
       number: '3', title: 'EXECUTION PHASE',
       headline: 'Crafted with\nexcellence.',
       description: 'ทีมช่างฝีมือของเราดำเนินการก่อสร้างด้วยความประณีต ใส่ใจในทุกรายละเอียด ตรวจสอบคุณภาพในแต่ละขั้นตอน เพื่อให้ผลงานออกมาสมบูรณ์แบบ',
-      image: '/our_process_3.mp4',
+      image: '/house5.avif', image2: '/house1.jpg',
     },
     
   ];
@@ -594,7 +594,8 @@ function OurProcessSection() {
 
             // ── Text panel ──
             if (panel.type === 'text') {
-              const isVid = panel.image?.endsWith('.mp4');
+              const p = panel as typeof panel & { image?: string; image2?: string };
+              const isVid = p.image?.endsWith('.mp4');
               return (
                 <div
                   key={i}
@@ -615,31 +616,27 @@ function OurProcessSection() {
                     {/* Top-left */}
                     <div style={{ position: 'absolute', top: 0, left: 0, width: '72%', height: '72%', overflow: 'hidden' }}>
                       {isVid ? (
-                        <video src={panel.image} autoPlay muted loop playsInline style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        <video src={p.image} autoPlay muted loop playsInline style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                       ) : (
-                        <Image src={panel.image!} alt="" fill className="object-cover" />
+                        <Image src={p.image!} alt="" fill className="object-cover" />
                       )}
                     </div>
                     {/* Bottom-right */}
                     <div style={{ position: 'absolute', bottom: 0, right: 0, width: '62%', height: '62%', overflow: 'hidden', zIndex: 10 }}>
-                      {isVid ? (
-                        <video src={panel.image} autoPlay muted loop playsInline style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                      ) : (
-                        <Image src={panel.image!} alt="" fill className="object-cover" />
-                      )}
+                      <Image src={p.image2 ?? p.image!} alt="" fill className="object-cover" />
                     </div>
                   </div>
 
                   {/* Text (ขวา) */}
                   <div style={{ flex: 1 }}>
                     <span className="text-[11px] tracking-[0.3em] uppercase" style={{ color: '#555', display: 'block', marginBottom: '1.5rem' }}>
-                      {panel.number}. {panel.title}
+                      {p.number}. {p.title}
                     </span>
                     <h3 className="text-4xl md:text-5xl lg:text-6xl font-light mb-8 whitespace-pre-line" style={{ color: '#f5f2ee', lineHeight: '1.15' }}>
-                      {panel.headline}
+                      {p.headline}
                     </h3>
                     <p className="text-base leading-relaxed" style={{ color: '#777', lineHeight: '1.85', maxWidth: '36ch' }}>
-                      {panel.description}
+                      {p.description}
                     </p>
                   </div>
                 </div>
