@@ -610,104 +610,79 @@ function OurProcessSection() {
             </div>
           </div>
 
-          {/* ─── PANELS 1-3: Steps ─── */}
+          {/* ─── PANELS 1-3: Steps ─── same layout as intro: left content + right large image ─── */}
           {panels.slice(1).map((panel, idx) => {
             const panelIdx = idx + 1;
-            // How far this panel's images should be offset to create parallax lag
-            const pxMain = imgParallax(panelIdx);       // main photo parallax
-            const pxSec  = imgParallax(panelIdx) * 0.6; // secondary photo moves a bit less
 
             return (
               <div
                 key={panelIdx}
-                style={{
-                  width: '100vw',
-                  height: '100%',
-                  display: 'flex',
-                  flexShrink: 0,
-                  alignItems: 'center',
-                }}
+                style={{ width: '100vw', height: '100%', display: 'flex', flexShrink: 0 }}
               >
-                {/* Left: overlapping image frames */}
+                {/* Left 55%: step label + placeholder overlapping frames + headline + description */}
                 <div
                   style={{
-                    width: '50%',
-                    height: '100%',
-                    position: 'relative',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    padding: '3rem',
-                  }}
-                >
-                  <div style={{ position: 'relative', width: '100%', maxWidth: '480px', aspectRatio: '4/3' }}>
-
-                    {/* Main photo — top-left frame */}
-                    <div
-                      style={{
-                        position: 'absolute',
-                        top: 0, left: 0,
-                        width: '65%', height: '75%',
-                        overflow: 'hidden',
-                        transform: `translateX(${pxMain}%)`,
-                        willChange: 'transform',
-                      }}
-                    >
-                      {panel.isVideo ? (
-                        <video src={panel.image} autoPlay muted loop playsInline
-                          style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                      ) : (
-                        <Image src={panel.image} alt={panel.title ?? ''} fill className="object-cover" />
-                      )}
-                    </div>
-
-                    {/* Secondary photo — bottom-right frame (different crop, slower parallax) */}
-                    <div
-                      style={{
-                        position: 'absolute',
-                        bottom: 0, right: 0,
-                        width: '55%', height: '65%',
-                        overflow: 'hidden',
-                        zIndex: 10,
-                        transform: `translateX(${pxSec}%)`,
-                        willChange: 'transform',
-                      }}
-                    >
-                      {panel.isVideo ? (
-                        <video src={panel.image} autoPlay muted loop playsInline
-                          style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: '70% 60%' }} />
-                      ) : (
-                        <Image src={panel.image} alt={panel.title ?? ''} fill
-                          className="object-cover" style={{ objectPosition: '70% 60%' }} />
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Right: step text */}
-                <div
-                  style={{
-                    flex: 1,
+                    width: '55%',
                     display: 'flex',
                     flexDirection: 'column',
                     justifyContent: 'center',
-                    padding: '3rem 5rem 3rem 2rem',
+                    padding: '5rem 4rem',
+                    gap: '2rem',
                   }}
                 >
-                  <div style={{ marginBottom: '1.5rem' }}>
-                    <span className="text-[11px] tracking-[0.3em] uppercase" style={{ color: '#555' }}>
-                      {panel.number}. {panel.title}
-                    </span>
+                  {/* Step label */}
+                  <span className="text-[11px] tracking-[0.3em] uppercase" style={{ color: '#555' }}>
+                    {panel.number}. {panel.title}
+                  </span>
+
+                  {/* Placeholder overlapping frames — fill with photos later */}
+                  <div style={{ position: 'relative', width: '100%', maxWidth: '400px', aspectRatio: '4/3' }}>
+                    {/* Top-left placeholder */}
+                    <div style={{
+                      position: 'absolute', top: 0, left: 0,
+                      width: '65%', height: '75%',
+                      backgroundColor: '#242424',
+                    }} />
+                    {/* Bottom-right placeholder */}
+                    <div style={{
+                      position: 'absolute', bottom: 0, right: 0,
+                      width: '55%', height: '65%',
+                      backgroundColor: '#1e1e1e',
+                      zIndex: 10,
+                    }} />
                   </div>
-                  <h3
-                    className="text-4xl md:text-5xl lg:text-6xl font-light mb-8 whitespace-pre-line"
-                    style={{ color: '#f5f2ee', lineHeight: '1.15' }}
+
+                  {/* Headline + description */}
+                  <div>
+                    <h3
+                      className="text-4xl md:text-5xl lg:text-6xl font-light mb-6 whitespace-pre-line"
+                      style={{ color: '#f5f2ee', lineHeight: '1.15' }}
+                    >
+                      {panel.headline}
+                    </h3>
+                    <p className="text-base leading-relaxed max-w-sm" style={{ color: '#777', lineHeight: '1.85' }}>
+                      {panel.description}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Right 45%: large step image (our_process_N) with parallax — same as intro */}
+                <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
+                  <div
+                    style={{
+                      position: 'absolute',
+                      inset: 0,
+                      transform: `scale(1.2) translateX(${imgParallax(panelIdx)}%)`,
+                      willChange: 'transform',
+                    }}
                   >
-                    {panel.headline}
-                  </h3>
-                  <p className="text-base leading-relaxed max-w-sm" style={{ color: '#777', lineHeight: '1.85' }}>
-                    {panel.description}
-                  </p>
+                    {panel.isVideo ? (
+                      <video src={panel.image} autoPlay muted loop playsInline
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    ) : (
+                      <Image src={panel.image} alt={panel.title ?? ''} fill className="object-cover" />
+                    )}
+                  </div>
                 </div>
               </div>
             );
