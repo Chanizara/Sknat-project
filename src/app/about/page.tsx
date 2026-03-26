@@ -511,8 +511,17 @@ function OurProcessSection() {
   ];
 
   // รวม width ทั้งหมด และ scroll range
-  const totalWidthVw = flatPanels.reduce((sum, p) => sum + p.width, 0); // เช่น 400vw
-  const scrollableVw = totalWidthVw - 100; // vw ที่ต้อง translate
+  const totalWidthVw = flatPanels.reduce((sum, p) => sum + p.width, 0);
+  const scrollableVw = totalWidthVw - 100;
+
+  // Cumulative start position (vw) ของแต่ละ panel
+  const panelStarts = flatPanels.reduce<number[]>((acc, _, i) => {
+    acc.push(i === 0 ? 0 : acc[i - 1] + flatPanels[i - 1].width);
+    return acc;
+  }, []);
+
+  // Parallax factor: รูปเลื่อนช้ากว่า panel → ดึงเปิดจากขวา
+  const PARALLAX = 0.18;
 
   useEffect(() => {
     const container = containerRef.current;
@@ -529,6 +538,13 @@ function OurProcessSection() {
   }, []);
 
   const translateX = scrollProgress * scrollableVw;
+
+  // leftClip(i): กรอบถูก clip ทางซ้ายตอนเข้า → ค่อยๆ เปิดออกทางซ้ายเหมือนดึงกรอบให้กว้าง
+  // 0 = กรอบเต็ม, 100 = ซ่อนทั้งหมด
+  const leftClip = (i: number, panelWidth: number) => {
+    const entered = translateX + 100 - panelStarts[i]; // 0 = right edge just entered
+    return Math.max(0, PARALLAX * 100 * (1 - entered / (panelWidth * 0.85)));
+  };
 
   return (
     <section
@@ -585,7 +601,12 @@ function OurProcessSection() {
                       {panel.description}
                     </p>
                   </div>
-                  <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
+                  <div style={{
+                    flex: 1,
+                    position: 'relative',
+                    overflow: 'hidden',
+                    clipPath: `inset(0 0 0 ${leftClip(i, panel.width * 0.45)}%)`,
+                  }}>
                     <Image src={panel.image} alt="Process intro" fill className="object-cover" priority />
                   </div>
                 </div>
@@ -654,6 +675,7 @@ function OurProcessSection() {
                     flexShrink: 0,
                     position: 'relative',
                     overflow: 'hidden',
+                    clipPath: `inset(0 0 0 ${leftClip(i, panel.width)}%)`,
                   }}
                 >
                   {panel.isVideo ? (
