@@ -603,7 +603,7 @@ function OurProcessSection() {
             </div>
           </div>
 
-          {/* ─── PANELS 1-3: Steps ─── same layout as intro: left content + right large image ─── */}
+          {/* ─── PANELS 1-3: Steps ─── left 62% [portrait images + text] + right image ─── */}
           {panels.slice(1).map((panel, idx) => {
             const panelIdx = idx + 1;
 
@@ -612,54 +612,66 @@ function OurProcessSection() {
                 key={panelIdx}
                 style={{ width: '100vw', height: '100%', display: 'flex', flexShrink: 0 }}
               >
-                {/* Left 55%: step label + overlapping frames + headline + description */}
+                {/* Left 62%: portrait overlapping images (left) + text (right) */}
                 <div
                   style={{
-                    width: '55%',
+                    width: '62%',
                     display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'center',
-                    padding: '5rem 4rem',
-                    gap: '2rem',
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    padding: '4rem 3.5rem',
+                    gap: '3rem',
                   }}
                 >
-                  {/* Step label */}
-                  <span className="text-[11px] tracking-[0.3em] uppercase" style={{ color: '#555' }}>
-                    {panel.number}. {panel.title}
-                  </span>
-
-                  {/* Overlapping frames */}
-                  <div style={{ position: 'relative', width: '100%', height: '38vh' }}>
-                    {/* Top-left placeholder */}
+                  {/* Portrait overlapping frames */}
+                  <div style={{ position: 'relative', width: '38vh', height: '52vh', flexShrink: 0 }}>
+                    {/* Top-left portrait */}
                     <div style={{
                       position: 'absolute', top: 0, left: 0,
-                      width: '65%', height: '75%',
-                      backgroundColor: '#242424',
-                    }} />
-                    {/* Bottom-right placeholder */}
+                      width: '72%', height: '72%',
+                      overflow: 'hidden',
+                    }}>
+                      {panel.isVideo ? (
+                        <video src={panel.image} autoPlay muted loop playsInline
+                          style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      ) : (
+                        <Image src={panel.image} alt={panel.title ?? ''} fill className="object-cover" />
+                      )}
+                    </div>
+                    {/* Bottom-right portrait */}
                     <div style={{
                       position: 'absolute', bottom: 0, right: 0,
-                      width: '55%', height: '65%',
-                      backgroundColor: '#1e1e1e',
+                      width: '62%', height: '62%',
+                      overflow: 'hidden',
                       zIndex: 10,
-                    }} />
+                    }}>
+                      {panel.isVideo ? (
+                        <video src={panel.image} autoPlay muted loop playsInline
+                          style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      ) : (
+                        <Image src={panel.image} alt={panel.title ?? ''} fill className="object-cover" />
+                      )}
+                    </div>
                   </div>
 
-                  {/* Headline + description */}
-                  <div>
+                  {/* Text content */}
+                  <div style={{ flex: 1 }}>
+                    <span className="text-[11px] tracking-[0.3em] uppercase" style={{ color: '#555', display: 'block', marginBottom: '1.5rem' }}>
+                      {panel.number}. {panel.title}
+                    </span>
                     <h3
                       className="text-4xl md:text-5xl lg:text-6xl font-light mb-6 whitespace-pre-line"
                       style={{ color: '#f5f2ee', lineHeight: '1.15' }}
                     >
                       {panel.headline}
                     </h3>
-                    <p className="text-base leading-relaxed max-w-sm" style={{ color: '#777', lineHeight: '1.85' }}>
+                    <p className="text-base leading-relaxed" style={{ color: '#777', lineHeight: '1.85' }}>
                       {panel.description}
                     </p>
                   </div>
                 </div>
 
-                {/* Right 45%: next panel's image with parallax, last step gets no image */}
+                {/* Right 38%: next panel's image with parallax */}
                 {panels[panelIdx + 1] ? (
                   <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
                     <div
