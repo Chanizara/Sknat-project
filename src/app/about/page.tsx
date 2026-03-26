@@ -612,10 +612,10 @@ function OurProcessSection() {
                 key={panelIdx}
                 style={{ width: '100vw', height: '100%', display: 'flex', flexShrink: 0 }}
               >
-                {/* Left 62%: portrait overlapping images (left) + text (right) */}
+                {/* Left 38%: portrait overlapping images (left) + text (right) */}
                 <div
                   style={{
-                    width: '62%',
+                    width: '38%',
                     display: 'flex',
                     flexDirection: 'row',
                     alignItems: 'center',
