@@ -73,9 +73,6 @@ export default function Contact() {
       id="contact"
       className="relative z-30 overflow-hidden bg-white"
     >
-      {/* Top divider line */}
-      <div className="border-t border-slate-300 mx-6 sm:mx-8 md:mx-12"></div>
-
       <div
         className="mx-auto grid min-h-[72vh] max-w-[1880px] overflow-hidden bg-white px-6 sm:px-8 md:px-12 xl:min-h-[78vh] xl:px-16 xl:grid-cols-[1.04fr_0.96fr]"
       >
