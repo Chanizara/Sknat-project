@@ -198,13 +198,8 @@ export default function AboutContactSection() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const boxTransform = {
-    x: lerp(18, 0, scrollProgress),
-    y: lerp(-138, 18, scrollProgress),
-    rotate: lerp(-7, 0, scrollProgress),
-    scale: lerp(0.88, 1, scrollProgress),
-    opacity: lerp(0.42, 1, scrollProgress),
-  };
+  const frameOffsetY = (1 - scrollProgress) * 40;
+  const glowOffsetX = (1 - scrollProgress) * 18;
 
   return (
     <section
@@ -334,22 +329,40 @@ export default function AboutContactSection() {
           <div
             className="relative w-full max-w-lg"
             style={{
-              transform: `translate3d(${boxTransform.x}px, ${boxTransform.y}px, 0) rotate(${boxTransform.rotate}deg) scale(${boxTransform.scale})`,
-              opacity: boxTransform.opacity,
-              transition: "transform 180ms cubic-bezier(0.22, 1, 0.36, 1), opacity 180ms ease",
+              transform: `translate3d(0, ${lerp(-32, 8, scrollProgress)}px, 0)`,
+              opacity: lerp(0.35, 1, scrollProgress),
+              transition: "transform 140ms linear, opacity 180ms ease",
             }}
           >
             <div
-              className="absolute inset-[10%] rounded-[2rem] blur-3xl"
+              className="absolute inset-[10%] rounded-4xl blur-3xl"
               style={{
                 background:
                   "radial-gradient(circle at 50% 45%, rgba(30,30,30,0.08), rgba(212,208,200,0.05) 48%, transparent 74%)",
-                transform: `translate3d(${lerp(20, -8, scrollProgress)}px, ${lerp(-24, 12, scrollProgress)}px, 0) scale(${1.02 + scrollProgress * 0.08})`,
-                transition: "transform 180ms cubic-bezier(0.22, 1, 0.36, 1)",
+                transform: `translate3d(${glowOffsetX}px, ${frameOffsetY * 0.4}px, 0) scale(${1.02 + scrollProgress * 0.08})`,
+                transition: "transform 140ms linear",
               }}
             />
 
-            <MorphLineArtwork progress={scrollProgress} />
+            <div
+              className="absolute inset-0 opacity-[0.2]"
+              style={{
+                transform: `translate3d(${glowOffsetX}px, ${frameOffsetY * 0.42}px, 0)`,
+                transition: "transform 140ms linear",
+              }}
+            >
+              <DrawnBoxArtwork progress={clamp(scrollProgress * 1.06)} offsetY={frameOffsetY * 0.3} ghost />
+            </div>
+
+            <div
+              className="relative"
+              style={{
+                transform: `translate3d(0, ${frameOffsetY}px, 0)`,
+                transition: "transform 140ms linear",
+              }}
+            >
+              <DrawnBoxArtwork progress={scrollProgress} offsetY={frameOffsetY} />
+            </div>
           </div>
         </div>
       </div>
@@ -357,31 +370,43 @@ export default function AboutContactSection() {
   );
 }
 
-function MorphLineArtwork({ progress }: { progress: number }) {
+function DrawnBoxArtwork({
+  progress,
+  offsetY = 0,
+  ghost = false,
+}: {
+  progress: number;
+  offsetY?: number;
+  ghost?: boolean;
+}) {
   return (
     <div className="relative z-10">
       <svg viewBox="0 0 400 400" className="h-auto w-full" fill="none">
         <g
           style={{
             transform: `translate(${lerp(18, 0, progress)}px, ${lerp(-52, 20, progress)}px)`,
-            transition: "transform 180ms cubic-bezier(0.22, 1, 0.36, 1)",
+            transition: "transform 140ms linear",
           }}
         >
           {BOX_SEGMENTS.map((segment, index) => {
             const length = segmentLength(segment.from, segment.to);
-            const localProgress = clamp((progress - segment.delay) / 0.28);
+            const localProgress = clamp((progress - segment.delay) / 0.34);
             const driftY =
               segment.parallax === "fast"
-                ? progress * 20
+                ? progress * 12 + offsetY * 0.05
                 : segment.parallax === "medium"
-                  ? progress * 13
-                  : progress * 8;
+                  ? progress * 9 + offsetY * 0.1
+                  : progress * 6 + offsetY * 0.16;
             const driftX =
               segment.parallax === "fast"
                 ? progress * -4
                 : segment.parallax === "medium"
                   ? progress * -2.5
                   : progress * -1.5;
+
+            const baseStroke = ghost ? "rgba(28, 28, 28, 0.09)" : segment.stroke;
+            const strokeWidth = ghost ? (segment.width ?? 1) * 0.92 : segment.width ?? 1;
+            const alpha = ghost ? 0.16 + localProgress * 0.5 : 0.2 + localProgress * 0.8;
 
             return (
               <line
@@ -390,12 +415,12 @@ function MorphLineArtwork({ progress }: { progress: number }) {
                 y1={segment.from[1] + driftY}
                 x2={segment.to[0] + driftX}
                 y2={segment.to[1] + driftY}
-                stroke={segment.stroke}
-                strokeWidth={segment.width ?? 1}
+                stroke={baseStroke}
+                strokeWidth={strokeWidth}
                 strokeDasharray={segment.dash ?? `${length} ${length}`}
                 strokeDashoffset={length * (1 - localProgress)}
                 strokeLinecap="round"
-                opacity={0.18 + localProgress * 0.82}
+                opacity={alpha}
               />
             );
           })}

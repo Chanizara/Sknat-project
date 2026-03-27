@@ -720,15 +720,9 @@ export default function AboutPage() {
       {/* Section 4: Our Process */}
       <OurProcessSection />
 
-      {/* Section 5: Contact */}
-      <div style={{ position: 'relative' }}>
-        <div style={{ position: 'sticky', top: 0, zIndex: 1 }}>
-          <AboutContactSection />
-        </div>
-        <div style={{ position: 'relative', zIndex: 2 }}>
-          <BeforeFooter />
-        </div>
-      </div>
+      {/* Section 5: Contact + Before Footer */}
+      <AboutContactSection />
+      <BeforeFooter />
     </main>
   );
 }
