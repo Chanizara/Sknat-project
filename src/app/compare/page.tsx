@@ -2,15 +2,21 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { Raleway } from "next/font/google";
 import { useFavoritesStore } from "@/lib/favorites-store";
 import { buildPriceLabel, formatPrice } from "@/lib/property-format";
+
+const headingFont = Raleway({
+  subsets: ["latin"],
+  weight: ["300", "400"],
+});
 
 export default function ComparePage() {
   const { favorites, removeFavorite } = useFavoritesStore();
 
   if (favorites.length === 0) {
     return (
-      <div className="min-h-screen bg-[linear-gradient(180deg,#e7edf4_0%,#dce6f1_42%,#eaf0f5_100%)] flex items-center justify-center">
+      <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center px-4">
           <div className="mb-6">
             <svg className="h-24 w-24 mx-auto text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -23,7 +29,7 @@ export default function ComparePage() {
           </p>
           <Link
             href="/"
-            className="inline-flex items-center gap-2 rounded-full bg-slate-950 px-6 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
+            className="inline-flex items-center gap-2 bg-slate-950 px-6 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
           >
             <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
@@ -36,32 +42,18 @@ export default function ComparePage() {
   }
 
   return (
-    <div className="min-h-screen bg-[linear-gradient(180deg,#e7edf4_0%,#dce6f1_42%,#eaf0f5_100%)]">
-      {/* Header */}
-      <div className="sticky top-0 z-50 bg-white/80 backdrop-blur-lg border-b border-slate-200">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Link
-                href="/"
-                className="flex items-center gap-2 text-sm text-slate-600 hover:text-slate-900 transition"
-              >
-                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                </svg>
-                กลับ
-              </Link>
-              <div>
-                <h1 className="text-xl font-bold text-slate-900">เปรียบเทียบบ้านที่ชอบ</h1>
-                <p className="text-xs text-slate-500">เลือกแล้ว {favorites.length} จาก 3 หลัง</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+    <div className="min-h-screen bg-white">
+      <CompareHero />
 
       {/* Comparison Grid */}
       <div className="container mx-auto px-4 py-8">
+        <div className="mb-8 border-b border-slate-200 pb-5 text-center">
+          <div>
+            <h1 className={`${headingFont.className} text-xl font-light text-slate-900`}>choose your best house</h1>
+            <p className="text-xs text-slate-500">เลือกแล้ว {favorites.length} จาก 3 หลัง</p>
+          </div>
+        </div>
+
         <div className={`grid gap-8 lg:gap-10 ${favorites.length === 1 ? 'grid-cols-1 max-w-2xl mx-auto' : favorites.length === 2 ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1 lg:grid-cols-3'}`}>
           {favorites.map((property) => (
             <article
@@ -69,7 +61,7 @@ export default function ComparePage() {
               className="border-t border-[#8f877d] pt-5"
             >
               {/* Image */}
-              <div className="relative h-64 overflow-hidden rounded-[26px]">
+              <div className="relative h-64 overflow-hidden rounded-none">
                 <Image
                   src={property.image}
                   alt={property.title}
@@ -78,15 +70,19 @@ export default function ComparePage() {
                 />
                 <button
                   onClick={() => removeFavorite(property.id)}
-                  className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-red-500 text-white transition hover:bg-red-600"
+                  className="absolute right-3 top-3 text-white transition hover:text-slate-100"
+                  style={{ textShadow: "0 2px 8px rgba(0, 0, 0, 0.95)" }}
                   aria-label="ลบออกจากรายการ"
                 >
-                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </button>
                 <div className="absolute left-3 top-3">
-                  <span className="rounded-full bg-white/95 px-3 py-1 text-xs font-semibold text-slate-900">
+                  <span
+                    className="text-xs font-semibold uppercase tracking-wide text-white"
+                    style={{ textShadow: "0 2px 8px rgba(0, 0, 0, 0.95)" }}
+                  >
                     {property.type}
                   </span>
                 </div>
@@ -125,7 +121,7 @@ export default function ComparePage() {
                       {property.features.map((feature, index) => (
                         <span
                           key={index}
-                          className="rounded-full bg-slate-100 px-2.5 py-1 text-xs text-slate-700"
+                          className="rounded-none bg-slate-100 px-2.5 py-1 text-xs text-slate-700"
                         >
                           {feature}
                         </span>
@@ -137,7 +133,7 @@ export default function ComparePage() {
                 {/* Action Button */}
                 <Link
                   href={`/property/${property.id}`}
-                  className="flex w-full items-center justify-center gap-2 rounded-full bg-slate-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
+                  className="flex w-full items-center justify-center gap-2 rounded-none bg-slate-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
                 >
                   ดูรายละเอียดเพิ่มเติม
                   <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -154,7 +150,7 @@ export default function ComparePage() {
               key={`placeholder-${index}`}
               className="border-t border-dashed border-[#b8b1aa] pt-5"
             >
-              <div className="flex min-h-105 items-center justify-center rounded-[26px] border border-dashed border-slate-300/80 bg-white/20 px-6">
+              <div className="flex min-h-105 items-center justify-center rounded-none border border-dashed border-slate-300/80 bg-white px-6">
                 <div className="text-center">
                   <svg className="h-16 w-16 mx-auto text-slate-300 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M12 4v16m8-8H4" />
@@ -175,6 +171,33 @@ export default function ComparePage() {
         </div>
       </div>
     </div>
+  );
+}
+
+function CompareHero() {
+  return (
+    <section className="compare-hero">
+      <div className="compare-hero__line-wrap" aria-hidden="true">
+        <svg viewBox="0 0 1200 520" preserveAspectRatio="none" className="compare-hero__lines">
+          <path className="compare-hero__line compare-hero__line--a" d="M0 500 L180 430 L180 330" />
+          <path className="compare-hero__line compare-hero__line--b" d="M520 330 L830 220 L830 490" />
+          <path className="compare-hero__line compare-hero__line--c" d="M830 220 L1200 70" />
+          <path className="compare-hero__line compare-hero__line--d" d="M1080 500 L1080 360 L1200 300" />
+        </svg>
+      </div>
+
+      <p className="compare-hero__kicker">✦ THE BELIEFS THAT SHAPE US</p>
+
+      <div className="compare-hero__center">
+        <h2 className={`${headingFont.className} compare-hero__title`}>
+          It&apos;s your choice
+        </h2>
+
+        <span className="compare-hero__tag compare-hero__tag--1">THE TRUST YOU DESERVE</span>
+        <span className="compare-hero__tag compare-hero__tag--2">THE HOME YOU LOVE</span>
+        <span className="compare-hero__tag compare-hero__tag--3">THE DECISION YOU OWN</span>
+      </div>
+    </section>
   );
 }
 
