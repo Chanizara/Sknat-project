@@ -223,18 +223,33 @@ function HoverDropdownMenu({
 }
 
 export default function BeforeFooter() {
+  const PARALLAX_FACTOR = 0.045;
+  const WATERMARK_FACTOR = 0.02;
+
   const pathname = usePathname();
   const isHomePage = pathname === '/';
   const sectionRef = useRef<HTMLElement>(null);
   const [showCard, setShowCard] = useState(false);
   const [animationPhase, setAnimationPhase] = useState<'home' | 'morphing' | 'floating' | 'card'>('home');
   const [menuHover, setMenuHover] = useState(false);
+  const [parallaxOffsetY, setParallaxOffsetY] = useState(0);
 
   useEffect(() => {
     const handleScroll = () => {
       const scrollY = window.scrollY;
       const windowH = window.innerHeight;
       const scrollHeight = document.documentElement.scrollHeight;
+
+      const section = sectionRef.current;
+      if (section) {
+        const sectionTop = section.offsetTop;
+        const sectionHeight = section.offsetHeight;
+        const relativeScroll = scrollY - sectionTop;
+
+        // Keep motion subtle so this section feels slower than the one before it
+        const clampedRelative = Math.max(-windowH, Math.min(relativeScroll, sectionHeight + windowH));
+        setParallaxOffsetY(clampedRelative * PARALLAX_FACTOR);
+      }
 
       // Show card only when user has scrolled to absolute bottom (within 8px)
       const atBottom = scrollY + windowH >= scrollHeight - 8;
@@ -302,7 +317,13 @@ export default function BeforeFooter() {
     >
       {/* ── Full-bleed background ── */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute inset-0">
+        <div
+          className="absolute -inset-y-10 inset-x-0"
+          style={{
+            transform: `translate3d(0, ${parallaxOffsetY}px, 0)`,
+            transition: 'transform 0.14s linear',
+          }}
+        >
           <Image
             src="/footer.jpg"
             alt=""
@@ -325,6 +346,8 @@ export default function BeforeFooter() {
             fontSize: 'clamp(6rem, 22vw, 26rem)',
             color: 'rgba(255,255,255,0.07)',
             letterSpacing: '-0.03em',
+            transform: `translate3d(0, ${parallaxOffsetY * WATERMARK_FACTOR}px, 0)`,
+            transition: 'transform 0.14s linear',
           }}
         >
           SKNAT
