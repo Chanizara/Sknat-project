@@ -2,8 +2,9 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
-import { useParams } from "next/navigation";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { LISTING_TYPES } from "@/types/property";
 import { motion, AnimatePresence } from "framer-motion";
 
 import { buildPriceLabel, formatPrice, formatUpdatedAt } from "@/lib/property-format";
@@ -143,15 +144,7 @@ function PremiumCarousel({
                     fill
                     className="object-cover transition-transform duration-700 group-hover:scale-105"
                   />
-                  <div
-                    className="absolute top-4 left-4 flex items-center gap-1.5 px-3 py-1.5"
-                    style={{ background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(8px)', borderRadius: '20px' }}
-                  >
-                    <svg width="10" height="10" viewBox="0 0 24 24" fill="white">
-                      <path d="M12 2L3 20h18L12 2z" opacity="0.8" />
-                    </svg>
-                    <span className="text-[10px] font-semibold tracking-[0.15em] text-white uppercase">Premium</span>
-                  </div>
+                  
                 </div>
                 {features[idx] && (
                   <p className="text-sm text-[#5f5a54] leading-relaxed pl-1">{features[idx]}</p>
@@ -202,11 +195,19 @@ function FluidSection({
   while (padded.length < TARGET) padded.push(...images);
   const displayImages = padded.slice(0, TARGET);
 
-  // Pair into rows of 2
-  const rows: string[][] = [];
-  for (let i = 0; i < displayImages.length; i += 2) {
-    rows.push(displayImages.slice(i, i + 2));
-  }
+  // Exterior captions (first 7)
+  const exteriorCaptions = [
+    'ด้านหน้าบ้าน', 'ด้านข้างบ้าน', 'สวนหน้าบ้าน',
+    'ที่จอดรถ', 'ระเบียงชั้น 2', 'มุมมองทางเข้า', 'รอบบ้านทั้งหมด',
+  ];
+  // Interior captions (last 7)
+  const interiorCaptions = [
+    'ห้องนั่งเล่น', 'ห้องครัวและห้องอาหาร', 'ห้องนอนใหญ่',
+    'ห้องน้ำ Master', 'ห้องนอนรอง', 'พื้นที่อเนกประสงค์', 'บันไดและทางเดิน',
+  ];
+
+  const exteriorImages = displayImages.slice(0, 7);
+  const interiorImages = displayImages.slice(7, 14);
 
   const mapsUrl = property.lat && property.lng
     ? `https://www.google.com/maps?q=${property.lat},${property.lng}`
@@ -234,36 +235,36 @@ function FluidSection({
           <div className="pt-6 flex flex-col h-full">
             {/* Price */}
             <div className="mb-7 pb-7" style={{ borderBottom: '1px solid #e8e8e8' }}>
-              <p className="text-[10px] font-semibold tracking-[0.22em] uppercase text-[#888] mb-2">ราคา</p>
-              <p className="text-[2.2rem] font-light text-[#171717] tracking-tight leading-none">
+              <p className="text-[11px] font-semibold tracking-[0.22em] uppercase text-[#555] mb-2">ราคา</p>
+              <p className="text-[2.4rem] font-semibold text-[#0a0a0a] tracking-tight leading-none">
                 {buildPriceLabel(property)}
               </p>
               {property.pricePerSqm && (
-                <p className="text-sm text-[#6b645c] mt-1.5">{formatPrice(property.pricePerSqm)} / ตร.ม.</p>
+                <p className="text-sm font-medium text-[#555] mt-1.5">{formatPrice(property.pricePerSqm)} / ตร.ม.</p>
               )}
             </div>
 
             {/* Specs */}
             {(property.size || property.bedrooms || property.bathrooms) && (
-              <div className="grid grid-cols-3 mb-7" style={{ border: '1px solid #e8e8e8' }}>
+              <div className="grid grid-cols-3 mb-7" style={{ border: '1px solid #d8d2ca' }}>
                 {property.size && (
-                  <div className="px-4 py-3.5" style={{ borderRight: '1px solid #e8e8e8' }}>
-                    <p className="text-[10px] font-semibold tracking-[0.18em] uppercase text-[#888] mb-1">พื้นที่</p>
-                    <p className="text-base font-medium text-[#171717]">
-                      {property.size} <span className="text-xs font-normal text-[#6b645c]">ตร.ม.</span>
+                  <div className="px-4 py-4" style={{ borderRight: '1px solid #d8d2ca' }}>
+                    <p className="text-[10px] font-semibold tracking-[0.18em] uppercase text-[#666] mb-1.5">พื้นที่</p>
+                    <p className="text-[1.1rem] font-semibold text-[#0a0a0a]">
+                      {property.size} <span className="text-xs font-medium text-[#666]">ตร.ม.</span>
                     </p>
                   </div>
                 )}
                 {property.bedrooms && (
-                  <div className="px-4 py-3.5" style={{ borderRight: '1px solid #e8e8e8' }}>
-                    <p className="text-[10px] font-semibold tracking-[0.18em] uppercase text-[#888] mb-1">ห้องนอน</p>
-                    <p className="text-base font-medium text-[#171717]">{property.bedrooms}</p>
+                  <div className="px-4 py-4" style={{ borderRight: '1px solid #d8d2ca' }}>
+                    <p className="text-[10px] font-semibold tracking-[0.18em] uppercase text-[#666] mb-1.5">ห้องนอน</p>
+                    <p className="text-[1.1rem] font-semibold text-[#0a0a0a]">{property.bedrooms}</p>
                   </div>
                 )}
                 {property.bathrooms && (
-                  <div className="px-4 py-3.5">
-                    <p className="text-[10px] font-semibold tracking-[0.18em] uppercase text-[#888] mb-1">ห้องน้ำ</p>
-                    <p className="text-base font-medium text-[#171717]">{property.bathrooms}</p>
+                  <div className="px-4 py-4">
+                    <p className="text-[10px] font-semibold tracking-[0.18em] uppercase text-[#666] mb-1.5">ห้องน้ำ</p>
+                    <p className="text-[1.1rem] font-semibold text-[#0a0a0a]">{property.bathrooms}</p>
                   </div>
                 )}
               </div>
@@ -272,19 +273,19 @@ function FluidSection({
             {/* Description */}
             {property.description && (
               <div className="mb-7">
-                <p className="text-sm leading-7 text-[#5f5a54]">{property.description}</p>
+                <p className="text-[15px] leading-[1.8] text-[#2d2d2d] font-normal">{property.description}</p>
               </div>
             )}
 
             {/* Features */}
             {property.features && property.features.length > 0 && (
               <div className="mb-7">
-                <p className="text-[10px] font-semibold tracking-[0.22em] uppercase text-[#888] mb-3">จุดเด่น</p>
-                <div className="space-y-2">
+                <p className="text-[11px] font-semibold tracking-[0.22em] uppercase text-[#555] mb-4">จุดเด่น</p>
+                <div className="space-y-3">
                   {property.features.map((f, i) => (
                     <div key={i} className="flex items-start gap-3">
-                      <span className="text-[#0a0a0a] mt-0.5 shrink-0 text-[10px]">◆</span>
-                      <span className="text-sm text-[#49443f] leading-relaxed">{f}</span>
+                      <span className="text-[#0a0a0a] mt-0.5 shrink-0 text-[11px]">◆</span>
+                      <span className="text-[15px] font-medium text-[#0a0a0a] leading-relaxed">{f}</span>
                     </div>
                   ))}
                 </div>
@@ -293,7 +294,7 @@ function FluidSection({
 
             {/* Counter */}
             <div className="mt-auto">
-              <p className="text-[11px] font-medium tracking-[0.2em] uppercase text-[#aaa]">
+              <p className="text-[12px] font-semibold tracking-[0.2em] uppercase text-[#888]">
                 {activeIdx + 1} / {displayImages.length}
               </p>
             </div>
@@ -344,32 +345,122 @@ function FluidSection({
           </div>
         </div>
 
-        {/* RIGHT — 2-column scrolling images */}
+        {/* RIGHT — two groups of 7 with captions */}
         <div className="flex-1 px-4 py-8">
-          {rows.map((pair, rowIdx) => (
-            <div key={rowIdx} className="grid grid-cols-2 gap-4 mb-4">
-              {pair.map((src, colIdx) => {
-                const globalIdx = rowIdx * 2 + colIdx;
-                return (
+
+          {/* ── EXTERIOR group label ── */}
+          <div className="mb-5" style={{ borderTop: '1px solid #e8e8e8', paddingTop: '20px' }}>
+            <div className="flex items-center gap-2">
+              <span className="text-[11px] text-[#2d2d2d]">◆</span>
+              <span className="text-[11px] font-semibold tracking-[0.28em] uppercase text-[#2d2d2d]">Exterior</span>
+            </div>
+          </div>
+
+          {/* Exterior images — pairs + last one full width */}
+          {[
+            [0, 1], [2, 3], [4, 5],
+          ].map(([a, b], rowIdx) => (
+            <div key={`ext-row-${rowIdx}`} className="grid grid-cols-2 gap-3 mb-3">
+              {[a, b].map((imgIdx) => (
+                <div key={imgIdx} className="flex flex-col gap-2">
                   <div
-                    key={globalIdx}
-                    data-img-idx={globalIdx}
+                    data-img-idx={imgIdx}
                     className="relative overflow-hidden cursor-pointer group"
-                    style={{ aspectRatio: '3/4', borderRadius: '3px' }}
-                    onClick={() => onImageClick(globalIdx % images.length)}
+                    style={{ aspectRatio: '4/5', borderRadius: '3px' }}
+                    onClick={() => onImageClick(imgIdx % images.length)}
                   >
                     <Image
-                      src={src}
-                      alt={`Property image ${globalIdx + 1}`}
+                      src={exteriorImages[imgIdx]}
+                      alt={exteriorCaptions[imgIdx]}
                       fill
                       className="object-cover transition-transform duration-700 group-hover:scale-105"
                     />
                     <div className="absolute inset-0 bg-black/0 group-hover:bg-black/8 transition-colors duration-300" />
                   </div>
-                );
-              })}
+                  <p className="text-sm font-medium text-[#171717]">{exteriorCaptions[imgIdx]}</p>
+                </div>
+              ))}
             </div>
           ))}
+          {/* Last exterior image — half column (portrait) */}
+          <div className="grid grid-cols-2 gap-3 mb-3">
+            <div className="flex flex-col gap-2">
+              <div
+                data-img-idx={6}
+                className="relative overflow-hidden cursor-pointer group"
+                style={{ aspectRatio: '4/5', borderRadius: '3px' }}
+                onClick={() => onImageClick(6 % images.length)}
+              >
+                <Image
+                  src={exteriorImages[6]}
+                  alt={exteriorCaptions[6]}
+                  fill
+                  className="object-cover transition-transform duration-700 group-hover:scale-105"
+                />
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/8 transition-colors duration-300" />
+              </div>
+              <p className="text-sm font-medium text-[#171717]">{exteriorCaptions[6]}</p>
+            </div>
+          </div>
+
+          {/* ── INTERIOR group label ── */}
+          <div
+            className="my-8"
+            style={{ borderTop: '1px solid #e8e8e8', paddingTop: '24px' }}
+          >
+            <div className="flex items-center gap-2">
+              <span className="text-[11px] text-[#2d2d2d]">◆</span>
+              <span className="text-[11px] font-semibold tracking-[0.28em] uppercase text-[#2d2d2d]">Interior</span>
+            </div>
+          </div>
+
+          {/* Interior images — pairs + last one full width */}
+          {[
+            [0, 1], [2, 3], [4, 5],
+          ].map(([a, b], rowIdx) => (
+            <div key={`int-row-${rowIdx}`} className="grid grid-cols-2 gap-3 mb-3">
+              {[a, b].map((imgIdx) => (
+                <div key={imgIdx} className="flex flex-col gap-2">
+                  <div
+                    data-img-idx={7 + imgIdx}
+                    className="relative overflow-hidden cursor-pointer group"
+                    style={{ aspectRatio: '4/5', borderRadius: '3px' }}
+                    onClick={() => onImageClick((7 + imgIdx) % images.length)}
+                  >
+                    <Image
+                      src={interiorImages[imgIdx]}
+                      alt={interiorCaptions[imgIdx]}
+                      fill
+                      className="object-cover transition-transform duration-700 group-hover:scale-105"
+                    />
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/8 transition-colors duration-300" />
+                  </div>
+                  <p className="text-sm font-medium text-[#171717]">{interiorCaptions[imgIdx]}</p>
+                </div>
+              ))}
+            </div>
+          ))}
+          {/* Last interior image — half column (portrait) */}
+          <div className="grid grid-cols-2 gap-3 mb-10">
+            <div className="flex flex-col gap-2">
+              <div
+                data-img-idx={13}
+                className="relative overflow-hidden cursor-pointer group"
+                style={{ aspectRatio: '4/5', borderRadius: '3px' }}
+                onClick={() => onImageClick(13 % images.length)}
+              >
+                <Image
+                  src={interiorImages[6]}
+                  alt={interiorCaptions[6]}
+                  fill
+                  className="object-cover transition-transform duration-700 group-hover:scale-105"
+                />
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/8 transition-colors duration-300" />
+              </div>
+              <p className="text-sm font-medium text-[#171717]">{interiorCaptions[6]}</p>
+            </div>
+          </div>
+
         </div>
       </div>
     </section>
@@ -378,30 +469,66 @@ function FluidSection({
 
 // ─── All Properties Section ───────────────────────────────────────────────────
 function AllPropertiesSection({ currentId }: { currentId: number }) {
-  const [properties, setProperties] = useState<Property[]>([]);
+  const router = useRouter();
+  const [allProperties, setAllProperties] = useState<Property[]>([]);
   const [hoveredId, setHoveredId] = useState<number | null>(null);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [filterListingType, setFilterListingType] = useState<string[]>([]);
+  const [filterPropertyType, setFilterPropertyType] = useState<string[]>([]);
+  const listRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     fetch('/api/properties')
       .then((r) => r.json())
       .then((data) => {
         const list: Property[] = Array.isArray(data) ? data : (data.properties ?? []);
-        setProperties(list.filter((p) => p.id !== currentId));
+        setAllProperties(list.filter((p) => p.id !== currentId));
       })
       .catch(() => {});
   }, [currentId]);
 
-  if (properties.length === 0) return null;
+  const propertyTypeOptions = useMemo(
+    () => Array.from(new Set(allProperties.map((p) => p.propertyType).filter(Boolean))) as string[],
+    [allProperties]
+  );
+
+  const filtered = useMemo(() => {
+    return allProperties.filter((p) => {
+      if (filterListingType.length > 0 && !filterListingType.includes(p.type)) return false;
+      if (filterPropertyType.length > 0 && !filterPropertyType.includes(p.propertyType ?? '')) return false;
+      return true;
+    });
+  }, [allProperties, filterListingType, filterPropertyType]);
+
+  const activeFilterCount = filterListingType.length + filterPropertyType.length;
+
+  const toggleListing = (t: string) =>
+    setFilterListingType((prev) => prev.includes(t) ? prev.filter((x) => x !== t) : [...prev, t]);
+  const togglePropType = (t: string) =>
+    setFilterPropertyType((prev) => prev.includes(t) ? prev.filter((x) => x !== t) : [...prev, t]);
+  const clearFilters = () => { setFilterListingType([]); setFilterPropertyType([]); };
+
+  const handleNavigate = (e: React.MouseEvent<HTMLAnchorElement>, id: number) => {
+    e.preventDefault();
+    window.scrollTo({ top: 0, behavior: 'instant' });
+    router.push(`/property/${id}`);
+  };
+
+  if (allProperties.length === 0) return null;
 
   return (
-    <section className="relative bg-white py-16 md:py-20" style={{ borderTop: '1px solid #e8e8e8' }}>
-      <div className="relative mx-auto max-w-[1720px] px-3 md:px-5">
+    <section className="relative bg-white pt-0 pb-24 md:pb-32" style={{ marginTop: '80px' }}>
+      <div className="relative mx-auto max-w-[1720px] px-6 md:px-12">
+        {/* Divider */}
+        <div style={{ borderTop: '1px solid #e8e8e8', marginBottom: '48px' }} />
+
         <div className="mb-3 flex items-center justify-between text-[11px] uppercase tracking-[0.2em] text-[#bbb]">
           <span>Featured Projects</span>
-          <span>รายการทั้งหมด {properties.length} รายการ</span>
+          <span>รายการทั้งหมด {filtered.length} รายการ</span>
         </div>
 
-        <div className="grid gap-10 py-5 md:py-8 lg:grid-cols-[0.38fr_0.62fr] lg:gap-14">
+        {/* Header + CTA buttons */}
+        <div className="grid gap-10 pt-5 pb-10 md:pt-8 md:pb-14 lg:grid-cols-[0.38fr_0.62fr] lg:gap-14">
           <div>
             <p className="mb-5 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.28em] text-[#2d2d2d]">
               <span>◆</span>
@@ -414,13 +541,90 @@ function AllPropertiesSection({ currentId }: { currentId: number }) {
               <br />
               of collaboration and precision.
             </h2>
+            <div className="mt-8 flex flex-wrap items-center gap-3">
+              <button
+                type="button"
+                onClick={() => listRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+                className="inline-flex items-center gap-3 bg-[#0f1214] px-7 py-4 text-[12px] font-semibold uppercase tracking-[0.22em] text-white transition hover:bg-[#20262b]"
+              >
+                <span style={{ fontFamily: 'monospace' }}>↳</span>
+                VIEW PROJECTS
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsFilterOpen((v) => !v)}
+                className="inline-flex items-center gap-3 border border-[#171717] px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.24em] text-[#171717] transition hover:bg-[#171717] hover:text-white"
+              >
+                <span className="inline-block h-[1px] w-4 bg-current" />
+                ตัวกรองขั้นสูง
+                {activeFilterCount > 0 && (
+                  <span className="text-[10px] opacity-60">{activeFilterCount}</span>
+                )}
+              </button>
+            </div>
           </div>
         </div>
 
-        <div className="border-t border-[#8f877d]" />
+        {/* Filter panel */}
+        <div className={`overflow-hidden transition-all duration-500 ${isFilterOpen ? 'max-h-64 opacity-100 mb-8' : 'max-h-0 opacity-0'}`}>
+          <div className="border-y border-[#ddd8d2] bg-white py-5">
+            <div className="mb-4 flex items-center justify-between">
+              <div>
+                <h3 className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#0a0a0a]">Advanced Filters</h3>
+                <p className="mt-1 text-xs text-[#8f8881]">ปรับเงื่อนไขเพื่อคัดบ้านที่ใกล้เคียงความต้องการ</p>
+              </div>
+              <div className="flex gap-2">
+                {activeFilterCount > 0 && (
+                  <button onClick={clearFilters} className="border border-[#d8d2ca] px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#666] hover:border-[#171717] hover:text-[#0a0a0a] transition">
+                    ล้างตัวกรอง
+                  </button>
+                )}
+                <button onClick={() => setIsFilterOpen(false)} className="border border-[#171717] px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#171717] hover:bg-[#171717] hover:text-white transition">
+                  ปิด
+                </button>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+              {/* Listing type */}
+              <div>
+                <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.22em] text-[#888]">ประเภทประกาศ</p>
+                <div className="flex gap-2">
+                  {LISTING_TYPES.map((t) => (
+                    <button key={t} onClick={() => toggleListing(t)}
+                      className="border px-3 py-1 text-[11px] font-semibold transition"
+                      style={filterListingType.includes(t)
+                        ? { background: '#0a0a0a', color: '#fff', borderColor: '#0a0a0a' }
+                        : { background: '#fff', color: '#444', borderColor: '#d8d2ca' }}>
+                      {t}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              {/* Property type */}
+              {propertyTypeOptions.length > 0 && (
+                <div>
+                  <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.22em] text-[#888]">ประเภทการพัฒนา</p>
+                  <div className="flex flex-wrap gap-2">
+                    {propertyTypeOptions.map((t) => (
+                      <button key={t} onClick={() => togglePropType(t)}
+                        className="border px-3 py-1 text-[11px] transition"
+                        style={filterPropertyType.includes(t)
+                          ? { background: '#0a0a0a', color: '#fff', borderColor: '#0a0a0a' }
+                          : { background: '#fff', color: '#444', borderColor: '#d8d2ca' }}>
+                        {t}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
 
+        {/* List */}
+        <div ref={listRef} className="border-t border-[#8f877d]" />
         <div className="relative bg-white">
-          {properties.map((property, idx) => (
+          {filtered.map((property, idx) => (
             <motion.div
               key={property.id}
               initial={{ opacity: 0, y: 18 }}
@@ -428,8 +632,9 @@ function AllPropertiesSection({ currentId }: { currentId: number }) {
               transition={{ duration: 0.45, delay: idx * 0.04, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] }}
               viewport={{ once: true, margin: '-40px' }}
             >
-              <Link
+              <a
                 href={`/property/${property.id}`}
+                onClick={(e) => handleNavigate(e, property.id)}
                 onMouseEnter={() => setHoveredId(property.id)}
                 onMouseLeave={() => setHoveredId(null)}
                 className="group relative grid items-center gap-3 border-b border-[#8f877d] bg-white px-1 py-3 transition-colors duration-300 md:px-2 lg:grid-cols-[0.95fr_1.45fr_42px]"
@@ -438,18 +643,13 @@ function AllPropertiesSection({ currentId }: { currentId: number }) {
                   <h3 className="truncate text-[1.28rem] font-light tracking-[-0.035em] text-[#49443f] transition-colors duration-300 group-hover:text-[#171717] md:text-[1.4rem]">
                     {property.title}
                   </h3>
-                  <p className="mt-1 truncate text-[0.8rem] text-[#625c56] md:text-[0.84rem]">
-                    {property.location}
-                  </p>
+                  <p className="mt-1 truncate text-[0.8rem] text-[#625c56] md:text-[0.84rem]">{property.location}</p>
                   <div className="mt-2 flex flex-wrap gap-1.5 lg:hidden">
                     {buildPropertyTags(property).map((tag) => (
-                      <span key={tag} className="rounded-full border border-[#8f877d] px-2.5 py-1 text-[9px] font-medium uppercase tracking-[0.18em] text-[#625c56]">
-                        {tag}
-                      </span>
+                      <span key={tag} className="rounded-full border border-[#8f877d] px-2.5 py-1 text-[9px] font-medium uppercase tracking-[0.18em] text-[#625c56]">{tag}</span>
                     ))}
                   </div>
                 </div>
-
                 <div className="relative hidden min-h-[54px] items-center lg:flex">
                   <AnimatePresence mode="wait">
                     {hoveredId === property.id && (
@@ -467,21 +667,24 @@ function AllPropertiesSection({ currentId }: { currentId: number }) {
                   </AnimatePresence>
                   <div className="flex flex-wrap gap-1.5 pl-[50%]">
                     {buildPropertyTags(property).map((tag) => (
-                      <span key={tag} className="rounded-full border border-[#8f877d] px-2.5 py-1 text-[9px] font-medium uppercase tracking-[0.18em] text-[#625c56]">
-                        {tag}
-                      </span>
+                      <span key={tag} className="rounded-full border border-[#8f877d] px-2.5 py-1 text-[9px] font-medium uppercase tracking-[0.18em] text-[#625c56]">{tag}</span>
                     ))}
                   </div>
                 </div>
-
                 <div className="hidden items-center justify-end text-[#6b645c] transition-transform duration-300 group-hover:translate-x-1 group-hover:text-[#171717] lg:flex">
                   <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.6">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M5 12h14M13 5l7 7-7 7" />
                   </svg>
                 </div>
-              </Link>
+              </a>
             </motion.div>
           ))}
+          {filtered.length === 0 && (
+            <div className="py-12 text-center">
+              <p className="text-sm text-[#888]">ไม่พบรายการตามเงื่อนไข</p>
+              <button onClick={clearFilters} className="mt-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#171717] underline underline-offset-4">ล้างตัวกรอง</button>
+            </div>
+          )}
         </div>
       </div>
     </section>
@@ -579,10 +782,10 @@ export default function PropertyDetailPage() {
         className="bg-white flex flex-col"
         style={{ minHeight: '38vh', paddingTop: '72px' }}
       >
-        {/* Brand centered at top */}
-        <div className="flex justify-center pt-8 pb-4">
-          <span className="text-[11px] font-semibold tracking-[0.45em] uppercase text-[#aaa]">
-            SKNAT
+        {/* Brand centered at very top — matches hero.tsx style */}
+        <div className="flex justify-center pt-8">
+          <span className="text-sm font-medium tracking-[0.2em] uppercase text-[#0a0a0a]">
+            sknat
           </span>
         </div>
 
@@ -598,7 +801,7 @@ export default function PropertyDetailPage() {
 
           {/* Property title — large centered */}
           <h1
-            className="font-light text-[#171717] leading-[1.02]"
+            className="font-light text-[#0a0a0a] leading-[1.02]"
             style={{
               fontSize: 'clamp(2.4rem, 5.5vw, 5rem)',
               maxWidth: '900px',
@@ -609,7 +812,7 @@ export default function PropertyDetailPage() {
           </h1>
 
           {/* Location row */}
-          <div className="flex flex-wrap items-center justify-center gap-3 mt-8 text-sm text-[#6b645c]">
+          <div className="flex flex-wrap items-center justify-center gap-3 mt-8 text-[15px] font-medium text-[#49443f]">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
               <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
