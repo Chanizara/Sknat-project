@@ -9,6 +9,7 @@ import { motion, AnimatePresence } from "framer-motion";
 
 import { buildPriceLabel, formatPrice, formatUpdatedAt } from "@/lib/property-format";
 import { type Property } from "@/types/property";
+import { useFavoritesStore } from "@/lib/favorites-store";
 import BeforeFooter from "@/app/component/before_footer";
 import Contact from "@/app/component/contact";
 
@@ -170,6 +171,22 @@ function FluidSection({
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [activeIdx, setActiveIdx] = useState(0);
+  const { addFavorite, removeFavorite, isFavorite } = useFavoritesStore();
+
+  const handleToggleFavorite = (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+
+    if (isFavorite(property.id)) {
+      removeFavorite(property.id);
+      return;
+    }
+
+    const success = addFavorite(property);
+    if (!success && !isFavorite(property.id)) {
+      alert('คุณสามารถเลือกได้สูงสุด 3 บ้านเท่านั้น เพื่อนำไป Compare กัน');
+    }
+  };
 
   useEffect(() => {
     const container = containerRef.current;
@@ -235,7 +252,30 @@ function FluidSection({
           <div className="pt-6 flex flex-col h-full">
             {/* Price */}
             <div className="mb-7 pb-7" style={{ borderBottom: '1px solid #e8e8e8' }}>
-              <p className="text-[11px] font-semibold tracking-[0.22em] uppercase text-[#555] mb-2">ราคา</p>
+              <div className="mb-2 flex items-center justify-between gap-3">
+                <p className="text-[11px] font-semibold tracking-[0.22em] uppercase text-[#555]">ราคา</p>
+                <button
+                  type="button"
+                  onClick={handleToggleFavorite}
+                  className={`inline-flex h-9 w-9 items-center justify-center rounded-full border transition ${
+                    isFavorite(property.id)
+                      ? 'border-red-500 bg-red-500 text-white'
+                      : 'border-[#8f877d] bg-white text-[#2a2724] hover:border-[#171717]'
+                  }`}
+                  aria-label={isFavorite(property.id) ? 'ลบจากรายการโปรด' : 'เพิ่มในรายการโปรด'}
+                  title={isFavorite(property.id) ? 'ลบจากรายการโปรด' : 'เพิ่มในรายการโปรด'}
+                >
+                  <svg
+                    className="h-4 w-4"
+                    fill={isFavorite(property.id) ? 'currentColor' : 'none'}
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                  </svg>
+                </button>
+              </div>
               <p className="text-[2.4rem] font-semibold text-[#0a0a0a] tracking-tight leading-none">
                 {buildPriceLabel(property)}
               </p>
@@ -470,6 +510,7 @@ function FluidSection({
 // ─── All Properties Section ───────────────────────────────────────────────────
 function AllPropertiesSection({ currentId }: { currentId: number }) {
   const router = useRouter();
+  const { addFavorite, removeFavorite, isFavorite } = useFavoritesStore();
   const [allProperties, setAllProperties] = useState<Property[]>([]);
   const [hoveredId, setHoveredId] = useState<number | null>(null);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -512,6 +553,21 @@ function AllPropertiesSection({ currentId }: { currentId: number }) {
     e.preventDefault();
     window.scrollTo({ top: 0, behavior: 'instant' });
     router.push(`/property/${id}`);
+  };
+
+  const handleToggleFavorite = (property: Property, event: React.MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+
+    if (isFavorite(property.id)) {
+      removeFavorite(property.id);
+      return;
+    }
+
+    const success = addFavorite(property);
+    if (!success && !isFavorite(property.id)) {
+      alert('คุณสามารถเลือกได้สูงสุด 3 บ้านเท่านั้น เพื่อนำไป Compare กัน');
+    }
   };
 
   if (allProperties.length === 0) return null;
@@ -640,9 +696,31 @@ function AllPropertiesSection({ currentId }: { currentId: number }) {
                 className="group relative grid items-center gap-3 border-b border-[#8f877d] bg-white px-1 py-3 transition-colors duration-300 md:px-2 lg:grid-cols-[0.95fr_1.45fr_42px]"
               >
                 <div className="min-w-0 lg:pr-8">
-                  <h3 className="truncate text-[1.28rem] font-light tracking-[-0.035em] text-[#49443f] transition-colors duration-300 group-hover:text-[#171717] md:text-[1.4rem]">
-                    {property.title}
-                  </h3>
+                  <div className="flex items-center gap-2">
+                    <h3 className="truncate text-[1.28rem] font-light tracking-[-0.035em] text-[#49443f] transition-colors duration-300 group-hover:text-[#171717] md:text-[1.4rem]">
+                      {property.title}
+                    </h3>
+                    <button
+                      type="button"
+                      onClick={(event) => handleToggleFavorite(property, event)}
+                      className={`inline-flex h-8 w-8 items-center justify-center rounded-full border transition lg:hidden ${
+                        isFavorite(property.id)
+                          ? 'border-red-500 bg-red-500 text-white'
+                          : 'border-[#8f877d] bg-white text-[#2a2724] hover:border-[#171717]'
+                      }`}
+                      aria-label={isFavorite(property.id) ? 'ลบจากรายการโปรด' : 'เพิ่มในรายการโปรด'}
+                    >
+                      <svg
+                        className="h-3 w-3"
+                        fill={isFavorite(property.id) ? 'currentColor' : 'none'}
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                      </svg>
+                    </button>
+                  </div>
                   <p className="mt-1 truncate text-[0.8rem] text-[#625c56] md:text-[0.84rem]">{property.location}</p>
                   <div className="mt-2 flex flex-wrap gap-1.5 lg:hidden">
                     {buildPropertyTags(property).map((tag) => (
@@ -671,7 +749,27 @@ function AllPropertiesSection({ currentId }: { currentId: number }) {
                     ))}
                   </div>
                 </div>
-                <div className="hidden items-center justify-end text-[#6b645c] transition-transform duration-300 group-hover:translate-x-1 group-hover:text-[#171717] lg:flex">
+                <div className="hidden items-center justify-end gap-3 text-[#6b645c] transition-transform duration-300 group-hover:translate-x-1 group-hover:text-[#171717] lg:flex">
+                  <button
+                    type="button"
+                    onClick={(event) => handleToggleFavorite(property, event)}
+                    className={`inline-flex h-8 w-8 items-center justify-center rounded-full border transition ${
+                      isFavorite(property.id)
+                        ? 'border-red-500 bg-red-500 text-white'
+                        : 'border-[#8f877d] bg-white text-[#2a2724] hover:border-[#171717]'
+                    }`}
+                    aria-label={isFavorite(property.id) ? 'ลบจากรายการโปรด' : 'เพิ่มในรายการโปรด'}
+                  >
+                    <svg
+                      className="h-3 w-3"
+                      fill={isFavorite(property.id) ? 'currentColor' : 'none'}
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                    </svg>
+                  </button>
                   <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.6">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M5 12h14M13 5l7 7-7 7" />
                   </svg>
