@@ -13,47 +13,34 @@ import {
   ClockIcon,
 } from "./components/Icons";
 
-// Modern Stat Card Component
 function StatCard({
   title,
   value,
   subtext,
   change,
   icon: Icon,
-  gradient,
 }: {
   title: string;
   value: string | number;
   subtext: string;
   change: string;
   icon: React.ElementType;
-  gradient: string;
 }) {
   return (
-    <div className={`group relative overflow-hidden rounded-2xl ${gradient} p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1`}>
-      {/* Background decorations */}
-      <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-      <div className="absolute bottom-0 left-0 w-24 h-24 bg-black/10 rounded-full blur-2xl translate-y-1/2 -translate-x-1/2" />
-      
-      {/* Content */}
-      <div className="relative">
-        {/* Header */}
-        <div className="flex items-start justify-between mb-4">
-          <div className="w-14 h-14 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-            <Icon className="w-7 h-7 text-white" />
-          </div>
-          <div className="flex items-center gap-1 px-3 py-1.5 bg-white/20 backdrop-blur-sm rounded-full">
-            <TrendingUpIcon className="w-3.5 h-3.5 text-white" />
-            <span className="text-xs font-bold text-white">{change}</span>
-          </div>
+    <div className="group bg-white border border-neutral-100 p-6 rounded-3xl shadow-[0_2px_20px_-4px_rgba(0,0,0,0.04)] hover:shadow-[0_8px_30px_-4px_rgba(0,0,0,0.08)] hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between h-full">
+      <div className="flex items-start justify-between mb-4">
+        <div className="w-12 h-12 border border-neutral-100 bg-neutral-50/50 rounded-2xl flex items-center justify-center group-hover:bg-black group-hover:border-black transition-colors duration-300">
+          <Icon className="w-5 h-5 text-neutral-600 group-hover:text-white transition-colors" />
         </div>
-
-        {/* Stats */}
-        <div>
-          <p className="text-white/80 text-sm font-medium mb-1">{title}</p>
-          <p className="text-4xl font-bold text-white mb-1">{value}</p>
-          <p className="text-white/70 text-xs">{subtext}</p>
+        <div className="flex items-center gap-1 bg-neutral-50 px-2.5 py-1 rounded-full border border-neutral-100">
+          <TrendingUpIcon className="w-3.5 h-3.5 text-neutral-500" />
+          <span className="text-[11px] font-semibold text-neutral-600">{change}</span>
         </div>
+      </div>
+      <div>
+        <p className="text-neutral-500 text-xs tracking-wider uppercase mb-1.5">{title}</p>
+        <p className="text-4xl font-light text-black tracking-tight mb-2">{value}</p>
+        <p className="text-neutral-400 text-xs">{subtext}</p>
       </div>
     </div>
   );
@@ -71,168 +58,92 @@ export default function AdminDashboard() {
     {
       id: 1,
       icon: CheckCircleIcon,
-      title: "ขายสำเร็จ",
-      description: "คอนโด Lumpini Suite ราคา 3.2 ล้านบาท",
-      time: "5 นาทีที่แล้ว",
-      color: "emerald",
+      title: "Sale Completed",
+      description: "Lumpini Suite Condo - ฿3.2M",
+      time: "5m ago",
     },
     {
       id: 2,
       icon: BuildingIcon,
-      title: "ทรัพย์สินใหม่",
-      description: "บ้านเดี่ยว 2 ชั้น หมู่บ้านสวนดอก",
-      time: "15 นาทีที่แล้ว",
-      color: "blue",
+      title: "New Property",
+      description: "2-Story House, Suandok Village",
+      time: "15m ago",
     },
     {
       id: 3,
       icon: ClockIcon,
-      title: "รอการติดต่อ",
-      description: "คุณสมชาย ใจดี สนใจทาวน์โฮม #1234",
-      time: "1 ชั่วโมงที่แล้ว",
-      color: "amber",
+      title: "Pending Contact",
+      description: "Somchai Jaidee - Townhome #1234",
+      time: "1h ago",
     },
     {
       id: 4,
       icon: MembersIcon,
-      title: "สมาชิกใหม่",
-      description: "คุณสมหญิง รักดี ลงทะเบียนเข้าระบบ",
-      time: "2 ชั่วโมงที่แล้ว",
-      color: "violet",
+      title: "New Member",
+      description: "Somying Rakdee registered",
+      time: "2h ago",
     },
   ];
 
   const quickActions = [
-    {
-      title: "เพิ่มทรัพย์สิน",
-      description: "เพิ่มอสังหาฯ ใหม่",
-      icon: BuildingIcon,
-      href: "/admin/properties",
-      color: "bg-blue-500",
-    },
-    {
-      title: "ตรวจสอบคำสั่งซื้อ",
-      description: "รายการรอดำเนินการ",
-      icon: ClipboardIcon,
-      href: "/admin/orders",
-      color: "bg-purple-500",
-    },
-    {
-      title: "จัดการสมาชิก",
-      description: "ดูรายชื่อลูกค้า",
-      icon: MembersIcon,
-      href: "/admin/members",
-      color: "bg-indigo-500",
-    },
+    { title: "Add Property", icon: BuildingIcon, href: "/admin/properties" },
+    { title: "Review Orders", icon: ClipboardIcon, href: "/admin/orders" },
+    { title: "Manage Members", icon: MembersIcon, href: "/admin/members" },
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20 p-6 md:p-8">
+    <div className="min-h-screen bg-white p-6 md:p-10 font-sans">
       {/* Header */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-900 via-indigo-800 to-violet-900 bg-clip-text text-transparent mb-2">
-              Dashboard
-            </h1>
-            <p className="text-slate-600">ภาพรวมระบบจัดการอสังหาริมทรัพย์</p>
-          </div>
-          <div className="hidden md:flex items-center gap-3 px-5 py-3 bg-white rounded-xl shadow-md border border-slate-200">
-            <div className="text-right">
-              <p className="text-xs text-slate-500 font-medium">วันนี้</p>
-              <p className="text-sm font-bold text-slate-800">24 ก.พ. 2026</p>
-            </div>
-          </div>
+      <div className="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-light tracking-tight text-black mb-1">
+            Overview
+          </h1>
+          <p className="text-sm text-neutral-500 tracking-wide">
+            Real Estate Management System
+          </p>
+        </div>
+        <div className="flex items-center text-sm bg-neutral-50 px-4 py-2 border border-neutral-100 rounded-full">
+          <span className="text-neutral-400 uppercase tracking-widest text-[10px] font-semibold mr-3">Date</span>
+          <span className="text-black font-medium pb-0.5">Feb 24, 2026</span>
         </div>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <StatCard
-          title="ผู้ใช้งาน"
-          value={stats.totalUsers}
-          subtext="เจ้าหน้าที่ในระบบ"
-          change="+5"
-          icon={UserGroupIcon}
-          gradient="bg-gradient-to-br from-blue-400 via-blue-500 to-indigo-500"
-        />
-        <StatCard
-          title="สมาชิก"
-          value={stats.totalMembers}
-          subtext="ลูกค้าในระบบ"
-          change="+12"
-          icon={MembersIcon}
-          gradient="bg-gradient-to-br from-purple-400 via-purple-500 to-indigo-500"
-        />
-        <StatCard
-          title="ทรัพย์สิน"
-          value={stats.totalProperties}
-          subtext="อสังหาริมทรัพย์"
-          change="+8"
-          icon={BuildingIcon}
-          gradient="bg-gradient-to-br from-emerald-400 via-teal-500 to-cyan-500"
-        />
-        <StatCard
-          title="คำสั่งซื้อ"
-          value={stats.pendingOrders}
-          subtext="รอดำเนินการ"
-          change="+2"
-          icon={ClipboardIcon}
-          gradient="bg-gradient-to-br from-orange-400 via-amber-400 to-yellow-500"
-        />
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+        <StatCard title="Staff" value={stats.totalUsers} subtext="System administrators" change="+5" icon={UserGroupIcon} />
+        <StatCard title="Members" value={stats.totalMembers} subtext="Registered clients" change="+12" icon={MembersIcon} />
+        <StatCard title="Assets" value={stats.totalProperties} subtext="Total properties" change="+8" icon={BuildingIcon} />
+        <StatCard title="Orders" value={stats.pendingOrders} subtext="Pending transactions" change="+2" icon={ClipboardIcon} />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Recent Activities */}
         <div className="lg:col-span-2">
-          <div className="bg-white rounded-2xl shadow-lg border border-slate-200">
-            <div className="p-6 border-b border-slate-100">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="text-xl font-bold text-slate-900">กิจกรรมล่าสุด</h2>
-                  <p className="text-sm text-slate-500 mt-1">อัปเดตล่าสุดของระบบ</p>
-                </div>
-                <Link
-                  href="/admin/history"
-                  className="text-sm font-semibold text-blue-600 hover:text-blue-700 transition-colors"
-                >
-                  ดูทั้งหมด →
-                </Link>
-              </div>
+          <div className="bg-white border border-neutral-100 rounded-3xl shadow-[0_4px_20px_-4px_rgba(0,0,0,0.03)] overflow-hidden">
+            <div className="p-6 border-b border-neutral-100 flex items-center justify-between">
+              <h2 className="text-sm font-semibold text-black tracking-wide uppercase">Recent Activity</h2>
+              <Link href="/admin/history" className="text-xs text-neutral-500 hover:text-black transition-colors uppercase tracking-widest bg-neutral-50 hover:bg-neutral-100 px-3 py-1.5 rounded-full border border-neutral-100">
+                View All
+              </Link>
             </div>
-            <div className="p-6">
-              <div className="space-y-4">
+            <div className="p-2">
+              <div className="divide-y divide-neutral-100/50">
                 {recentActivities.map((activity) => {
                   const Icon = activity.icon;
-                  const colorClasses = {
-                    emerald: "bg-emerald-100 text-emerald-600",
-                    blue: "bg-blue-100 text-blue-600",
-                    amber: "bg-amber-100 text-amber-600",
-                    violet: "bg-violet-100 text-violet-600",
-                  };
-
                   return (
-                    <div
-                      key={activity.id}
-                      className="flex items-start gap-4 p-4 rounded-xl hover:bg-slate-50 transition-all duration-200 group cursor-pointer"
-                    >
-                      <div
-                        className={`w-12 h-12 rounded-xl flex items-center justify-center ${
-                          colorClasses[activity.color as keyof typeof colorClasses]
-                        } group-hover:scale-110 transition-transform duration-200`}
-                      >
-                        <Icon className="w-6 h-6" />
+                    <div key={activity.id} className="flex items-center gap-5 p-4 mx-2 my-1 hover:bg-neutral-50 rounded-2xl transition-all duration-300 group cursor-pointer">
+                      <div className="w-12 h-12 border border-neutral-100/50 rounded-2xl flex items-center justify-center bg-white group-hover:border-black/10 group-hover:shadow-sm transition-all duration-300">
+                        <Icon className="w-5 h-5 text-neutral-500 group-hover:text-black transition-colors" />
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-start justify-between gap-2">
-                          <div>
-                            <p className="font-semibold text-slate-900">{activity.title}</p>
-                            <p className="text-sm text-slate-600 mt-0.5">{activity.description}</p>
-                          </div>
-                          <span className="text-xs text-slate-400 whitespace-nowrap">
-                            {activity.time}
-                          </span>
+                      <div className="flex-1 min-w-0 flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-black">{activity.title}</p>
+                          <p className="text-xs text-neutral-500 mt-1">{activity.description}</p>
                         </div>
+                        <span className="text-[10px] uppercase text-neutral-400 tracking-widest bg-neutral-50 px-2.5 py-1 rounded-full border border-neutral-100">
+                          {activity.time}
+                        </span>
                       </div>
                     </div>
                   );
@@ -242,61 +153,58 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        {/* Quick Actions */}
-        <div className="space-y-6">
-          {/* Quick Stats */}
-          <div className="bg-gradient-to-br from-blue-400 via-indigo-500 to-violet-500 rounded-2xl shadow-xl p-6 text-white">
-            <h3 className="text-lg font-bold mb-4">สถิติด่วน</h3>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between p-3 bg-white/10 backdrop-blur-sm rounded-xl">
+        {/* Quick Actions & Stats */}
+        <div className="space-y-8">
+          {/* Highlight Box */}
+          <div className="bg-black text-white p-8 rounded-3xl shadow-[0_8px_30px_-4px_rgba(0,0,0,0.2)] relative overflow-hidden">
+            {/* Decorative blurs */}
+            <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+            <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/5 rounded-full blur-3xl translate-y-1/2 -translate-x-1/4" />
+            
+            <h3 className="text-xs font-semibold uppercase tracking-widest text-neutral-400 mb-8 relative z-10">Quick Stats</h3>
+            <div className="space-y-6 relative z-10">
+              <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs text-white/80">ยอดขายวันนี้</p>
-                  <p className="text-xl font-bold">฿1.2M</p>
+                  <p className="text-[10px] text-neutral-400 uppercase tracking-widest mb-1.5">Today's Sales</p>
+                  <p className="text-3xl font-light tracking-tight">฿1.2M</p>
                 </div>
-                <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
-                  <ArrowUpIcon className="w-5 h-5" />
+                <div className="w-12 h-12 border border-white/10 bg-white/5 rounded-2xl flex items-center justify-center backdrop-blur-sm">
+                  <ArrowUpIcon className="w-5 h-5 text-white" />
                 </div>
               </div>
-              <div className="flex items-center justify-between p-3 bg-white/10 backdrop-blur-sm rounded-xl">
+              <div className="h-px w-full bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+              <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs text-white/80">ทรัพย์สินใหม่</p>
-                  <p className="text-xl font-bold">+23</p>
+                  <p className="text-[10px] text-neutral-400 uppercase tracking-widest mb-1.5">New Listings</p>
+                  <p className="text-2xl font-light tracking-tight">+23</p>
                 </div>
-                <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
-                  <BuildingIcon className="w-5 h-5" />
-                </div>
-              </div>
-              <div className="flex items-center justify-between p-3 bg-white/10 backdrop-blur-sm rounded-xl">
-                <div>
-                  <p className="text-xs text-white/80">สมาชิกใหม่</p>
-                  <p className="text-xl font-bold">+47</p>
-                </div>
-                <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
-                  <MembersIcon className="w-5 h-5" />
+                <div className="w-12 h-12 border border-white/10 bg-white/5 rounded-2xl flex items-center justify-center backdrop-blur-sm">
+                  <BuildingIcon className="w-5 h-5 text-white" />
                 </div>
               </div>
             </div>
           </div>
 
           {/* Quick Actions */}
-          <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-6">
-            <h3 className="text-lg font-bold text-slate-900 mb-4">เมนูด่วน</h3>
-            <div className="space-y-3">
+          <div className="bg-white border border-neutral-100 rounded-3xl shadow-[0_4px_20px_-4px_rgba(0,0,0,0.03)] overflow-hidden">
+            <h3 className="text-xs font-semibold uppercase tracking-widest text-black p-6 border-b border-neutral-100">Quick Actions</h3>
+            <div className="p-3 space-y-1">
               {quickActions.map((action, index) => {
                 const Icon = action.icon;
                 return (
                   <Link
                     key={index}
                     href={action.href}
-                    className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 transition-all duration-200 group"
+                    className="flex items-center gap-4 p-3 hover:bg-neutral-50 rounded-2xl transition-all duration-300 group"
                   >
-                    <div className={`w-10 h-10 ${action.color} rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-200`}>
-                      <Icon className="w-5 h-5 text-white" />
+                    <div className="w-10 h-10 border border-neutral-100/50 rounded-xl flex items-center justify-center bg-white group-hover:border-black/10 transition-colors">
+                      <Icon className="w-4 h-4 text-neutral-500 group-hover:text-black transition-colors" />
                     </div>
-                    <div>
-                      <p className="font-semibold text-slate-900 text-sm">{action.title}</p>
-                      <p className="text-xs text-slate-500">{action.description}</p>
-                    </div>
+                    <span className="text-sm text-neutral-600 group-hover:text-black transition-colors font-medium">
+                      {action.title}
+                    </span>
+                    <div className="flex-1" />
+                    <span className="text-neutral-300 group-hover:text-black opacity-0 group-hover:opacity-100 transition-all text-xs mr-2">→</span>
                   </Link>
                 );
               })}

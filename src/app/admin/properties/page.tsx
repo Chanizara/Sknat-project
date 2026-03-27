@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import {
   ArrowLeftIcon,
@@ -71,6 +71,50 @@ export default function PropertiesPage() {
   const [showModal, setShowModal] = useState(false);
   const [editingProperty, setEditingProperty] = useState<Property | null>(null);
 
+  // Image Upload State
+  const [imageInputType, setImageInputType] = useState<"file" | "url">("file");
+  const [propertyImage, setPropertyImage] = useState<string | null>(null);
+  const [imageUrlInput, setImageUrlInput] = useState("");
+
+  const openModal = (property: Property | null = null) => {
+    setEditingProperty(property);
+    setPropertyImage(property?.image || null);
+    setImageUrlInput(property?.image || "");
+    setShowModal(true);
+  };
+
+  const handleSave = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    
+    const newProperty: Property = {
+      id: editingProperty ? editingProperty.id : Date.now(),
+      title: formData.get("title") as string,
+      type: formData.get("type") as any,
+      price: Number(formData.get("price")),
+      location: formData.get("location") as string,
+      area: Number(formData.get("area")),
+      bedrooms: Number(formData.get("bedrooms")) || undefined,
+      bathrooms: Number(formData.get("bathrooms")) || undefined,
+      status: editingProperty ? editingProperty.status : "available",
+      image: propertyImage || undefined,
+    };
+
+    if (editingProperty) {
+      setProperties(properties.map(p => p.id === editingProperty.id ? newProperty : p));
+    } else {
+      setProperties([...properties, newProperty]);
+    }
+    
+    setShowModal(false);
+  };
+
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const filteredProperties = properties.filter((property) => {
     const matchesSearch =
       property.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -124,6 +168,8 @@ export default function PropertiesPage() {
     "บ้านแฝด": "from-cyan-500 to-cyan-600",
   };
 
+  if (!mounted) return null;
+
   return (
     <div className="min-h-screen">
       {/* Header */}
@@ -147,10 +193,7 @@ export default function PropertiesPage() {
               </div>
             </div>
             <button
-              onClick={() => {
-                setEditingProperty(null);
-                setShowModal(true);
-              }}
+              onClick={() => openModal(null)}
               className="px-5 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-sm font-medium rounded-xl shadow-lg shadow-blue-500/25 hover:shadow-xl hover:shadow-blue-500/30 transition-all flex items-center gap-2"
             >
               <PlusIcon className="w-4 h-4" />
@@ -231,9 +274,13 @@ export default function PropertiesPage() {
             >
               {/* Image */}
               <div className="relative h-48 bg-gradient-to-br from-slate-100 to-slate-200 overflow-hidden">
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <BuildingIcon className="w-16 h-16 text-slate-300" />
-                </div>
+                {property.image ? (
+                  <img src={property.image} alt={property.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                ) : (
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <BuildingIcon className="w-16 h-16 text-slate-300" />
+                  </div>
+                )}
                 
                 {/* Type Badge */}
                 <div className="absolute top-4 left-4">
@@ -289,10 +336,7 @@ export default function PropertiesPage() {
 
                 <div className="flex gap-2 pt-4 border-t border-slate-100">
                   <button
-                    onClick={() => {
-                      setEditingProperty(property);
-                      setShowModal(true);
-                    }}
+                    onClick={() => openModal(property)}
                     className="flex-1 px-4 py-2.5 bg-slate-50 text-slate-600 rounded-xl text-sm font-medium hover:bg-blue-50 hover:text-blue-600 transition-all"
                   >
                     แก้ไข
@@ -326,7 +370,7 @@ export default function PropertiesPage() {
             <h3 className="text-lg font-bold text-slate-800 mb-6">
               {editingProperty ? "แก้ไขข้อมูลอสังหาฯ" : "เพิ่มอสังหาฯ ใหม่"}
             </h3>
-            <form className="space-y-4">
+            <form className="space-y-4" onSubmit={handleSave}>
               <div className="grid grid-cols-2 gap-4">
                 <div className="col-span-2">
                   <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2">
@@ -334,6 +378,8 @@ export default function PropertiesPage() {
                   </label>
                   <input
                     type="text"
+                    name="title"
+                    required
                     defaultValue={editingProperty?.title}
                     className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
                     placeholder="เช่น บ้านเดี่ยว 2 ชั้น ..."
@@ -344,6 +390,7 @@ export default function PropertiesPage() {
                     ประเภท
                   </label>
                   <select
+                    name="type"
                     defaultValue={editingProperty?.type}
                     className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
                   >
@@ -360,6 +407,8 @@ export default function PropertiesPage() {
                   </label>
                   <input
                     type="number"
+                    name="price"
+                    required
                     defaultValue={editingProperty?.price}
                     className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
                     placeholder="0"
@@ -371,6 +420,8 @@ export default function PropertiesPage() {
                   </label>
                   <input
                     type="text"
+                    name="location"
+                    required
                     defaultValue={editingProperty?.location}
                     className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
                     placeholder="เช่น บางนา กรุงเทพฯ"
@@ -382,6 +433,8 @@ export default function PropertiesPage() {
                   </label>
                   <input
                     type="number"
+                    name="area"
+                    required
                     defaultValue={editingProperty?.area}
                     className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
                     placeholder="0"
@@ -394,6 +447,7 @@ export default function PropertiesPage() {
                     </label>
                     <input
                       type="number"
+                      name="bedrooms"
                       defaultValue={editingProperty?.bedrooms}
                       className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
                       placeholder="0"
@@ -405,11 +459,115 @@ export default function PropertiesPage() {
                     </label>
                     <input
                       type="number"
+                      name="bathrooms"
                       defaultValue={editingProperty?.bathrooms}
                       className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
                       placeholder="0"
                     />
                   </div>
+                </div>
+
+                {/* Image Upload Section */}
+                <div className="col-span-2 mt-2 p-5 bg-slate-50 rounded-2xl border border-slate-100">
+                  <label className="block text-sm font-semibold text-slate-800 mb-4">
+                    รูปภาพประกอบ
+                  </label>
+                  
+                  <div className="flex gap-4 mb-4">
+                    <button
+                      type="button"
+                      onClick={() => setImageInputType("file")}
+                      className={`text-sm font-medium pb-2 border-b-2 transition-all ${
+                        imageInputType === "file" 
+                          ? "text-blue-600 border-blue-600" 
+                          : "text-slate-400 border-transparent hover:text-slate-600"
+                      }`}
+                    >
+                      อัปโหลดรูปภาพ
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setImageInputType("url")}
+                      className={`text-sm font-medium pb-2 border-b-2 transition-all ${
+                        imageInputType === "url" 
+                          ? "text-blue-600 border-blue-600" 
+                          : "text-slate-400 border-transparent hover:text-slate-600"
+                      }`}
+                    >
+                      ใช้ลิงก์รูปภาพ
+                    </button>
+                  </div>
+
+                  <div className="mb-4">
+                    {imageInputType === "file" ? (
+                      <div className="border-2 border-dashed border-slate-300 bg-white rounded-xl p-8 text-center hover:bg-slate-50 hover:border-blue-400 transition-colors">
+                        <input 
+                          type="file" 
+                          accept="image/*" 
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              const url = URL.createObjectURL(file);
+                              setPropertyImage(url);
+                            }
+                          }}
+                          className="hidden" 
+                          id="file-upload" 
+                        />
+                        <label htmlFor="file-upload" className="cursor-pointer flex flex-col items-center justify-center">
+                          <div className="w-12 h-12 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center mb-3">
+                            <PlusIcon className="w-6 h-6" />
+                          </div>
+                          <span className="text-sm font-medium text-slate-700">คลิกเพื่อเลือกไฟล์</span>
+                          <span className="text-xs text-slate-400 mt-1">รองรับ JPG, PNG (สูงสุด 5MB)</span>
+                        </label>
+                      </div>
+                    ) : (
+                      <div className="flex gap-2">
+                        <input
+                          type="url"
+                          value={imageUrlInput}
+                          onChange={(e) => setImageUrlInput(e.target.value)}
+                          placeholder="วางลิงก์รูปภาพที่นี่ (https://...)"
+                          className="flex-1 px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (imageUrlInput) setPropertyImage(imageUrlInput);
+                          }}
+                          className="px-5 py-3 bg-slate-800 text-white rounded-xl text-sm font-medium hover:bg-slate-700 transition-all"
+                        >
+                          ตกลง
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Image Preview */}
+                  {propertyImage && (
+                    <div className="mt-4">
+                      <p className="text-xs font-semibold text-slate-500 mb-2">รูปภาพที่เลือก:</p>
+                      <div className="relative inline-block group">
+                        <img 
+                          src={propertyImage} 
+                          alt="Preview" 
+                          className="w-full max-w-[200px] h-32 object-cover rounded-xl border border-slate-200 shadow-sm"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setPropertyImage(null);
+                            setImageUrlInput("");
+                          }}
+                          className="absolute -top-2 -right-2 w-7 h-7 bg-red-500 text-white rounded-full flex items-center justify-center text-xs hover:bg-red-600 shadow-lg scale-0 group-hover:scale-100 transition-transform"
+                          title="ลบรูปภาพ"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
               <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-slate-100">
@@ -421,8 +579,7 @@ export default function PropertiesPage() {
                   ยกเลิก
                 </button>
                 <button
-                  type="button"
-                  onClick={() => setShowModal(false)}
+                  type="submit"
                   className="px-5 py-2.5 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl shadow-lg shadow-blue-500/25 hover:shadow-xl transition-all"
                 >
                   บันทึก

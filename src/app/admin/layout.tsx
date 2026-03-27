@@ -24,7 +24,7 @@ export default function AdminLayout({
 
   return (
     <SidebarContext.Provider value={{ isOpen, setIsOpen }}>
-      <div className="flex min-h-screen bg-slate-50">
+      <div className="flex min-h-screen bg-white text-neutral-900 selection:bg-black selection:text-white">
         <Sidebar isOpen={isOpen} setIsOpen={setIsOpen} />
         <main 
           className={`flex-1 transition-all duration-300 ease-out ${
