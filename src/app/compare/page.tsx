@@ -5,6 +5,8 @@ import Link from "next/link";
 import { Raleway } from "next/font/google";
 import { useFavoritesStore } from "@/lib/favorites-store";
 import { buildPriceLabel, formatPrice } from "@/lib/property-format";
+import Contact from "@/app/component/contact";
+import BeforeFooter from "@/app/component/before_footer";
 
 const headingFont = Raleway({
   subsets: ["latin"],
@@ -46,11 +48,11 @@ export default function ComparePage() {
       <CompareHero />
 
       {/* Comparison Grid */}
-      <div className="container mx-auto px-4 py-8">
-        <div className="mb-8 border-b border-slate-200 pb-5 text-center">
+      <div className="container mx-auto px-4 py-12">
+        <div className="mb-12 border-b border-slate-300 pb-8 text-center">
           <div>
-            <h1 className={`${headingFont.className} text-xl font-light text-slate-900`}>choose your best house</h1>
-            <p className="text-xs text-slate-500">เลือกแล้ว {favorites.length} จาก 3 หลัง</p>
+            <h1 className={`${headingFont.className} text-3xl font-light text-slate-900 mb-2`}>choose your best house</h1>
+            <p className="text-sm text-slate-500">เลือกแล้ว {favorites.length} จาก 3 หลัง</p>
           </div>
         </div>
 
@@ -58,7 +60,7 @@ export default function ComparePage() {
           {favorites.map((property) => (
             <article
               key={property.id}
-              className="border-t border-[#8f877d] pt-5"
+              className="border-t border-slate-300 pt-6"
             >
               {/* Image */}
               <div className="relative h-64 overflow-hidden rounded-none">
@@ -96,7 +98,7 @@ export default function ComparePage() {
                 </div>
 
                 {/* Price */}
-                <div className="border-t border-[#c9c2bb] pt-4">
+                <div className="border-t border-slate-300 pt-5">
                   <p className="text-xs text-slate-500 mb-1">ราคา</p>
                   <p className="text-2xl font-bold text-slate-900">{buildPriceLabel(property)}</p>
                   {property.pricePerSqm && (
@@ -105,7 +107,7 @@ export default function ComparePage() {
                 </div>
 
                 {/* Details Grid */}
-                <div className="space-y-3 border-t border-[#c9c2bb] pt-4">
+                <div className="space-y-3 border-t border-slate-300 pt-5">
                   <DetailRow label="ประเภท" value={property.propertyType || '-'} />
                   <DetailRow label="พื้นที่ใช้สอย" value={property.size ? `${property.size} ตร.ม.` : '-'} />
                   <DetailRow label="ห้องนอน" value={property.bedrooms ? `${property.bedrooms} ห้อง` : '-'} />
@@ -115,7 +117,7 @@ export default function ComparePage() {
 
                 {/* Features */}
                 {property.features && property.features.length > 0 && (
-                  <div className="border-t border-[#c9c2bb] pt-4">
+                  <div className="border-t border-slate-300 pt-5">
                     <p className="text-xs font-semibold text-slate-500 mb-2">สิ่งอำนวยความสะดวก</p>
                     <div className="flex flex-wrap gap-1.5">
                       {property.features.map((feature, index) => (
@@ -170,6 +172,12 @@ export default function ComparePage() {
           </p>
         </div>
       </div>
+
+      {/* Contact Section */}
+      <Contact />
+
+      {/* Before Footer Section */}
+      <BeforeFooter />
     </div>
   );
 }
