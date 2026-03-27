@@ -721,10 +721,14 @@ export default function AboutPage() {
       <OurProcessSection />
 
       {/* Section 5: Contact */}
-      <AboutContactSection />
-      
-      {/* Section 6: Before Footer */}
-      <BeforeFooter />
+      <div style={{ position: 'relative' }}>
+        <div style={{ position: 'sticky', top: 0, zIndex: 1 }}>
+          <AboutContactSection />
+        </div>
+        <div style={{ position: 'relative', zIndex: 2 }}>
+          <BeforeFooter />
+        </div>
+      </div>
     </main>
   );
 }

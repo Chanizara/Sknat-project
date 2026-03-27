@@ -20,8 +20,14 @@ export default async function Page() {
     <>
       <Hero />
       <MainPage properties={properties} />
-      <Contact />
-      <BeforeFooter />
+      <div style={{ position: 'relative' }}>
+        <div style={{ position: 'sticky', top: 0, zIndex: 1 }}>
+          <Contact />
+        </div>
+        <div style={{ position: 'relative', zIndex: 2 }}>
+          <BeforeFooter />
+        </div>
+      </div>
     </>
   );
 }
