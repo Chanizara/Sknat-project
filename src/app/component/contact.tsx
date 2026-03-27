@@ -104,11 +104,11 @@ export default function Contact() {
               className="mb-8 font-light leading-[0.95] text-[#171717] md:mb-10"
               style={{ fontSize: 'clamp(2.85rem, 5vw, 5.9rem)', letterSpacing: '-0.045em' }}
             >
-              เริ่มต้นทุกการลงทุน
+              Start every investment
               <br />
-              ด้วยความเข้าใจ
+              with the right
               <br />
-              ที่ถูกต้อง
+              understanding
             </h2>
 
             <p className="mb-10 max-w-xl text-sm leading-7 text-[#5f5a54] md:text-base">

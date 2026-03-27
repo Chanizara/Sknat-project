@@ -230,11 +230,11 @@ export default function AboutContactSection() {
             className="mb-6 text-4xl font-light leading-tight md:text-5xl lg:text-6xl"
             style={{ color: "#1a1a1a", lineHeight: "1.15", letterSpacing: "-0.02em" }}
           >
-            เริ่มต้นทุกการลงทุน
+            Start every investment
             <br />
-            ด้วยความเข้าใจ
+            with the right
             <br />
-            ที่ถูกต้อง
+            understanding
           </h2>
 
           <p className="mb-10 max-w-md text-sm leading-relaxed md:text-base" style={{ color: "#666", lineHeight: "1.7" }}>

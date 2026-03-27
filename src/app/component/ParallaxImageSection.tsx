@@ -106,12 +106,12 @@ export default function ParallaxImageSection() {
             SKNAT LUXURY PROPERTIES
           </p>
           <h2
-            className="text-4xl font-extralight leading-[1.18] md:text-5xl lg:text-6xl"
+            className="text-4xl font-light leading-[1.18] tracking-tight md:text-5xl lg:text-6xl"
             style={{ color: "rgba(255,255,255,0.90)" }}
           >
-            พื้นที่ที่บ่งบอก
+            A space that reflects
             <br />
-            <span className="font-semibold">ตัวตนของคุณ</span>
+            <span>who you are</span>
           </h2>
         </motion.div>
 
