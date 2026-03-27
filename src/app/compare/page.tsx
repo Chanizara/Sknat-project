@@ -190,13 +190,15 @@ function CompareHero() {
 
       <div className="compare-hero__center">
         <h2 className={`${headingFont.className} compare-hero__title`}>
-          It&apos;s your choice
+          <span className="compare-hero__title-line">It&apos;s</span>
+          <span className="compare-hero__title-line">your</span>
+          <span className="compare-hero__title-line">choice</span>
         </h2>
-
-        <span className="compare-hero__tag compare-hero__tag--1">THE TRUST YOU DESERVE</span>
-        <span className="compare-hero__tag compare-hero__tag--2">THE HOME YOU LOVE</span>
-        <span className="compare-hero__tag compare-hero__tag--3">THE DECISION YOU OWN</span>
       </div>
+
+      <span className="compare-hero__tag compare-hero__tag--1">THE TRUST YOU DESERVE</span>
+      <span className="compare-hero__tag compare-hero__tag--2">THE HOME YOU LOVE</span>
+      <span className="compare-hero__tag compare-hero__tag--3">THE DECISION YOU OWN</span>
     </section>
   );
 }

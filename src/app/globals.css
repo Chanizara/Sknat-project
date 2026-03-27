@@ -328,7 +328,8 @@ body {
 .compare-hero {
   position: relative;
   overflow: hidden;
-  min-height: clamp(360px, 52vw, 620px);
+  min-height: 100vh;
+  min-height: 100svh;
   background: #f0efee;
   border-bottom: 1px solid rgba(15, 23, 42, 0.08);
   padding: clamp(1.1rem, 2vw, 1.6rem) clamp(1rem, 3vw, 2rem) clamp(2rem, 4vw, 2.8rem);
@@ -381,10 +382,12 @@ body {
 }
 
 .compare-hero__center {
-  position: relative;
+  position: absolute;
+  left: 50%;
+  top: 52%;
+  transform: translate(-50%, -50%);
   z-index: 2;
   width: min(900px, 92%);
-  margin: clamp(2.1rem, 8vw, 4.8rem) auto 0;
   text-align: center;
 }
 
@@ -395,6 +398,10 @@ body {
   line-height: 0.95;
   letter-spacing: -0.035em;
   font-weight: 400;
+}
+
+.compare-hero__title-line {
+  display: block;
 }
 
 .compare-hero__tag {
@@ -410,31 +417,32 @@ body {
   white-space: nowrap;
   padding: 0.36rem 0.76rem;
   opacity: 0;
-  animation: compare-hero-tag-in 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation: compare-hero-tag-in 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+  will-change: transform, opacity;
 }
 
 .compare-hero__tag--1 {
-  right: 5%;
-  top: 12%;
-  animation-delay: 0.55s;
+  left: 68%;
+  top: 24%;
+  animation-delay: 0.45s;
 }
 
 .compare-hero__tag--2 {
-  right: 29%;
-  top: 50%;
+  left: 16%;
+  top: 58%;
   animation-delay: 0.95s;
 }
 
 .compare-hero__tag--3 {
-  right: 8%;
-  bottom: 8%;
-  animation-delay: 1.35s;
+  left: 72%;
+  top: 76%;
+  animation-delay: 1.45s;
 }
 
 @media (max-width: 820px) {
   .compare-hero__center {
     width: min(640px, 98%);
-    margin-top: 3.2rem;
+    top: 48%;
   }
 
   .compare-hero__title {
@@ -447,17 +455,17 @@ body {
   }
 
   .compare-hero__tag--1 {
-    right: 2%;
-    top: 4%;
+    left: 54%;
+    top: 16%;
   }
 
   .compare-hero__tag--2 {
-    right: 18%;
-    top: 58%;
+    left: 4%;
+    top: 62%;
   }
 
   .compare-hero__tag--3 {
-    right: 2%;
-    bottom: 2%;
+    left: 50%;
+    top: 78%;
   }
 }
