@@ -56,7 +56,6 @@ export default function MainPage({ properties }: MainPageProps) {
 
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [hoveredPropertyId, setHoveredPropertyId] = useState<number | null>(null);
-  const [transitioningProperty, setTransitioningProperty] = useState<Property | null>(null);
 
   const handleToggleFavorite = (property: Property, event: React.MouseEvent) => {
     event.preventDefault();
@@ -151,55 +150,11 @@ export default function MainPage({ properties }: MainPageProps) {
 
   const handlePropertyNavigate = (property: Property, event: React.MouseEvent<HTMLAnchorElement>) => {
     event.preventDefault();
-    setTransitioningProperty(property);
-
-    window.setTimeout(() => {
-      router.push(`/property/${property.id}`);
-    }, 520);
+    router.push(`/property/${property.id}`);
   };
 
   return (
     <div className="min-h-screen bg-white text-[#0a0a0a]">
-      <AnimatePresence>
-        {transitioningProperty ? (
-          <motion.div
-            className="fixed inset-0 z-[120] bg-white"
-            initial={{ y: "100%", scale: 0.92, borderTopLeftRadius: 28, borderTopRightRadius: 28 }}
-            animate={{ y: 0, scale: 1, borderTopLeftRadius: 0, borderTopRightRadius: 0 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
-          >
-            <div className="relative flex h-full w-full items-center justify-center overflow-hidden bg-white px-6 py-10">
-              <motion.div
-                initial={{ y: 120, opacity: 0.45, scale: 0.9 }}
-                animate={{ y: 0, opacity: 1, scale: 1 }}
-                transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1], delay: 0.06 }}
-                className="grid w-full max-w-[1380px] items-center gap-10 lg:grid-cols-[0.44fr_0.56fr]"
-              >
-                <div className="relative aspect-[0.9] overflow-hidden bg-[#ede7df]">
-                  <Image
-                    src={transitioningProperty.image}
-                    alt={transitioningProperty.title}
-                    fill
-                    className="object-cover"
-                  />
-                </div>
-                <div className="space-y-5">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-[#2d2d2d]">
-                    Opening Project
-                  </p>
-                  <h2 className="text-[clamp(2.8rem,5vw,5.6rem)] font-light leading-[0.92] tracking-[-0.05em] text-[#111]">
-                    {transitioningProperty.title}
-                  </h2>
-                  <p className="text-sm uppercase tracking-[0.18em] text-[#8f8881]">
-                    {transitioningProperty.location}
-                  </p>
-                </div>
-              </motion.div>
-            </div>
-          </motion.div>
-        ) : null}
-      </AnimatePresence>
 
       <About />
       <OurExperience />
