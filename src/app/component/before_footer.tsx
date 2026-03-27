@@ -284,6 +284,7 @@ export default function BeforeFooter() {
     { label: 'About Us',   href: '/about' },
     { label: 'Properties', id: 'properties' },
     { label: 'Contact',    href: '/about#contact' },
+    { label: 'Favourites', href: '/compare' },
   ];
   const allNavItems = [{ label: 'Home', href: '/' }, ...navItems];
 

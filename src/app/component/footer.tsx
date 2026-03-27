@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { useFavoritesStore } from "@/lib/favorites-store";
 
 // Animated Nav Link with text slide up effect
 function AnimatedNavLink({ 
@@ -82,12 +83,14 @@ function AnimatedNavLink({
 }
 
 // Hover Dropdown Menu Component
-function HoverDropdownMenu({ 
-  isVisible, 
-  navItems 
-}: { 
+function HoverDropdownMenu({
+  isVisible,
+  navItems,
+  favoritesCount,
+}: {
   isVisible: boolean;
   navItems: Array<{ label: string; href?: string; id?: string }>;
+  favoritesCount: number;
 }) {
   const pathname = usePathname();
   const isHomePage = pathname === '/';
@@ -155,11 +158,18 @@ function HoverDropdownMenu({
                       href={item.href!}
                       className="group flex w-full items-center justify-between py-2.5 transition-all hover:pl-1"
                     >
-                      <span 
-                        className="text-sm font-light"
-                        style={{ color: 'rgba(255,255,255,0.85)' }}
-                      >
+                      <span className="flex items-center gap-2 text-sm font-light" style={{ color: 'rgba(255,255,255,0.85)' }}>
                         {item.label}
+                        {item.label === 'Favourites' && favoritesCount > 0 && (
+                          <span style={{
+                            display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                            minWidth: '16px', height: '16px', borderRadius: '8px',
+                            background: 'rgba(255,255,255,0.18)', fontSize: '0.6rem', fontWeight: 600,
+                            padding: '0 4px', color: 'rgba(255,255,255,0.9)',
+                          }}>
+                            {favoritesCount}
+                          </span>
+                        )}
                       </span>
                       <svg
                         className="h-3 w-3 opacity-0 -translate-x-1 transition-all duration-200 group-hover:opacity-40 group-hover:translate-x-0"
@@ -206,6 +216,7 @@ export default function Footer({
   const isHomePage = pathname === '/';
   const sectionRef = useRef<HTMLElement>(null);
   const [showCard, setShowCard] = useState(false);
+  const { favorites } = useFavoritesStore();
   const [animationPhase, setAnimationPhase] = useState<'home' | 'morphing' | 'floating' | 'card'>('home');
   const [menuHover, setMenuHover] = useState(false);
 
@@ -259,12 +270,13 @@ export default function Footer({
     }
   };
 
-  const navItems = [
+  const navItems: Array<{ label: string; href?: string; id?: string }> = [
     { label: 'About Us',   href: '/about' },
     { label: 'Properties', id: 'properties' },
     { label: 'Contact',    href: '/about#contact' },
+    { label: 'Favourites', href: '/compare' },
   ];
-  const allNavItems = [{ label: 'Home', href: '/' }, ...navItems];
+  const allNavItems: Array<{ label: string; href?: string; id?: string }> = [{ label: 'Home', href: '/' }, ...navItems];
 
   // Animation states
   const isMorphing = animationPhase === 'morphing';
@@ -492,10 +504,23 @@ export default function Footer({
                     >
                       {isLink ? (
                         <AnimatedNavLink href={item.href}>
-                          {item.label}
+                          <>
+                            {item.label}
+                            {item.label === 'Favourites' && favorites.length > 0 && (
+                              <span style={{
+                                display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                                minWidth: '18px', height: '18px', borderRadius: '9px',
+                                background: 'rgba(255,255,255,0.18)', fontSize: '0.6rem', fontWeight: 600,
+                                padding: '0 5px', color: 'rgba(255,255,255,0.9)', marginLeft: '8px',
+                                verticalAlign: 'middle',
+                              }}>
+                                {favorites.length}
+                              </span>
+                            )}
+                          </>
                         </AnimatedNavLink>
                       ) : (
-                        <AnimatedNavLink onClick={() => scrollToSection(item.id)}>
+                        <AnimatedNavLink onClick={() => item.id && scrollToSection(item.id)}>
                           {item.label}
                         </AnimatedNavLink>
                       )}
@@ -587,9 +612,10 @@ export default function Footer({
           onMouseLeave={() => setMenuHover(false)}
         >
           {/* Dropdown Menu - appears above on hover */}
-          <HoverDropdownMenu 
+          <HoverDropdownMenu
             isVisible={menuHover}
             navItems={navItems}
+            favoritesCount={favorites.length}
           />
 
           <div 

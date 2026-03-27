@@ -54,13 +54,13 @@ export default function OurExperience() {
   return (
     <section
       id="experience"
-      className="relative bg-white pb-24 md:pb-36 mx-5 md:mx-10 border-t border-[#d4cdc6]"
+      className="relative bg-white pb-16 md:pb-24 mx-5 md:mx-10 border-t border-[#d4cdc6]"
       style={{ zIndex: 10 }}
     >
       <div className="mx-auto max-w-[1520px] px-5 md:px-10">
 
         {/* Section label */}
-        <div className="pt-6 mb-16 flex items-center gap-2">
+        <div className="pt-14 mb-16 flex items-center gap-2">
           <span className="text-[#5a5a5a]" style={{ fontSize: "0.7rem" }}>✦</span>
           <span className="text-[11px] uppercase tracking-[0.3em] text-[#5a5a5a]">
             Our Experience
@@ -96,7 +96,7 @@ export default function OurExperience() {
         </div>
 
         {/* ── Row 2: fluid.glass-style staggered portrait layout ── */}
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-12 md:pb-[22rem]">
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-12 md:pb-40">
 
           {/* Image 1 — center, top anchor */}
           <div className="relative aspect-[4/5] md:col-start-4 md:col-span-3 md:row-start-1">
