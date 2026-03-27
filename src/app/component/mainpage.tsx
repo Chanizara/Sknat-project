@@ -292,7 +292,7 @@ export default function MainPage({ properties }: MainPageProps) {
                                   </h3>
                                   <button
                                     onClick={(event) => handleToggleFavorite(property, event)}
-                                    className={`hidden h-8 w-8 items-center justify-center rounded-full border transition md:inline-flex ${
+                                    className={`inline-flex h-8 w-8 items-center justify-center rounded-full border transition lg:hidden ${
                                       isFavorite(property.id)
                                         ? 'border-red-500 bg-red-500 text-white'
                                         : 'border-[#8f877d] bg-white text-[#2a2724] hover:border-[#171717]'
@@ -348,7 +348,27 @@ export default function MainPage({ properties }: MainPageProps) {
                                 </div>
                               </div>
 
-                              <div className="hidden items-center justify-end text-[#6b645c] transition-transform duration-300 group-hover:translate-x-1 group-hover:text-[#171717] lg:flex">
+                              <div className="hidden items-center justify-end gap-3 text-[#6b645c] transition-transform duration-300 group-hover:translate-x-1 group-hover:text-[#171717] lg:flex">
+                                <button
+                                  type="button"
+                                  onClick={(event) => handleToggleFavorite(property, event)}
+                                  className={`inline-flex h-8 w-8 items-center justify-center rounded-full border transition ${
+                                    isFavorite(property.id)
+                                      ? 'border-red-500 bg-red-500 text-white'
+                                      : 'border-[#8f877d] bg-white text-[#2a2724] hover:border-[#171717]'
+                                  }`}
+                                  aria-label={isFavorite(property.id) ? 'ลบจากรายการโปรด' : 'เพิ่มในรายการโปรด'}
+                                >
+                                  <svg
+                                    className="h-3 w-3"
+                                    fill={isFavorite(property.id) ? 'currentColor' : 'none'}
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                    strokeWidth="2"
+                                  >
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                                  </svg>
+                                </button>
                                 <svg className="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.6">
                                   <path strokeLinecap="round" strokeLinejoin="round" d="M5 12h14M13 5l7 7-7 7" />
                                 </svg>
