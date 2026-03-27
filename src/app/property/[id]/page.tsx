@@ -7,11 +7,14 @@ import { useParams, useRouter } from "next/navigation";
 import { LISTING_TYPES } from "@/types/property";
 import { motion, AnimatePresence } from "framer-motion";
 
-import { buildPriceLabel, formatPrice, formatUpdatedAt } from "@/lib/property-format";
+import { buildPriceLabel, formatPrice, formatUpdatedAt, getDistrict } from "@/lib/property-format";
 import { type Property } from "@/types/property";
 import { useFavoritesStore } from "@/lib/favorites-store";
 import BeforeFooter from "@/app/component/before_footer";
 import Contact from "@/app/component/contact";
+
+const DEFAULT_MAX_PRICE = 50000000;
+const DEFAULT_MAX_AREA = 500;
 
 // ─── Lightbox ────────────────────────────────────────────────────────────────
 function Lightbox({
@@ -516,6 +519,10 @@ function AllPropertiesSection({ currentId }: { currentId: number }) {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [filterListingType, setFilterListingType] = useState<string[]>([]);
   const [filterPropertyType, setFilterPropertyType] = useState<string[]>([]);
+  const [filterPriceRange, setFilterPriceRange] = useState<[number, number]>([0, DEFAULT_MAX_PRICE]);
+  const [filterAreaSize, setFilterAreaSize] = useState<[number, number]>([0, DEFAULT_MAX_AREA]);
+  const [filterMinBedrooms, setFilterMinBedrooms] = useState<string>('');
+  const [filterDistrict, setFilterDistrict] = useState<string[]>([]);
   const listRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -533,21 +540,61 @@ function AllPropertiesSection({ currentId }: { currentId: number }) {
     [allProperties]
   );
 
+  const districtOptions = useMemo(
+    () => Array.from(new Set(allProperties.map((p) => getDistrict(p.location)).filter(Boolean))),
+    [allProperties]
+  );
+
   const filtered = useMemo(() => {
     return allProperties.filter((p) => {
       if (filterListingType.length > 0 && !filterListingType.includes(p.type)) return false;
       if (filterPropertyType.length > 0 && !filterPropertyType.includes(p.propertyType ?? '')) return false;
+      if (p.price < filterPriceRange[0] || p.price > filterPriceRange[1]) return false;
+      if (p.size !== undefined) {
+        if (p.size < filterAreaSize[0] || p.size > filterAreaSize[1]) return false;
+      }
+      if (filterMinBedrooms) {
+        const bedrooms = p.bedrooms ?? 0;
+        if (bedrooms < parseInt(filterMinBedrooms, 10)) return false;
+      }
+      if (filterDistrict.length > 0) {
+        const propertyDistrict = getDistrict(p.location);
+        if (!filterDistrict.includes(propertyDistrict)) return false;
+      }
       return true;
     });
-  }, [allProperties, filterListingType, filterPropertyType]);
+  }, [
+    allProperties,
+    filterListingType,
+    filterPropertyType,
+    filterPriceRange,
+    filterAreaSize,
+    filterMinBedrooms,
+    filterDistrict,
+  ]);
 
-  const activeFilterCount = filterListingType.length + filterPropertyType.length;
+  const activeFilterCount = useMemo(() => {
+    let count = filterListingType.length + filterPropertyType.length + filterDistrict.length;
+    if (filterMinBedrooms) count += 1;
+    if (filterPriceRange[0] > 0 || filterPriceRange[1] < DEFAULT_MAX_PRICE) count += 1;
+    if (filterAreaSize[0] > 0 || filterAreaSize[1] < DEFAULT_MAX_AREA) count += 1;
+    return count;
+  }, [filterListingType, filterPropertyType, filterDistrict, filterMinBedrooms, filterPriceRange, filterAreaSize]);
 
   const toggleListing = (t: string) =>
     setFilterListingType((prev) => prev.includes(t) ? prev.filter((x) => x !== t) : [...prev, t]);
   const togglePropType = (t: string) =>
     setFilterPropertyType((prev) => prev.includes(t) ? prev.filter((x) => x !== t) : [...prev, t]);
-  const clearFilters = () => { setFilterListingType([]); setFilterPropertyType([]); };
+  const toggleDistrict = (d: string) =>
+    setFilterDistrict((prev) => prev.includes(d) ? prev.filter((x) => x !== d) : [...prev, d]);
+  const clearFilters = () => {
+    setFilterListingType([]);
+    setFilterPropertyType([]);
+    setFilterPriceRange([0, DEFAULT_MAX_PRICE]);
+    setFilterAreaSize([0, DEFAULT_MAX_AREA]);
+    setFilterMinBedrooms('');
+    setFilterDistrict([]);
+  };
 
   const handleNavigate = (e: React.MouseEvent<HTMLAnchorElement>, id: number) => {
     e.preventDefault();
@@ -613,40 +660,36 @@ function AllPropertiesSection({ currentId }: { currentId: number }) {
               >
                 <span className="inline-block h-[1px] w-4 bg-current" />
                 ตัวกรองขั้นสูง
-                {activeFilterCount > 0 && (
-                  <span className="text-[10px] opacity-60">{activeFilterCount}</span>
-                )}
+                <span className="text-[10px] opacity-60">{activeFilterCount}</span>
               </button>
             </div>
           </div>
         </div>
 
         {/* Filter panel */}
-        <div className={`overflow-hidden transition-all duration-500 ${isFilterOpen ? 'max-h-64 opacity-100 mb-8' : 'max-h-0 opacity-0'}`}>
+        <div className={`overflow-hidden transition-all duration-500 ${isFilterOpen ? 'max-h-[720px] opacity-100 mb-8' : 'max-h-0 opacity-0'}`}>
           <div className="border-y border-[#ddd8d2] bg-white py-5">
-            <div className="mb-4 flex items-center justify-between">
+            <div className="mb-4 flex flex-col items-start justify-between gap-3 md:flex-row md:items-center">
               <div>
                 <h3 className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#0a0a0a]">Advanced Filters</h3>
                 <p className="mt-1 text-xs text-[#8f8881]">ปรับเงื่อนไขเพื่อคัดบ้านที่ใกล้เคียงความต้องการ</p>
               </div>
               <div className="flex gap-2">
-                {activeFilterCount > 0 && (
-                  <button onClick={clearFilters} className="border border-[#d8d2ca] px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#666] hover:border-[#171717] hover:text-[#0a0a0a] transition">
-                    ล้างตัวกรอง
-                  </button>
-                )}
+                <button onClick={clearFilters} className="border border-[#d8d2ca] px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#666] hover:border-[#171717] hover:text-[#0a0a0a] transition">
+                  ล้างตัวกรอง
+                </button>
                 <button onClick={() => setIsFilterOpen(false)} className="border border-[#171717] px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#171717] hover:bg-[#171717] hover:text-white transition">
                   ปิด
                 </button>
               </div>
             </div>
-            <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-[1.05fr_1.15fr_0.8fr]">
               {/* Listing type */}
-              <div>
+              <div className="border-b border-[#ebe4dc] pb-3">
                 <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.22em] text-[#888]">ประเภทประกาศ</p>
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-1.5">
                   {LISTING_TYPES.map((t) => (
-                    <button key={t} onClick={() => toggleListing(t)}
+                    <button key={t} type="button" onClick={() => toggleListing(t)}
                       className="border px-3 py-1 text-[11px] font-semibold transition"
                       style={filterListingType.includes(t)
                         ? { background: '#0a0a0a', color: '#fff', borderColor: '#0a0a0a' }
@@ -658,12 +701,12 @@ function AllPropertiesSection({ currentId }: { currentId: number }) {
               </div>
               {/* Property type */}
               {propertyTypeOptions.length > 0 && (
-                <div>
+                <div className="border-b border-[#ebe4dc] pb-3">
                   <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.22em] text-[#888]">ประเภทการพัฒนา</p>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-1.5">
                     {propertyTypeOptions.map((t) => (
-                      <button key={t} onClick={() => togglePropType(t)}
-                        className="border px-3 py-1 text-[11px] transition"
+                      <button key={t} type="button" onClick={() => togglePropType(t)}
+                        className="border px-2.5 py-1 text-[11px] transition"
                         style={filterPropertyType.includes(t)
                           ? { background: '#0a0a0a', color: '#fff', borderColor: '#0a0a0a' }
                           : { background: '#fff', color: '#444', borderColor: '#d8d2ca' }}>
@@ -673,7 +716,110 @@ function AllPropertiesSection({ currentId }: { currentId: number }) {
                   </div>
                 </div>
               )}
+
+              {/* Min Bedrooms */}
+              <div className="border-b border-[#ebe4dc] pb-3">
+                <label className="mb-2 block text-[10px] font-semibold uppercase tracking-[0.22em] text-[#888]">ห้องนอนขั้นต่ำ</label>
+                <select
+                  value={filterMinBedrooms}
+                  onChange={(event) => setFilterMinBedrooms(event.target.value)}
+                  className="h-9 w-full border border-[#d8d2ca] bg-white px-3 text-sm text-[#0a0a0a] outline-none transition"
+                >
+                  <option value="">ไม่ระบุ</option>
+                  <option value="1">1+</option>
+                  <option value="2">2+</option>
+                  <option value="3">3+</option>
+                  <option value="4">4+</option>
+                  <option value="5">5+</option>
+                </select>
+              </div>
+
+              {/* Price Range */}
+              <div className="border-b border-[#ebe4dc] pb-3 md:col-span-2 lg:col-span-2">
+                <label className="mb-2 block text-[10px] font-semibold uppercase tracking-[0.22em] text-[#888]">
+                  ราคา {formatPrice(filterPriceRange[0])} - {formatPrice(filterPriceRange[1])}
+                </label>
+                <input
+                  type="range"
+                  min="0"
+                  max={DEFAULT_MAX_PRICE}
+                  step="100000"
+                  value={filterPriceRange[1]}
+                  onChange={(event) => setFilterPriceRange([filterPriceRange[0], parseInt(event.target.value, 10)])}
+                  className="mb-2 h-1 w-full cursor-pointer appearance-none bg-[#e0e0e0] accent-[#111111]"
+                />
+                <div className="grid grid-cols-2 gap-2">
+                  <input
+                    type="number"
+                    placeholder="ต่ำสุด"
+                    value={filterPriceRange[0]}
+                    onChange={(event) => setFilterPriceRange([parseInt(event.target.value, 10) || 0, filterPriceRange[1]])}
+                    className="h-9 w-full border border-[#d8d2ca] bg-white px-2.5 text-sm text-[#0a0a0a] outline-none transition placeholder:text-[#ccc]"
+                  />
+                  <input
+                    type="number"
+                    placeholder="สูงสุด"
+                    value={filterPriceRange[1]}
+                    onChange={(event) => setFilterPriceRange([filterPriceRange[0], parseInt(event.target.value, 10) || DEFAULT_MAX_PRICE])}
+                    className="h-9 w-full border border-[#d8d2ca] bg-white px-2.5 text-sm text-[#0a0a0a] outline-none transition placeholder:text-[#ccc]"
+                  />
+                </div>
+              </div>
+
+              {/* Area Size */}
+              <div className="border-b border-[#ebe4dc] pb-3 md:col-span-2 lg:col-span-1">
+                <label className="mb-2 block text-[10px] font-semibold uppercase tracking-[0.22em] text-[#888]">
+                  พื้นที่ {filterAreaSize[0]} - {filterAreaSize[1]} ตร.ม.
+                </label>
+                <input
+                  type="range"
+                  min="0"
+                  max={DEFAULT_MAX_AREA}
+                  step="10"
+                  value={filterAreaSize[1]}
+                  onChange={(event) => setFilterAreaSize([filterAreaSize[0], parseInt(event.target.value, 10)])}
+                  className="mb-2 h-1 w-full cursor-pointer appearance-none bg-[#e0e0e0] accent-[#111111]"
+                />
+                <div className="grid grid-cols-2 gap-2">
+                  <input
+                    type="number"
+                    placeholder="ต่ำสุด"
+                    value={filterAreaSize[0]}
+                    onChange={(event) => setFilterAreaSize([parseInt(event.target.value, 10) || 0, filterAreaSize[1]])}
+                    className="h-9 w-full border border-[#d8d2ca] bg-white px-2.5 text-sm text-[#0a0a0a] outline-none transition placeholder:text-[#ccc]"
+                  />
+                  <input
+                    type="number"
+                    placeholder="สูงสุด"
+                    value={filterAreaSize[1]}
+                    onChange={(event) => setFilterAreaSize([filterAreaSize[0], parseInt(event.target.value, 10) || DEFAULT_MAX_AREA])}
+                    className="h-9 w-full border border-[#d8d2ca] bg-white px-2.5 text-sm text-[#0a0a0a] outline-none transition placeholder:text-[#ccc]"
+                  />
+                </div>
+              </div>
             </div>
+
+            {/* District */}
+            {districtOptions.length > 0 && (
+              <div className="pt-4">
+                <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.22em] text-[#888]">เขต/อำเภอ</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {districtOptions.map((district) => (
+                    <button
+                      key={district}
+                      type="button"
+                      onClick={() => toggleDistrict(district)}
+                      className="border px-3 py-1 text-[11px] font-medium transition"
+                      style={filterDistrict.includes(district)
+                        ? { background: '#0a0a0a', color: '#fff', borderColor: '#0a0a0a' }
+                        : { background: '#fff', color: '#444', borderColor: '#d8d2ca' }}
+                    >
+                      {district}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
