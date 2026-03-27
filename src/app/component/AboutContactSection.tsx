@@ -212,7 +212,7 @@ export default function AboutContactSection() {
       id="contact"
       className="relative"
       style={{
-        backgroundColor: "#f5f2ee",
+        backgroundColor: "#ffffff",
         color: "#1a1a1a",
         fontFamily: '"Sarabun", "Noto Sans Thai", sans-serif',
       }}

@@ -71,13 +71,10 @@ export default function Contact() {
     <section
       ref={sectionRef}
       id="contact"
-      className="relative z-30 overflow-hidden bg-white px-3 py-3 md:px-5 md:py-5"
+      className="relative z-30 overflow-hidden bg-white"
     >
       <div
         className="mx-auto grid min-h-[72vh] max-w-[1880px] overflow-hidden bg-white xl:min-h-[78vh] xl:grid-cols-[1.04fr_0.96fr]"
-        style={{
-          boxShadow: '0 32px 90px -78px rgba(15,23,42,0.18)',
-        }}
       >
         <div
           className="relative flex min-h-[42vh] flex-col justify-center overflow-hidden px-8 py-14 md:px-12 md:py-16 xl:px-14 xl:py-14"
@@ -138,7 +135,7 @@ export default function Contact() {
           </div>
         </div>
 
-        <div className="relative min-h-[300px] overflow-hidden border-t border-black/8 xl:min-h-[560px] xl:border-l xl:border-t-0">
+        <div className="relative min-h-[300px] overflow-hidden xl:min-h-[560px]">
           <div
             className="pointer-events-none absolute inset-0"
             style={{

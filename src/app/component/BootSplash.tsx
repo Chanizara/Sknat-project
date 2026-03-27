@@ -37,7 +37,7 @@ export default function BootSplash() {
         display: 'grid',
         placeItems: 'center',
         overflow: 'hidden',
-        backgroundColor: '#f5f2ee', // Light cream background
+        backgroundColor: '#ffffff',
         transition: 'opacity 0.45s ease, visibility 0.45s ease',
       }}
     >
