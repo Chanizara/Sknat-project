@@ -62,14 +62,14 @@ export default function ComparePage() {
 
       {/* Comparison Grid */}
       <div className="container mx-auto px-4 py-8">
-        <div className={`grid gap-6 ${favorites.length === 1 ? 'grid-cols-1 max-w-2xl mx-auto' : favorites.length === 2 ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1 lg:grid-cols-3'}`}>
+        <div className={`grid gap-8 lg:gap-10 ${favorites.length === 1 ? 'grid-cols-1 max-w-2xl mx-auto' : favorites.length === 2 ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1 lg:grid-cols-3'}`}>
           {favorites.map((property) => (
-            <div
+            <article
               key={property.id}
-              className="bg-white rounded-3xl shadow-lg overflow-hidden"
+              className="border-t border-[#8f877d] pt-5"
             >
               {/* Image */}
-              <div className="relative h-64">
+              <div className="relative h-64 overflow-hidden rounded-[26px]">
                 <Image
                   src={property.image}
                   alt={property.title}
@@ -93,14 +93,14 @@ export default function ComparePage() {
               </div>
 
               {/* Content */}
-              <div className="p-6 space-y-4">
+              <div className="space-y-5 pt-5">
                 <div>
                   <h2 className="text-xl font-bold text-slate-900 mb-1 line-clamp-2">{property.title}</h2>
                   <p className="text-sm text-slate-600">{property.location}</p>
                 </div>
 
                 {/* Price */}
-                <div className="border-t border-slate-200 pt-4">
+                <div className="border-t border-[#c9c2bb] pt-4">
                   <p className="text-xs text-slate-500 mb-1">ราคา</p>
                   <p className="text-2xl font-bold text-slate-900">{buildPriceLabel(property)}</p>
                   {property.pricePerSqm && (
@@ -109,7 +109,7 @@ export default function ComparePage() {
                 </div>
 
                 {/* Details Grid */}
-                <div className="space-y-3 border-t border-slate-200 pt-4">
+                <div className="space-y-3 border-t border-[#c9c2bb] pt-4">
                   <DetailRow label="ประเภท" value={property.propertyType || '-'} />
                   <DetailRow label="พื้นที่ใช้สอย" value={property.size ? `${property.size} ตร.ม.` : '-'} />
                   <DetailRow label="ห้องนอน" value={property.bedrooms ? `${property.bedrooms} ห้อง` : '-'} />
@@ -119,7 +119,7 @@ export default function ComparePage() {
 
                 {/* Features */}
                 {property.features && property.features.length > 0 && (
-                  <div className="border-t border-slate-200 pt-4">
+                  <div className="border-t border-[#c9c2bb] pt-4">
                     <p className="text-xs font-semibold text-slate-500 mb-2">สิ่งอำนวยความสะดวก</p>
                     <div className="flex flex-wrap gap-1.5">
                       {property.features.map((feature, index) => (
@@ -145,21 +145,23 @@ export default function ComparePage() {
                   </svg>
                 </Link>
               </div>
-            </div>
+            </article>
           ))}
 
           {/* Placeholder cards for empty slots */}
           {[...Array(Math.max(0, 3 - favorites.length))].map((_, index) => (
             <div
               key={`placeholder-${index}`}
-              className="bg-white/50 rounded-3xl border-2 border-dashed border-slate-300 overflow-hidden flex items-center justify-center min-h-[600px]"
+              className="border-t border-dashed border-[#b8b1aa] pt-5"
             >
-              <div className="text-center px-6">
-                <svg className="h-16 w-16 mx-auto text-slate-300 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M12 4v16m8-8H4" />
-                </svg>
-                <p className="text-slate-400 text-sm">เพิ่มบ้านอีก {3 - favorites.length} หลัง</p>
-                <p className="text-slate-400 text-xs mt-1">เพื่อเปรียบเทียบได้ครบ</p>
+              <div className="flex min-h-105 items-center justify-center rounded-[26px] border border-dashed border-slate-300/80 bg-white/20 px-6">
+                <div className="text-center">
+                  <svg className="h-16 w-16 mx-auto text-slate-300 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M12 4v16m8-8H4" />
+                  </svg>
+                  <p className="text-slate-400 text-sm">เพิ่มบ้านอีก {3 - favorites.length} หลัง</p>
+                  <p className="text-slate-400 text-xs mt-1">เพื่อเปรียบเทียบได้ครบ</p>
+                </div>
               </div>
             </div>
           ))}
