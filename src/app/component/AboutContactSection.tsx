@@ -4,37 +4,16 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
 type Point = [number, number];
-type BoxSegment = {
+type LineStroke = {
   from: Point;
   to: Point;
   stroke: string;
   width?: number;
-  dash?: string;
   delay: number;
-  parallax?: "slow" | "medium" | "fast";
 };
-
-const BOX_SEGMENTS: BoxSegment[] = [
-  { from: [124, 132], to: [232, 74], stroke: "#c1bbb2", width: 1.05, delay: 0.02, parallax: "slow" },
-  { from: [232, 74], to: [336, 138], stroke: "#c1bbb2", width: 1.05, delay: 0.1, parallax: "slow" },
-  { from: [124, 132], to: [124, 286], stroke: "#cdc7bf", delay: 0.18, parallax: "medium" },
-  { from: [336, 138], to: [336, 292], stroke: "#cdc7bf", delay: 0.26, parallax: "medium" },
-  { from: [124, 286], to: [228, 348], stroke: "#b7b0a7", width: 1.1, delay: 0.34, parallax: "fast" },
-  { from: [228, 348], to: [336, 292], stroke: "#b7b0a7", width: 1.1, delay: 0.42, parallax: "fast" },
-  { from: [124, 132], to: [228, 202], stroke: "#d7d2ca", delay: 0.16, parallax: "medium" },
-  { from: [336, 138], to: [228, 202], stroke: "#d7d2ca", delay: 0.24, parallax: "medium" },
-  { from: [228, 202], to: [228, 348], stroke: "#d7d2ca", dash: "5 7", delay: 0.5, parallax: "fast" },
-  { from: [174, 108], to: [174, 234], stroke: "#e5e0d9", delay: 0.12, parallax: "slow" },
-  { from: [282, 104], to: [282, 236], stroke: "#e5e0d9", delay: 0.2, parallax: "slow" },
-  { from: [150, 160], to: [306, 160], stroke: "#e1ddd6", dash: "4 8", delay: 0.58, parallax: "medium" },
-];
 
 function lerp(start: number, end: number, progress: number) {
   return start + (end - start) * progress;
-}
-
-function segmentLength(from: Point, to: Point) {
-  return Math.hypot(to[0] - from[0], to[1] - from[1]);
 }
 
 function clamp(value: number, min = 0, max = 1) {
@@ -199,7 +178,6 @@ export default function AboutContactSection() {
   }, []);
 
   const frameOffsetY = (1 - scrollProgress) * 40;
-  const glowOffsetX = (1 - scrollProgress) * 18;
 
   return (
     <section
@@ -212,8 +190,8 @@ export default function AboutContactSection() {
         fontFamily: '"Sarabun", "Noto Sans Thai", sans-serif',
       }}
     >
-      <div className="flex-1 flex flex-col lg:flex-row px-8 pb-16 pt-12 md:px-12 lg:pt-16">
-        <div className="flex-1 lg:pr-16">
+      <div className="flex-1 px-8 pb-16 pt-12 md:px-12 lg:pt-16">
+        <div className="max-w-4xl">
           <div className="mb-6 flex items-center gap-2">
             <span style={{ color: "#999" }}>◆</span>
             <span className="text-[10px] font-medium uppercase tracking-[0.2em]" style={{ color: "#666" }}>
@@ -325,107 +303,7 @@ export default function AboutContactSection() {
           </div>
         </div>
 
-        <div className="hidden items-center justify-center p-12 lg:flex lg:w-[45%]">
-          <div
-            className="relative w-full max-w-lg"
-            style={{
-              transform: `translate3d(0, ${lerp(-32, 8, scrollProgress)}px, 0)`,
-              opacity: lerp(0.35, 1, scrollProgress),
-              transition: "transform 140ms linear, opacity 180ms ease",
-            }}
-          >
-            <div
-              className="absolute inset-[10%] rounded-4xl blur-3xl"
-              style={{
-                background:
-                  "radial-gradient(circle at 50% 45%, rgba(30,30,30,0.08), rgba(212,208,200,0.05) 48%, transparent 74%)",
-                transform: `translate3d(${glowOffsetX}px, ${frameOffsetY * 0.4}px, 0) scale(${1.02 + scrollProgress * 0.08})`,
-                transition: "transform 140ms linear",
-              }}
-            />
-
-            <div
-              className="absolute inset-0 opacity-[0.2]"
-              style={{
-                transform: `translate3d(${glowOffsetX}px, ${frameOffsetY * 0.42}px, 0)`,
-                transition: "transform 140ms linear",
-              }}
-            >
-              <DrawnBoxArtwork progress={clamp(scrollProgress * 1.06)} offsetY={frameOffsetY * 0.3} ghost />
-            </div>
-
-            <div
-              className="relative"
-              style={{
-                transform: `translate3d(0, ${frameOffsetY}px, 0)`,
-                transition: "transform 140ms linear",
-              }}
-            >
-              <DrawnBoxArtwork progress={scrollProgress} offsetY={frameOffsetY} />
-            </div>
-          </div>
-        </div>
       </div>
     </section>
-  );
-}
-
-function DrawnBoxArtwork({
-  progress,
-  offsetY = 0,
-  ghost = false,
-}: {
-  progress: number;
-  offsetY?: number;
-  ghost?: boolean;
-}) {
-  return (
-    <div className="relative z-10">
-      <svg viewBox="0 0 400 400" className="h-auto w-full" fill="none">
-        <g
-          style={{
-            transform: `translate(${lerp(18, 0, progress)}px, ${lerp(-52, 20, progress)}px)`,
-            transition: "transform 140ms linear",
-          }}
-        >
-          {BOX_SEGMENTS.map((segment, index) => {
-            const length = segmentLength(segment.from, segment.to);
-            const localProgress = clamp((progress - segment.delay) / 0.34);
-            const driftY =
-              segment.parallax === "fast"
-                ? progress * 12 + offsetY * 0.05
-                : segment.parallax === "medium"
-                  ? progress * 9 + offsetY * 0.1
-                  : progress * 6 + offsetY * 0.16;
-            const driftX =
-              segment.parallax === "fast"
-                ? progress * -4
-                : segment.parallax === "medium"
-                  ? progress * -2.5
-                  : progress * -1.5;
-
-            const baseStroke = ghost ? "rgba(28, 28, 28, 0.09)" : segment.stroke;
-            const strokeWidth = ghost ? (segment.width ?? 1) * 0.92 : segment.width ?? 1;
-            const alpha = ghost ? 0.16 + localProgress * 0.5 : 0.2 + localProgress * 0.8;
-
-            return (
-              <line
-                key={`${index}-${segment.stroke}`}
-                x1={segment.from[0] + driftX}
-                y1={segment.from[1] + driftY}
-                x2={segment.to[0] + driftX}
-                y2={segment.to[1] + driftY}
-                stroke={baseStroke}
-                strokeWidth={strokeWidth}
-                strokeDasharray={segment.dash ?? `${length} ${length}`}
-                strokeDashoffset={length * (1 - localProgress)}
-                strokeLinecap="round"
-                opacity={alpha}
-              />
-            );
-          })}
-        </g>
-      </svg>
-    </div>
   );
 }

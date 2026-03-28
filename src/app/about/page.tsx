@@ -68,10 +68,24 @@ function HeroRevealSection() {
       setRevealProgress(progress);
     };
 
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    handleScroll();
+    // Get Lenis instance and subscribe to scroll
+    const lenis = (window as unknown as { lenis?: { on: (event: string, callback: () => void) => void; off: (event: string, callback: () => void) => void } }).lenis;
     
-    return () => window.removeEventListener('scroll', handleScroll);
+    if (lenis) {
+      // Subscribe to Lenis scroll event
+      lenis.on('scroll', handleScroll);
+      handleScroll(); // Initial call
+      
+      return () => {
+        lenis.off('scroll', handleScroll);
+      };
+    } else {
+      // Fallback to regular scroll event
+      window.addEventListener('scroll', handleScroll, { passive: true });
+      handleScroll();
+      
+      return () => window.removeEventListener('scroll', handleScroll);
+    }
   }, []);
 
   return (
@@ -84,16 +98,13 @@ function HeroRevealSection() {
       }}
     >
       {/* Sticky Container */}
-      <div className="sticky top-0 h-screen flex items-center justify-center overflow-hidden">
+      <div className="sticky top-0 h-screen flex items-stretch justify-center overflow-hidden">
         
         {/* Image Container */}
         <div 
-          className="relative"
+          className="relative w-full"
           style={{
-            width: '95vw',
-            height: '95vh',
-            maxWidth: '1400px',
-            maxHeight: '900px'
+            height: '100%'
           }}
         >
           {/* Wireframe Image (Background) */}
