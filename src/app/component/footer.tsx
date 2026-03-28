@@ -270,6 +270,30 @@ export default function Footer({
     }
   };
 
+  const goToContactSection = () => {
+    if (pathname === '/') {
+      scrollToSection('contact');
+      return;
+    }
+
+    if (pathname === '/about') {
+      const element = document.getElementById('about-contact');
+      if (element) {
+        const lenis = (window as unknown as { lenis?: { scrollTo: (target: number) => void } }).lenis;
+        const targetY = element.getBoundingClientRect().top + window.scrollY - 80;
+        if (lenis) {
+          lenis.scrollTo(targetY);
+        } else {
+          window.scrollTo({ top: targetY, behavior: 'smooth' });
+        }
+        window.history.replaceState(null, '', '/about#about-contact');
+        return;
+      }
+    }
+
+    window.location.assign('/about#about-contact');
+  };
+
   const navItems: Array<{ label: string; href?: string; id?: string }> = [
     { label: 'About Us',   href: '/about' },
     { label: 'Properties', id: 'properties' },
@@ -558,8 +582,9 @@ export default function Footer({
               </div>
 
               {/* CTA button */}
-              <Link
-                href="/about#about-contact"
+              <button
+                type="button"
+                onClick={goToContactSection}
                 className="flex w-full items-center justify-center gap-2 py-[11px] transition-all duration-200"
                 style={{
                   background: 'transparent',
@@ -584,7 +609,7 @@ export default function Footer({
               >
                 <span style={{ fontSize: '0.7rem' }}>→</span>
                 GET IN TOUCH
-              </Link>
+              </button>
             </div>
           </div>
         </div>
