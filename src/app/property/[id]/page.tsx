@@ -377,7 +377,7 @@ function FluidSection({
                 </a>
               )}
               <Link
-                href="/about#contact"
+                href="/about#about-contact"
                 className="flex items-center justify-center gap-2 py-3 text-[11px] font-semibold tracking-[0.18em] uppercase bg-[#0f1214] text-[#f7f2ec] hover:bg-[#20262b] transition-all duration-200"
                 style={{ borderRadius: '2px' }}
               >

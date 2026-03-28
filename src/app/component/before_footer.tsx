@@ -298,7 +298,7 @@ export default function BeforeFooter() {
   const navItems = [
     { label: 'About Us',   href: '/about' },
     { label: 'Properties', id: 'properties' },
-    { label: 'Contact',    href: '/about#contact' },
+    { label: 'Contact',    href: '/about#about-contact' },
     { label: 'Favourites', href: '/compare' },
   ];
   const allNavItems = [{ label: 'Home', href: '/' }, ...navItems];
@@ -519,7 +519,7 @@ export default function BeforeFooter() {
 
               {/* CTA button */}
               <Link
-                href="/about#contact"
+                href="/about#about-contact"
                 className="flex w-full items-center justify-center gap-2 py-[11px] transition-all duration-200"
                 style={{
                   background: 'transparent',

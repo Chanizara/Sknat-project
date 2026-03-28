@@ -182,7 +182,7 @@ export default function AboutContactSection() {
   return (
     <section
       ref={sectionRef}
-      id="contact"
+      id="about-contact"
       className="relative"
       style={{
         backgroundColor: "#ffffff",
