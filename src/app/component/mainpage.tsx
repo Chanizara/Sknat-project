@@ -41,7 +41,7 @@ const DEFAULT_MAX_AREA = 500;
 
 export default function MainPage({ properties }: MainPageProps) {
   const router = useRouter();
-  const { addFavorite, removeFavorite, isFavorite } = useFavoritesStore();
+  const { addFavorite, removeFavorite, isFavorite, hasHydrated } = useFavoritesStore();
 
   const [filters, setFilters] = useState<Filters>({
     searchKeyword: "",
@@ -266,6 +266,7 @@ export default function MainPage({ properties }: MainPageProps) {
                     <div className="relative bg-white">
                       {filteredProperties.map((property, idx) => {
                         const isHovered = hoveredPropertyId === property.id;
+                        const favorite = hasHydrated && isFavorite(property.id);
 
                         return (
                           <motion.div
@@ -293,15 +294,15 @@ export default function MainPage({ properties }: MainPageProps) {
                                   <button
                                     onClick={(event) => handleToggleFavorite(property, event)}
                                     className={`inline-flex h-8 w-8 items-center justify-center rounded-full border transition lg:hidden ${
-                                      isFavorite(property.id)
+                                      favorite
                                         ? 'border-red-500 bg-red-500 text-white'
                                         : 'border-[#8f877d] bg-white text-[#2a2724] hover:border-[#171717]'
                                     }`}
-                                    aria-label={isFavorite(property.id) ? 'ลบจากรายการโปรด' : 'เพิ่มในรายการโปรด'}
+                                    aria-label={favorite ? 'ลบจากรายการโปรด' : 'เพิ่มในรายการโปรด'}
                                   >
                                     <svg
                                       className="h-3 w-3"
-                                      fill={isFavorite(property.id) ? 'currentColor' : 'none'}
+                                      fill={favorite ? 'currentColor' : 'none'}
                                       viewBox="0 0 24 24"
                                       stroke="currentColor"
                                       strokeWidth="2"
@@ -353,15 +354,15 @@ export default function MainPage({ properties }: MainPageProps) {
                                   type="button"
                                   onClick={(event) => handleToggleFavorite(property, event)}
                                   className={`inline-flex h-8 w-8 items-center justify-center rounded-full border transition ${
-                                    isFavorite(property.id)
+                                    favorite
                                       ? 'border-red-500 bg-red-500 text-white'
                                       : 'border-[#8f877d] bg-white text-[#2a2724] hover:border-[#171717]'
                                   }`}
-                                  aria-label={isFavorite(property.id) ? 'ลบจากรายการโปรด' : 'เพิ่มในรายการโปรด'}
+                                  aria-label={favorite ? 'ลบจากรายการโปรด' : 'เพิ่มในรายการโปรด'}
                                 >
                                   <svg
                                     className="h-3 w-3"
-                                    fill={isFavorite(property.id) ? 'currentColor' : 'none'}
+                                    fill={favorite ? 'currentColor' : 'none'}
                                     viewBox="0 0 24 24"
                                     stroke="currentColor"
                                     strokeWidth="2"

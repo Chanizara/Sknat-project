@@ -8,6 +8,8 @@ const MAX_FAVORITES = 3;
 
 interface FavoritesStore {
   favorites: Property[];
+  hasHydrated: boolean;
+  setHasHydrated: (state: boolean) => void;
   addFavorite: (property: Property) => boolean;
   removeFavorite: (propertyId: number) => void;
   isFavorite: (propertyId: number) => boolean;
@@ -18,6 +20,8 @@ export const useFavoritesStore = create<FavoritesStore>()(
   persist(
     (set, get) => ({
       favorites: [],
+      hasHydrated: false,
+      setHasHydrated: (state) => set({ hasHydrated: state }),
       
       addFavorite: (property: Property) => {
         const { favorites } = get();
@@ -54,6 +58,9 @@ export const useFavoritesStore = create<FavoritesStore>()(
     }),
     {
       name: 'sknat-favorites-storage',
+      onRehydrateStorage: () => (state) => {
+        state?.setHasHydrated(true);
+      },
     }
   )
 );
