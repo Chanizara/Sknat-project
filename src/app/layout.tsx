@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { Suspense } from "react";
 import BootSplash from "./component/BootSplash";
 import SmoothScroll from "./component/SmoothScroll";
 import "./globals.css";
@@ -30,9 +31,11 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <BootSplash />
-        <SmoothScroll>
-          {children}
-        </SmoothScroll>
+        <Suspense fallback={null}>
+          <SmoothScroll>
+            {children}
+          </SmoothScroll>
+        </Suspense>
       </body>
     </html>
   );
