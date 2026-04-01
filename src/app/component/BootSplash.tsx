@@ -1,20 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 
-export default function BootSplash() {
+function SplashInner() {
   const [isHidden, setIsHidden] = useState(false);
   const [isRemoved, setIsRemoved] = useState(false);
 
   useEffect(() => {
-    const hideTimer = window.setTimeout(() => {
-      setIsHidden(true);
-    }, 1900);
-
-    const removeTimer = window.setTimeout(() => {
-      setIsRemoved(true);
-    }, 2450);
-
+    const hideTimer = window.setTimeout(() => setIsHidden(true), 1900);
+    const removeTimer = window.setTimeout(() => setIsRemoved(true), 2450);
     return () => {
       window.clearTimeout(hideTimer);
       window.clearTimeout(removeTimer);
@@ -114,4 +109,9 @@ export default function BootSplash() {
       </div>
     </div>
   );
+}
+
+export default function BootSplash() {
+  const pathname = usePathname();
+  return <SplashInner key={pathname} />;
 }

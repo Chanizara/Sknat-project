@@ -3,41 +3,123 @@
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 
+// ─── Types ────────────────────────────────────────────────────────────────────
+
 type Segment = {
-  from: [number, number];
-  to: [number, number];
+  type?: 'line' | 'circle';
+  from?: [number, number];
+  to?: [number, number];
+  center?: [number, number];
+  radius?: number;
   delay: number;
-  hidden?: boolean;
-  weight?: 'light' | 'regular' | 'strong';
-  parallax?: 'slow' | 'medium';
+  weight?: 'hair' | 'light' | 'regular' | 'strong';
+  /** Y-axis parallax multiplier applied to frameOffsetY */
+  pxMult?: number;
+  /** X-axis parallax multiplier applied to frameOffsetX */
+  pxXMult?: number;
 };
 
+// ─── 3D Cube constants (SVG viewBox: 800 × 488) ──────────────────────────────
+//
+//  Concept: Minimal isometric cube — an architect's wireframe model drawn with
+//  precise construction lines. Ground datum anchors the base; vertical edges
+//  rise first; the top cap assembles last; ornament floats above the apex.
+//
+//           · (circle ornament)
+//           |
+//           ◆  ← TB top-back apex
+//          / \
+//        /     \
+//   TL ◆─────────◆ TR   ← top face (diamond)
+//       |\     /|
+//       | \   / |
+//       |   ◆   |  ← TF top-front
+//       |   |   |
+//   BL  ◆   |   ◆ BR   ← bottom knuckles
+//        \  |  /
+//          \|/
+//           ◆  ← BF bottom-front (on ground)
+//  ─────────────────────────────────────  ← ground datum
+
+const GND_Y = 418;   // ground Y
+const CX    = 460;   // cube horizontal center
+const CDX   = 130;   // horizontal diamond reach (150·cos30°)
+const CDY   = 75;    // iso vertical reach       (150·sin30°)
+const CS    = 150;   // cube side length in screen pixels
+
+// Visible vertices
+const BF: [number, number] = [CX,       GND_Y];             // bottom-front  (460, 418)
+const BR: [number, number] = [CX + CDX, GND_Y - CDY];       // bottom-right  (590, 343)
+const BL: [number, number] = [CX - CDX, GND_Y - CDY];       // bottom-left   (330, 343)
+const TF: [number, number] = [CX,       GND_Y - CS];        // top-front     (460, 268)
+const TR: [number, number] = [CX + CDX, GND_Y - CS - CDY];  // top-right     (590, 193)
+const TL: [number, number] = [CX - CDX, GND_Y - CS - CDY];  // top-left      (330, 193)
+const TB: [number, number] = [CX,       GND_Y - CS - 150];  // top-back      (460, 118)
+
+// ─── Segment list ─────────────────────────────────────────────────────────────
+// Draw order mirrors construction: ground → base → verticals → top cap → detail.
+// pxMult drives Y parallax: 0 = pinned to ground, 0.7 = floats high.
+
 const FRAME_SEGMENTS: Segment[] = [
-  { from: [6, 488], to: [794, 488], delay: 0.02, weight: 'light', parallax: 'medium' },
-  { from: [396, 0], to: [396, 488], delay: 0.06, weight: 'light', parallax: 'slow' },
 
-  { from: [560, 488], to: [560, 236], delay: 0.14, weight: 'regular' },
-  { from: [560, 236], to: [792, 236], delay: 0.2, weight: 'regular' },
-  { from: [792, 236], to: [792, 420], delay: 0.26, weight: 'regular' },
+  // ── Ground datum — establishes the site ───────────────────────────────────
+  { type: 'line', from: [100, GND_Y], to: [760, GND_Y],
+    delay: 0.00, weight: 'hair', pxMult: 0.68 },
 
-  { from: [560, 236], to: [678, 178], delay: 0.34, weight: 'light' },
-  { from: [678, 178], to: [792, 120], delay: 0.4, weight: 'light' },
-  { from: [560, 236], to: [678, 128], delay: 0.46, weight: 'light' },
-  { from: [678, 128], to: [792, 20], delay: 0.52, weight: 'light' },
+  // ── Bottom edges — cube base, arrives early ────────────────────────────────
+  { type: 'line', from: BF, to: BR,
+    delay: 0.04, weight: 'regular', pxMult: 0.04 },
+  { type: 'line', from: BF, to: BL,
+    delay: 0.08, weight: 'regular', pxMult: 0.04 },
 
-  { from: [560, 322], to: [680, 266], delay: 0.24, hidden: true, weight: 'light' },
-  { from: [680, 266], to: [792, 266], delay: 0.3, hidden: true, weight: 'light' },
-  { from: [560, 436], to: [676, 380], delay: 0.1, hidden: true, weight: 'light' },
-  { from: [676, 380], to: [792, 380], delay: 0.16, hidden: true, weight: 'light' },
+  // ── Vertical edges — three pillars rising from the base ───────────────────
+  { type: 'line', from: TF, to: BF,
+    delay: 0.12, weight: 'strong', pxMult: 0.20 },
+  { type: 'line', from: TR, to: BR,
+    delay: 0.15, weight: 'strong', pxMult: 0.14 },
+  { type: 'line', from: TL, to: BL,
+    delay: 0.18, weight: 'strong', pxMult: 0.14 },
+
+  // ── Top face — the cap floating above ─────────────────────────────────────
+  { type: 'line', from: TB, to: TR,
+    delay: 0.22, weight: 'strong', pxMult: 0.38 },
+  { type: 'line', from: TB, to: TL,
+    delay: 0.26, weight: 'strong', pxMult: 0.38 },
+  { type: 'line', from: TR, to: TF,
+    delay: 0.29, weight: 'light', pxMult: 0.28 },
+  { type: 'line', from: TL, to: TF,
+    delay: 0.31, weight: 'light', pxMult: 0.28 },
+
+  // ── Top face centre datum — thin horizontal cross ─────────────────────────
+  { type: 'line', from: TL, to: TR,
+    delay: 0.33, weight: 'hair', pxMult: 0.34 },
+
+  // ── Corner ticks at bottom knuckles ──────────────────────────────────────
+  { type: 'line', from: [BR[0] - 8, BR[1]], to: [BR[0] + 8, BR[1]],
+    delay: 0.36, weight: 'light', pxMult: 0.04 },
+  { type: 'line', from: [BL[0] - 8, BL[1]], to: [BL[0] + 8, BL[1]],
+    delay: 0.37, weight: 'light', pxMult: 0.04 },
 ];
 
-function segmentLength([x1, y1]: [number, number], [x2, y2]: [number, number]) {
-  return Math.hypot(x2 - x1, y2 - y1);
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function segmentLength(segment: Segment): number {
+  if (segment.type === 'circle' && segment.radius != null) {
+    return 2 * Math.PI * segment.radius;
+  }
+  if (segment.from && segment.to) {
+    const [x1, y1] = segment.from;
+    const [x2, y2] = segment.to;
+    return Math.hypot(x2 - x1, y2 - y1);
+  }
+  return 0;
 }
 
 function clamp(value: number, min = 0, max = 1) {
   return Math.min(max, Math.max(min, value));
 }
+
+// ─── Contact section ─────────────────────────────────────────────────────────
 
 export default function Contact() {
   const sectionRef = useRef<HTMLElement>(null);
@@ -49,14 +131,14 @@ export default function Contact() {
       const section = sectionRef.current;
       if (!section) return;
 
-      const rect = section.getBoundingClientRect();
+      const rect    = section.getBoundingClientRect();
       const windowH = window.innerHeight;
-      const start = windowH * 0.88;
-      const end = -rect.height * 0.45;
+      const start   = windowH * 0.95;  // begins the moment section peeks in
+      const end     = windowH * 0.54;  // completes quickly — cube fully drawn early
       const progress = clamp((start - rect.top) / (start - end));
 
       setDrawProgress(progress);
-      if (rect.top < windowH * 0.9) setTextVisible(true);
+      if (rect.top < windowH * 0.96) setTextVisible(true);
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
@@ -64,8 +146,10 @@ export default function Contact() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const frameOffsetY = (1 - drawProgress) * 38;
-  const glowOffsetX = (1 - drawProgress) * 18;
+  const frameOffsetY = (1 - drawProgress) * 42;
+  const frameOffsetX = (1 - drawProgress) * 14;
+  const glowOffsetX  = (1 - drawProgress) * 22;
+  const glowOffsetY  = frameOffsetY * 0.34;
 
   return (
     <section
@@ -73,13 +157,13 @@ export default function Contact() {
       id="contact"
       className="relative z-30 overflow-hidden bg-white"
     >
-      <div
-        className="mx-auto grid min-h-[72vh] max-w-[1880px] overflow-hidden bg-white px-6 sm:px-8 md:px-12 xl:min-h-[78vh] xl:px-16 xl:grid-cols-[1.04fr_0.96fr]"
-      >
+      <div className="mx-auto grid min-h-[72vh] max-w-470 overflow-hidden bg-white px-6 sm:px-8 md:px-12 xl:min-h-[78vh] xl:px-16 xl:grid-cols-[1.04fr_0.96fr]">
+
+        {/* ── Left: text ─────────────────────────────────────────────────── */}
         <div
           className="relative flex min-h-[42vh] flex-col justify-center overflow-hidden px-8 py-14 md:px-12 md:py-16 xl:px-14 xl:py-14"
           style={{
-            opacity: textVisible ? 1 : 0,
+            opacity:   textVisible ? 1 : 0,
             transform: textVisible ? 'translateY(0)' : 'translateY(18px)',
             transition: 'opacity 0.9s ease, transform 0.9s ease',
           }}
@@ -91,7 +175,7 @@ export default function Contact() {
                 'radial-gradient(circle at 18% 24%, rgba(255,255,255,0.98), rgba(255,255,255,0.18) 34%, transparent 58%)',
             }}
           />
-          <div className="relative z-10 max-w-[46rem]">
+          <div className="relative z-10 max-w-184">
             <p
               className="mb-8 flex items-center gap-3 text-[11px] font-semibold uppercase tracking-[0.34em]"
               style={{ color: 'rgba(10,10,10,0.78)' }}
@@ -135,25 +219,34 @@ export default function Contact() {
           </div>
         </div>
 
-        <div className="relative min-h-[300px] overflow-hidden xl:min-h-[560px]">
+        {/* ── Right: 3D cube ─────────────────────────────────────────────── */}
+        <div className="relative min-h-75 overflow-hidden xl:min-h-140">
+          {/* Ambient radial glow */}
           <div
             className="pointer-events-none absolute inset-0"
             style={{
               background:
-                'radial-gradient(circle at 74% 20%, rgba(255,255,255,0.94), rgba(255,255,255,0.12) 36%, transparent 60%)',
+                'radial-gradient(circle at 58% 48%, rgba(255,255,255,0.86), rgba(255,255,255,0.08) 52%, transparent 72%)',
             }}
           />
 
+          {/* Ghost / shadow layer — runs slightly ahead, offset diagonally */}
           <div
-            className="absolute inset-0 opacity-[0.16]"
+            className="pointer-events-none absolute inset-0 opacity-[0.12]"
             style={{
-              transform: `translate3d(${glowOffsetX}px, ${frameOffsetY * 0.42}px, 0)`,
+              transform: `translate3d(${glowOffsetX}px, ${glowOffsetY}px, 0)`,
               transition: 'transform 0.12s linear',
             }}
           >
-            <LineStructure progress={clamp(drawProgress * 1.06)} offsetY={frameOffsetY * 0.3} ghost />
+            <CubeFrame
+              progress={clamp(drawProgress * 1.07)}
+              offsetY={frameOffsetY * 0.24}
+              offsetX={frameOffsetX * 0.40}
+              ghost
+            />
           </div>
 
+          {/* Main layer */}
           <div
             className="absolute inset-0"
             style={{
@@ -161,7 +254,11 @@ export default function Contact() {
               transition: 'transform 0.12s linear',
             }}
           >
-            <LineStructure progress={drawProgress} offsetY={frameOffsetY} />
+            <CubeFrame
+              progress={drawProgress}
+              offsetY={frameOffsetY}
+              offsetX={frameOffsetX}
+            />
           </div>
         </div>
       </div>
@@ -169,13 +266,17 @@ export default function Contact() {
   );
 }
 
-function LineStructure({
+// ─── SVG renderer ─────────────────────────────────────────────────────────────
+
+function CubeFrame({
   progress,
   offsetY = 0,
+  offsetX = 0,
   ghost = false,
 }: {
   progress: number;
   offsetY?: number;
+  offsetX?: number;
   ghost?: boolean;
 }) {
   return (
@@ -184,51 +285,78 @@ function LineStructure({
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       className="h-full w-full"
-      preserveAspectRatio="xMidYMid slice"
+      preserveAspectRatio="xMidYMid meet"
     >
       {FRAME_SEGMENTS.map((segment, index) => {
-        const length = segmentLength(segment.from, segment.to);
-        const localProgress = clamp((progress - segment.delay) / 0.4);
-        const dash = segment.hidden ? '7 10' : `${length} ${length}`;
+        const length        = segmentLength(segment);
+        const localProgress = clamp((progress - segment.delay) / 0.18);
 
-        let stroke = 'rgba(28, 28, 28, 0.16)';
-        let strokeWidth = 1;
+        // ── Stroke style by weight ─────────────────────────────────────────
+        let stroke      = 'rgba(28,28,28,0.10)';  // hair
+        let strokeWidth = 0.7;
 
-        if (segment.weight === 'regular') {
-          stroke = 'rgba(28, 28, 28, 0.32)';
-          strokeWidth = 1.05;
-        }
-
-        if (segment.weight === 'strong') {
-          stroke = 'rgba(28, 28, 28, 0.46)';
-          strokeWidth = 1.15;
+        if (segment.weight === 'light') {
+          stroke      = 'rgba(28,28,28,0.20)';
+          strokeWidth = 0.9;
+        } else if (segment.weight === 'regular') {
+          stroke      = 'rgba(28,28,28,0.38)';
+          strokeWidth = 1.1;
+        } else if (segment.weight === 'strong') {
+          stroke      = 'rgba(28,28,28,0.54)';
+          strokeWidth = 1.4;
         }
 
         if (ghost) {
-          stroke = segment.hidden ? 'rgba(28, 28, 28, 0.04)' : 'rgba(28, 28, 28, 0.08)';
-          strokeWidth *= 0.92;
+          const aMap: Record<NonNullable<Segment['weight']>, number> = {
+            hair: 0.03, light: 0.05, regular: 0.07, strong: 0.09,
+          };
+          stroke      = `rgba(28,28,28,${aMap[segment.weight ?? 'hair']})`;
+          strokeWidth *= 0.80;
         }
 
-        return (
-          <line
-            key={`${segment.from.join(',')}-${segment.to.join(',')}-${index}`}
-            x1={segment.from[0]}
-            y1={
-              segment.from[1] +
-              (segment.parallax === 'slow' ? offsetY * 0.45 : segment.parallax === 'medium' ? offsetY * 0.7 : 0)
-            }
-            x2={segment.to[0]}
-            y2={
-              segment.to[1] +
-              (segment.parallax === 'slow' ? offsetY * 0.45 : segment.parallax === 'medium' ? offsetY * 0.7 : 0)
-            }
-            stroke={stroke}
-            strokeWidth={strokeWidth}
-            strokeDasharray={dash}
-            strokeDashoffset={length * (1 - localProgress)}
-            strokeLinecap="round"
-          />
-        );
+        // ── Per-segment parallax ───────────────────────────────────────────
+        const dy = offsetY * (segment.pxMult  ?? 0);
+        const dx = offsetX * (segment.pxXMult ?? 0);
+
+        const key = `seg-${index}`;
+
+        // ── Circle ────────────────────────────────────────────────────────
+        if (segment.type === 'circle' && segment.center && segment.radius != null) {
+          const circ = length;
+          return (
+            <circle
+              key={key}
+              cx={segment.center[0] + dx}
+              cy={segment.center[1] + dy}
+              r={segment.radius}
+              stroke={stroke}
+              strokeWidth={strokeWidth}
+              strokeDasharray={`${circ} ${circ}`}
+              strokeDashoffset={circ * (1 - localProgress)}
+              strokeLinecap="round"
+            />
+          );
+        }
+
+        // ── Line ──────────────────────────────────────────────────────────
+        if (segment.from && segment.to) {
+          return (
+            <line
+              key={key}
+              x1={segment.from[0] + dx}
+              y1={segment.from[1] + dy}
+              x2={segment.to[0]   + dx}
+              y2={segment.to[1]   + dy}
+              stroke={stroke}
+              strokeWidth={strokeWidth}
+              strokeDasharray={`${length} ${length}`}
+              strokeDashoffset={length * (1 - localProgress)}
+              strokeLinecap="round"
+            />
+          );
+        }
+
+        return null;
       })}
     </svg>
   );
