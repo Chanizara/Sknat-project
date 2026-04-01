@@ -37,26 +37,34 @@ function AnimatedButton({
     "relative overflow-hidden inline-flex items-center justify-center px-8 py-3.5 text-xs font-medium tracking-widest uppercase transition-all";
 
   const variantStyles: Record<string, { bg: string; color: string; border?: string }> = {
-    primary: { bg: "#1a1a1a", color: "#f5f2ee" },
+    primary:   { bg: "#1a1a1a", color: "#f5f2ee" },
     secondary: { bg: "transparent", color: "#1a1a1a" },
-    outline: { bg: "transparent", color: "#1a1a1a", border: "1px solid #1a1a1a" },
+    outline:   { bg: "transparent", color: "#1a1a1a", border: "1px solid #1a1a1a" },
   };
 
+  // fade-out while sliding up / fade-in while sliding up from below
+  // — opacity prevents below-vowels (e.g. "ู") from being visible at the clip edge
   const content = (
-    <>
+    <span className="relative inline-block overflow-hidden">
       <span
-        className="block transition-transform duration-300"
-        style={{ transform: isHovered ? "translateY(-100%)" : "translateY(0)" }}
+        className="block transition-all duration-300"
+        style={{
+          transform: isHovered ? "translateY(-100%)" : "translateY(0)",
+          opacity:   isHovered ? 0 : 1,
+        }}
       >
         {children}
       </span>
       <span
-        className="absolute inset-0 flex items-center justify-center transition-transform duration-300"
-        style={{ transform: isHovered ? "translateY(0)" : "translateY(100%)" }}
+        className="absolute inset-0 flex items-center justify-center transition-all duration-300"
+        style={{
+          transform: isHovered ? "translateY(0)"    : "translateY(100%)",
+          opacity:   isHovered ? 1 : 0,
+        }}
       >
         {children}
       </span>
-    </>
+    </span>
   );
 
   const style = variantStyles[variant];
