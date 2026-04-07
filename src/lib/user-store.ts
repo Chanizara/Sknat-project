@@ -136,6 +136,102 @@ export async function createUser(input: unknown): Promise<User> {
   }
 }
 
+export async function updateUser(id: number, input: unknown): Promise<User> {
+  if (!Number.isInteger(id) || id <= 0) {
+    throw new UserStoreError("id ผู้ใช้ไม่ถูกต้อง");
+  }
+
+  if (!input || typeof input !== "object" || Array.isArray(input)) {
+    throw new UserStoreError("payload ไม่ถูกต้อง");
+  }
+
+  const payload = input as Record<string, unknown>;
+  const fields: string[] = [];
+  const values: Array<string | null> = [];
+
+  if ("fullName" in payload) {
+    fields.push("full_name = ?");
+    values.push(normalizeString(payload.fullName) ?? null);
+  }
+
+  if ("phone" in payload) {
+    fields.push("phone = ?");
+    values.push(normalizeString(payload.phone) ?? null);
+  }
+
+  if ("email" in payload) {
+    fields.push("email = ?");
+    values.push(normalizeString(payload.email) ?? null);
+  }
+
+  if ("lineId" in payload) {
+    fields.push("line_id = ?");
+    values.push(normalizeString(payload.lineId) ?? null);
+  }
+
+  if ("role" in payload) {
+    const roleValue = normalizeString(payload.role);
+    if (!roleValue || !isUserRole(roleValue)) {
+      throw new UserStoreError("role ต้องเป็น admin หรือ seller");
+    }
+    fields.push("role = ?");
+    values.push(roleValue);
+  }
+
+  if ("password" in payload) {
+    const password = normalizeString(payload.password);
+    if (!password || password.length < 6) {
+      throw new UserStoreError("password ต้องมีความยาวอย่างน้อย 6 ตัวอักษร");
+    }
+    fields.push("password_hash = ?");
+    values.push(hashPassword(password));
+  }
+
+  if (fields.length === 0) {
+    throw new UserStoreError("ไม่มีข้อมูลสำหรับอัปเดต");
+  }
+
+  try {
+    await dbPool.execute(
+      `UPDATE users SET ${fields.join(", ")} WHERE id = ?`,
+      [...values, String(id)],
+    );
+
+    const [rows] = await dbPool.query<UserRow[]>(
+      `SELECT id, username, role, full_name, phone, email, line_id, created_at, updated_at
+       FROM users WHERE id = ? LIMIT 1`,
+      [id],
+    );
+
+    if (rows.length === 0) {
+      throw new UserStoreError("ไม่พบผู้ใช้", 404);
+    }
+
+    return mapRowToUser(rows[0]);
+  } catch (error) {
+    wrapDbError(error);
+  }
+}
+
+export async function deleteUser(id: number): Promise<void> {
+  if (!Number.isInteger(id) || id <= 0) {
+    throw new UserStoreError("id ผู้ใช้ไม่ถูกต้อง");
+  }
+
+  try {
+    const [result] = await dbPool.execute<ResultSetHeader>(
+      `DELETE FROM users WHERE id = ?`,
+      [id],
+    );
+
+    if (result.affectedRows === 0) {
+      throw new UserStoreError("ไม่พบผู้ใช้", 404);
+    }
+  } catch (error) {
+    wrapDbError(error);
+  }
+}
+
 export async function authenticateUser(input: unknown): Promise<User | null> {
   if (!input || typeof input !== "object" || Array.isArray(input)) {
     throw new UserStoreError("payload ไม่ถูกต้อง");

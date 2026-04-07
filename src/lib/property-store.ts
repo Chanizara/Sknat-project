@@ -398,8 +398,10 @@ function wrapDbError(error: unknown): never {
   throw new PropertyStoreError("ไม่สามารถเชื่อมต่อฐานข้อมูล MySQL ได้", 500);
 }
 
-export async function listProperties(): Promise<Property[]> {
+export async function listProperties(options?: { sellerId?: number }): Promise<Property[]> {
   try {
+    const whereClause = options?.sellerId ? "WHERE p.seller_id = ?" : "";
+    const params = options?.sellerId ? [options.sellerId] : [];
     const [rows] = await dbPool.query<PropertyRow[]>(
       `SELECT
         p.id,
@@ -428,7 +430,9 @@ export async function listProperties(): Promise<Property[]> {
         p.updated_at
       FROM properties p
       LEFT JOIN users u ON u.id = p.seller_id
+      ${whereClause}
       ORDER BY p.id DESC`,
+      params,
     );
 
     return rows.map(mapRowToProperty);

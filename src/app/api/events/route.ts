@@ -1,0 +1,148 @@
+import { NextResponse } from "next/server";
+
+import { getDashboardStats } from "@/lib/dashboard-store";
+import { createMember, deleteMember, listMembers, MemberStoreError, updateMember } from "@/lib/member-store";
+import { createOrder, deleteOrder, listOrders, OrderStoreError, updateOrder } from "@/lib/order-store";
+import { createProperty, deleteProperty, listProperties, PropertyStoreError, updateProperty } from "@/lib/property-store";
+import { createTransaction, listTransactions, TransactionStoreError } from "@/lib/transaction-store";
+import { authenticateUser, createUser, deleteUser, listUsers, updateUser, UserStoreError } from "@/lib/user-store";
+
+type EventRequest = {
+  event?: string;
+  payload?: unknown;
+};
+
+function handleError(error: unknown) {
+  if (
+    error instanceof UserStoreError ||
+    error instanceof PropertyStoreError ||
+    error instanceof MemberStoreError ||
+    error instanceof OrderStoreError ||
+    error instanceof TransactionStoreError
+  ) {
+    return NextResponse.json({ ok: false, error: error.message }, { status: error.status });
+  }
+
+  return NextResponse.json({ ok: false, error: "เกิดข้อผิดพลาดภายในระบบ" }, { status: 500 });
+}
+
+export async function POST(request: Request) {
+  try {
+    const body = (await request.json()) as EventRequest;
+    const event = body.event;
+    const payload = body.payload;
+
+    if (!event) {
+      return NextResponse.json({ ok: false, error: "event จำเป็นต้องระบุ" }, { status: 400 });
+    }
+
+    switch (event) {
+      case "auth:login": {
+        const user = await authenticateUser(payload);
+        if (!user) {
+          return NextResponse.json({ ok: false, error: "username หรือ password ไม่ถูกต้อง" }, { status: 401 });
+        }
+        return NextResponse.json({ ok: true, data: user });
+      }
+
+      case "dashboard:stats": {
+        const stats = await getDashboardStats(payload as { sellerId?: unknown });
+        return NextResponse.json({ ok: true, data: stats });
+      }
+
+      case "users:list":
+        return NextResponse.json({ ok: true, data: await listUsers() });
+
+      case "users:create":
+        return NextResponse.json({ ok: true, data: await createUser(payload) });
+
+      case "users:update": {
+        const id = Number((payload as { id?: unknown } | undefined)?.id);
+        return NextResponse.json({ ok: true, data: await updateUser(id, payload) });
+      }
+
+      case "users:delete": {
+        const id = Number((payload as { id?: unknown } | undefined)?.id);
+        await deleteUser(id);
+        return NextResponse.json({ ok: true, data: { id } });
+      }
+
+      case "members:list":
+        return NextResponse.json({ ok: true, data: await listMembers() });
+
+      case "members:create":
+        return NextResponse.json({ ok: true, data: await createMember(payload) });
+
+      case "members:update": {
+        const id = Number((payload as { id?: unknown } | undefined)?.id);
+        return NextResponse.json({ ok: true, data: await updateMember(id, payload) });
+      }
+
+      case "members:delete": {
+        const id = Number((payload as { id?: unknown } | undefined)?.id);
+        await deleteMember(id);
+        return NextResponse.json({ ok: true, data: { id } });
+      }
+
+      case "properties:list": {
+        const sellerId = Number((payload as { sellerId?: unknown } | undefined)?.sellerId);
+        return NextResponse.json({
+          ok: true,
+          data: await listProperties(Number.isInteger(sellerId) && sellerId > 0 ? { sellerId } : undefined),
+        });
+      }
+
+      case "properties:create":
+        return NextResponse.json({ ok: true, data: await createProperty(payload) });
+
+      case "properties:update": {
+        const id = Number((payload as { id?: unknown } | undefined)?.id);
+        return NextResponse.json({ ok: true, data: await updateProperty(id, payload) });
+      }
+
+      case "properties:delete": {
+        const id = Number((payload as { id?: unknown } | undefined)?.id);
+        await deleteProperty(id);
+        return NextResponse.json({ ok: true, data: { id } });
+      }
+
+      case "orders:list": {
+        const sellerId = Number((payload as { sellerId?: unknown } | undefined)?.sellerId);
+        return NextResponse.json({
+          ok: true,
+          data: await listOrders(Number.isInteger(sellerId) && sellerId > 0 ? { sellerId } : undefined),
+        });
+      }
+
+      case "orders:create":
+        return NextResponse.json({ ok: true, data: await createOrder(payload) });
+
+      case "orders:update": {
+        const id = Number((payload as { id?: unknown } | undefined)?.id);
+        return NextResponse.json({ ok: true, data: await updateOrder(id, payload) });
+      }
+
+      case "orders:delete": {
+        const id = Number((payload as { id?: unknown } | undefined)?.id);
+        await deleteOrder(id);
+        return NextResponse.json({ ok: true, data: { id } });
+      }
+
+      case "transactions:list": {
+        const sellerId = Number((payload as { sellerId?: unknown } | undefined)?.sellerId);
+        return NextResponse.json({
+          ok: true,
+          data: await listTransactions(Number.isInteger(sellerId) && sellerId > 0 ? { sellerId } : undefined),
+        });
+      }
+
+      case "transactions:create":
+        return NextResponse.json({ ok: true, data: await createTransaction(payload) });
+
+      default:
+        return NextResponse.json({ ok: false, error: `unsupported event: ${event}` }, { status: 400 });
+    }
+  } catch (error) {
+    return handleError(error);
+  }
+}
