@@ -1,0 +1,14 @@
+name: sknat
+
+services:
+  admin:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3001"
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      HOSTNAME: 0.0.0.0
+    restart: unless-stopped
