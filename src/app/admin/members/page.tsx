@@ -120,8 +120,8 @@ export default function MembersPage() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
         {[
           { label: "สมาชิกทั้งหมด", value: members.length, sub: "Registered clients" },
-          { label: "ใช้งานอยู่", value: members.filter(m => m.status === "active").length, sub: "Active members" },
-          { label: "ระงับ", value: members.filter(m => m.status === "suspended").length, sub: "Suspended" },
+          { label: "บัญชีปกติ", value: members.filter(m => m.status === "active").length, sub: "Normal accounts" },
+          { label: "บัญชีถูกระงับ", value: members.filter(m => m.status === "suspended").length, sub: "Suspended accounts" },
           { label: "ใหม่เดือนนี้", value: members.filter(m => new Date(m.memberSince).getMonth() === new Date().getMonth()).length, sub: "New this month" },
         ].map((s, i) => (
           <div key={i} className="bg-white border border-neutral-100 p-6 rounded-3xl shadow-[0_2px_20px_-4px_rgba(0,0,0,0.04)] hover:shadow-[0_8px_30px_-4px_rgba(0,0,0,0.08)] hover:-translate-y-1 transition-all duration-300">
@@ -167,7 +167,7 @@ export default function MembersPage() {
                       m.status === "active" ? "bg-emerald-50 text-emerald-600 border border-emerald-100" : "bg-amber-50 text-amber-600 border border-amber-100"
                     }`}>
                       <span className={`w-1 h-1 rounded-full ${m.status === "active" ? "bg-emerald-500" : "bg-amber-500"}`} />
-                      {m.status === "active" ? "ใช้งาน" : "ระงับ"}
+                      {m.status === "active" ? "บัญชีปกติ" : "บัญชีถูกระงับ"}
                     </span>
                   </div>
                 </div>
@@ -200,7 +200,7 @@ export default function MembersPage() {
                   <button onClick={() => handleToggle(m)} className={`flex-1 px-4 py-2.5 rounded-2xl text-sm font-medium transition-all border ${
                     m.status === "active" ? "bg-amber-50 border-amber-100 text-amber-600 hover:bg-amber-100" : "bg-emerald-50 border-emerald-100 text-emerald-600 hover:bg-emerald-100"
                   }`}>
-                    {m.status === "active" ? "ระงับ" : "เปิดใช้"}
+                    {m.status === "active" ? "ระงับบัญชี" : "คืนสถานะบัญชี"}
                   </button>
                 </div>
               </div>

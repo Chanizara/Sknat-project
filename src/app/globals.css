@@ -201,3 +201,19 @@ select {
   mask-composite: exclude;
   pointer-events: none;
 }
+
+@media print {
+  body {
+    background: white;
+    background-image: none;
+  }
+
+  aside,
+  .print-hide-sidebar {
+    display: none !important;
+  }
+
+  main {
+    margin-left: 0 !important;
+  }
+}

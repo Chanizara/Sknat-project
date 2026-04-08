@@ -9,9 +9,7 @@ import {
   UsersIcon,
   MembersIcon,
   PropertyIcon,
-  SearchIcon,
   ClipboardIcon,
-  HistoryIcon,
   LogoutIcon,
   MenuIcon,
   CloseIcon,
@@ -22,31 +20,18 @@ interface SidebarProps {
   setIsOpen: (value: boolean) => void;
 }
 
-export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
-  const pathname = usePathname();
-  const [isMobileOpen, setIsMobileOpen] = useState(false);
-  const { user, logout } = useAuth();
-  const basePath = pathname.startsWith("/seller") ? "/seller" : "/admin";
+interface NavItemsProps {
+  menuItems: {
+    title: string;
+    icon: React.ComponentType<{ className?: string }>;
+    href: string;
+  }[];
+  pathname: string;
+  onClick?: () => void;
+}
 
-  const allMenuItems = [
-    { title: "แดชบอร์ด", icon: DashboardIcon, href: `${basePath}`, roles: ["admin", "seller"] },
-    { title: "จัดการคนขาย", icon: UsersIcon, href: `${basePath}/users`, roles: ["admin"] },
-    { title: "จัดการสมาชิก", icon: MembersIcon, href: `${basePath}/members`, roles: ["admin", "seller"] },
-    { title: "อสังหาริมทรัพย์", icon: PropertyIcon, href: `${basePath}/properties`, roles: ["admin", "seller"] },
-    { title: "คัดเลือก", icon: SearchIcon, href: `${basePath}/selection`, roles: ["admin"] },
-    { title: "ออร์เดอร์", icon: ClipboardIcon, href: `${basePath}/orders`, roles: ["admin", "seller"] },
-    { title: "ประวัติ", icon: HistoryIcon, href: `${basePath}/history`, roles: ["admin", "seller"] },
-  ];
-
-  const menuItems = allMenuItems.filter(
-    (item) => !user || item.roles.includes(user.role)
-  );
-
-  const initial = (user?.fullName ?? user?.username ?? "U").charAt(0).toUpperCase();
-  const displayName = user?.fullName ?? user?.username ?? "ผู้ใช้";
-  const roleLabel = user?.role === "admin" ? "ผู้ดูแลระบบ" : "พนักงานขาย";
-
-  const NavItems = ({ onClick }: { onClick?: () => void }) => (
+function NavItems({ menuItems, pathname, onClick }: NavItemsProps) {
+  return (
     <ul className="space-y-1.5">
       {menuItems.map((item, index) => {
         const isActive = pathname === item.href;
@@ -74,6 +59,30 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
       })}
     </ul>
   );
+}
+
+export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
+  const pathname = usePathname();
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const { user, logout } = useAuth();
+  const basePath = pathname.startsWith("/seller") ? "/seller" : "/admin";
+
+  const allMenuItems = [
+    { title: "แดชบอร์ด", icon: DashboardIcon, href: `${basePath}`, roles: ["admin", "seller"] },
+    { title: "จัดการคนขาย", icon: UsersIcon, href: `${basePath}/users`, roles: ["admin"] },
+    { title: "จัดการสมาชิก", icon: MembersIcon, href: `${basePath}/members`, roles: ["admin", "seller"] },
+    { title: "อสังหาริมทรัพย์", icon: PropertyIcon, href: `${basePath}/properties`, roles: ["admin", "seller"] },
+    { title: "ออร์เดอร์", icon: ClipboardIcon, href: `${basePath}/orders`, roles: ["admin", "seller"] },
+    { title: "รายงาน", icon: ClipboardIcon, href: `${basePath}/history`, roles: ["admin", "seller"] },
+  ];
+
+  const menuItems = allMenuItems.filter(
+    (item) => !user || item.roles.includes(user.role)
+  );
+
+  const initial = (user?.fullName ?? user?.username ?? "U").charAt(0).toUpperCase();
+  const displayName = user?.fullName ?? user?.username ?? "ผู้ใช้";
+  const roleLabel = user?.role === "admin" ? "ผู้ดูแลระบบ" : "พนักงานขาย";
 
   return (
     <>
@@ -129,7 +138,7 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
           <div className="text-[10px] font-semibold text-neutral-400 uppercase tracking-widest px-2 mb-4">
             เมนู
           </div>
-          <NavItems />
+          <NavItems menuItems={menuItems} pathname={pathname} />
         </nav>
 
         {/* User Info */}
@@ -170,7 +179,7 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
         </div>
 
         <nav className="flex-1 overflow-y-auto px-4 py-6">
-          <NavItems onClick={() => setIsMobileOpen(false)} />
+          <NavItems menuItems={menuItems} pathname={pathname} onClick={() => setIsMobileOpen(false)} />
         </nav>
 
         <div className="p-4 border-t border-neutral-200">

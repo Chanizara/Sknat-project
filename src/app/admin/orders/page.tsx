@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { emit } from "@/lib/socket";
 import { useAuth } from "@/lib/auth";
@@ -34,6 +34,14 @@ const STATUS_STYLE: Record<string, string> = {
   cancelled: "bg-red-50 text-red-500 border-red-100",
 };
 
+function formatDate(value: string): string {
+  return new Date(value.includes("T") ? value : `${value}T00:00:00`).toLocaleDateString("th-TH", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
+}
+
 export default function OrdersPage() {
   const { user } = useAuth();
   const basePath = user?.role === "seller" ? "/seller" : "/admin";
@@ -45,14 +53,18 @@ export default function OrdersPage() {
   const [newStatus, setNewStatus] = useState<Order["status"]>("pending");
   const [saving, setSaving] = useState(false);
 
-  const loadOrders = async () => {
+  const loadOrders = useCallback(async () => {
     const payload = user?.role === "seller" ? { sellerId: user.id } : {};
     const res = await emit<Order[]>("orders:list", payload);
     if (res.ok && res.data) setOrders(res.data);
     setLoading(false);
-  };
+  }, [user]);
 
-  useEffect(() => { if (user) loadOrders(); }, [user]);
+  useEffect(() => {
+    if (user) {
+      void Promise.resolve().then(loadOrders);
+    }
+  }, [loadOrders, user]);
 
   const filteredOrders = orders.filter((o) => filterStatus === "all" || o.status === filterStatus);
 
@@ -66,12 +78,13 @@ export default function OrdersPage() {
     if (!selectedOrder) return;
     setSaving(true);
     await emit("orders:update", { id: selectedOrder.id, status: newStatus, notes: noteText });
+    if (selectedOrder.propertyId && newStatus === "completed") {
+      await emit("properties:update", { id: selectedOrder.propertyId, status: "success" });
+    }
     setSaving(false);
     setSelectedOrder(null);
     loadOrders();
   };
-
-  const formatPrice = (n: number) => new Intl.NumberFormat("th-TH").format(n);
 
   const statCounts = {
     pending: orders.filter(o => o.status === "pending").length,
@@ -135,7 +148,7 @@ export default function OrdersPage() {
                       {STATUS_LABEL[o.status]}
                     </span>
                     <span className="text-xs text-neutral-400 bg-neutral-50 border border-neutral-100 px-2.5 py-1 rounded-full">#{o.id}</span>
-                    <span className="text-xs text-neutral-400">{o.orderDate}</span>
+                    <span className="text-xs text-neutral-400">{formatDate(o.orderDate)}</span>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>

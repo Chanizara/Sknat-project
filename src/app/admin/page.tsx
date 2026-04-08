@@ -11,8 +11,6 @@ import {
   ClipboardIcon,
   TrendingUpIcon,
   ArrowUpIcon,
-  CheckCircleIcon,
-  ClockIcon,
 } from "./components/Icons";
 
 interface DashboardStats {
@@ -92,22 +90,6 @@ function StatCard({
       </div>
     </div>
   );
-}
-
-function timeAgo(isoString: string): string {
-  const diff = Date.now() - new Date(isoString).getTime();
-  const minutes = Math.floor(diff / 60000);
-  if (minutes < 1) return "เมื่อกี้";
-  if (minutes < 60) return `${minutes} นาทีที่แล้ว`;
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours} ชั่วโมงที่แล้ว`;
-  return `${Math.floor(hours / 24)} วันที่แล้ว`;
-}
-
-function activityIcon(type: string): React.ElementType {
-  if (type === "order") return CheckCircleIcon;
-  if (type === "member") return MembersIcon;
-  return BuildingIcon;
 }
 
 function toDate(value: string): Date {
@@ -291,18 +273,6 @@ export default function AdminDashboard() {
       ? `฿${(n / 1_000_000).toFixed(1)}M`
       : `฿${new Intl.NumberFormat("th-TH").format(n)}`;
 
-  const quickActions = isAdmin
-    ? [
-        { title: "เพิ่มอสังหาฯ", icon: BuildingIcon, href: `${basePath}/properties` },
-        { title: "ตรวจสอบออร์เดอร์", icon: ClipboardIcon, href: `${basePath}/orders` },
-        { title: "จัดการสมาชิก", icon: MembersIcon, href: `${basePath}/members` },
-      ]
-    : [
-        { title: "เพิ่มอสังหาฯ", icon: BuildingIcon, href: `${basePath}/properties` },
-        { title: "เพิ่มสมาชิก", icon: MembersIcon, href: `${basePath}/members` },
-        { title: "ตรวจสอบออร์เดอร์", icon: ClipboardIcon, href: `${basePath}/orders` },
-      ];
-
   const statCards = isAdmin
     ? [
         { title: "เจ้าหน้าที่", value: stats?.totalUsers ?? "—", subtext: "ผู้ดูแลระบบ", change: "+5", icon: UserGroupIcon },
@@ -358,37 +328,50 @@ export default function AdminDashboard() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Graph + Recent Activity */}
-        <div className="lg:col-span-2">
-          <div className="mb-8 bg-white border border-neutral-100 rounded-3xl p-6 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.03)]">
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-5">
-              <div>
-                <h3 className="text-sm font-semibold text-black tracking-wide uppercase">กราฟภาพรวม</h3>
-                <p className="text-xs text-neutral-500 mt-1">{graphTitle} · {range === "day" ? "รายวัน" : range === "week" ? "รายสัปดาห์" : "รายเดือน"}</p>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {[
-                  { key: "seller-added", label: isAdmin ? "การเพิ่ม seller" : "การเพิ่มอสังหา" },
-                  { key: "member-signup", label: "การสมัครสมาชิก" },
-                  { key: "total-sales", label: "ยอดขายรวม" },
-                ].map((option) => (
-                  <button
-                    key={option.key}
-                    onClick={() => setMetric(option.key as GraphMetric)}
-                    className={`px-3 py-1.5 rounded-full text-xs border transition-colors ${
-                      metric === option.key
-                        ? "bg-black text-white border-black"
-                        : "bg-neutral-50 text-neutral-500 border-neutral-100 hover:text-black"
-                    }`}
-                  >
-                    {option.label}
-                  </button>
-                ))}
-              </div>
+      <div className="grid grid-cols-1 gap-8">
+        <div className="bg-white border border-neutral-100 rounded-3xl p-6 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.03)]">
+          <div className="flex flex-col gap-4 mb-5 md:flex-row md:items-center md:justify-between">
+            <div>
+              <h3 className="text-sm font-semibold text-black tracking-wide uppercase">กราฟภาพรวม</h3>
+              <p className="text-xs text-neutral-500 mt-1">{graphTitle} · {range === "day" ? "รายวัน" : range === "week" ? "รายสัปดาห์" : "รายเดือน"}</p>
             </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <Link
+                href={`${basePath}/history`}
+                className="px-3 py-1.5 rounded-full text-xs border border-neutral-200 bg-white text-neutral-600 hover:text-black hover:border-black transition-colors"
+              >
+                เปิดรายงาน
+              </Link>
+              <Link
+                href={`${basePath}/history`}
+                className="px-3 py-1.5 rounded-full text-xs border border-black bg-black text-white hover:bg-neutral-800 transition-colors"
+              >
+                ส่งออก PDF
+              </Link>
+            </div>
+          </div>
 
-            <div className="flex items-center gap-2 mb-6">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-5">
+            <div className="flex flex-wrap gap-2">
+              {[
+                { key: "seller-added", label: isAdmin ? "การเพิ่ม seller" : "การเพิ่มอสังหา" },
+                { key: "member-signup", label: "การสมัครสมาชิก" },
+                { key: "total-sales", label: "ยอดขายรวม" },
+              ].map((option) => (
+                <button
+                  key={option.key}
+                  onClick={() => setMetric(option.key as GraphMetric)}
+                  className={`px-3 py-1.5 rounded-full text-xs border transition-colors ${
+                    metric === option.key
+                      ? "bg-black text-white border-black"
+                      : "bg-neutral-50 text-neutral-500 border-neutral-100 hover:text-black"
+                  }`}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+            <div className="flex items-center gap-2">
               {[
                 { key: "day", label: "วัน" },
                 { key: "week", label: "สัปดาห์" },
@@ -407,136 +390,28 @@ export default function AdminDashboard() {
                 </button>
               ))}
             </div>
-
-            <div className="h-64 border border-neutral-100 rounded-2xl p-4 bg-neutral-50/50">
-              <div className="h-full flex items-end gap-1 md:gap-2 overflow-x-auto">
-                {graphPoints.map((point, index) => {
-                  const heightPercent = (point.value / maxValue) * 100;
-                  return (
-                    <div key={`${point.label}-${index}`} className="min-w-7 flex-1 flex flex-col items-center justify-end gap-2">
-                      <span className="text-[10px] text-neutral-500 whitespace-nowrap">
-                        {metric === "total-sales" ? `฿${Math.round(point.value).toLocaleString("th-TH")}` : point.value}
-                      </span>
-                      <div className="w-full max-w-8 rounded-t-xl bg-black/90" style={{ height: `${Math.max(heightPercent, point.value > 0 ? 5 : 0)}%` }} />
-                      <span className="text-[10px] text-neutral-400">{point.label}</span>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            <p className="text-[11px] text-neutral-400 mt-3">หน่วย: {metricUnit}</p>
           </div>
 
-          <div className="bg-white border border-neutral-100 rounded-3xl shadow-[0_4px_20px_-4px_rgba(0,0,0,0.03)] overflow-hidden">
-            <div className="p-6 border-b border-neutral-100 flex items-center justify-between">
-              <h2 className="text-sm font-semibold text-black tracking-wide uppercase">กิจกรรมล่าสุด</h2>
-              <Link
-                href={`${basePath}/history`}
-                className="text-xs text-neutral-500 hover:text-black transition-colors uppercase tracking-widest bg-neutral-50 hover:bg-neutral-100 px-3 py-1.5 rounded-full border border-neutral-100"
-              >
-                ดูทั้งหมด
-              </Link>
-            </div>
-            <div className="p-2">
-              {loading ? (
-                <div className="space-y-2 p-4">
-                  {[0, 1, 2].map((i) => (
-                    <div key={i} className="h-14 bg-neutral-50 rounded-2xl animate-pulse" />
-                  ))}
-                </div>
-              ) : stats?.recentActivity.length ? (
-                <div className="divide-y divide-neutral-100/50">
-                  {stats.recentActivity.map((activity, i) => {
-                    const Icon = activityIcon(activity.type);
-                    return (
-                      <div
-                        key={i}
-                        className="flex items-center gap-5 p-4 mx-2 my-1 hover:bg-neutral-50 rounded-2xl transition-all duration-300 group cursor-pointer"
-                      >
-                        <div className="w-12 h-12 border border-neutral-100/50 rounded-2xl flex items-center justify-center bg-white group-hover:border-black/10 group-hover:shadow-sm transition-all duration-300">
-                          <Icon className="w-5 h-5 text-neutral-500 group-hover:text-black transition-colors" />
-                        </div>
-                        <div className="flex-1 min-w-0 flex items-center justify-between">
-                          <div>
-                            <p className="text-sm font-medium text-black">{activity.title}</p>
-                            <p className="text-xs text-neutral-500 mt-1 truncate max-w-xs">{activity.description}</p>
-                          </div>
-                          <span className="text-[10px] uppercase text-neutral-400 tracking-widest bg-neutral-50 px-2.5 py-1 rounded-full border border-neutral-100 ml-3 shrink-0">
-                            {timeAgo(activity.time)}
-                          </span>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              ) : (
-                <div className="text-center py-12 text-neutral-400 text-sm">ยังไม่มีกิจกรรม</div>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Right Column */}
-        <div className="space-y-8">
-          {/* Quick Stats Card */}
-          <div className="bg-black text-white p-8 rounded-3xl shadow-[0_8px_30px_-4px_rgba(0,0,0,0.2)] relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-            <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/5 rounded-full blur-3xl translate-y-1/2 -translate-x-1/4" />
-            <h3 className="text-xs font-semibold uppercase tracking-widest text-neutral-400 mb-8 relative z-10">สถิติวันนี้</h3>
-            <div className="space-y-6 relative z-10">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-[10px] text-neutral-400 uppercase tracking-widest mb-1.5">ยอดขายวันนี้</p>
-                  <p className="text-3xl font-light tracking-tight">
-                    {loading ? "—" : formatPrice(stats?.todaySales ?? 0)}
-                  </p>
-                </div>
-                <div className="w-12 h-12 border border-white/10 bg-white/5 rounded-2xl flex items-center justify-center backdrop-blur-sm">
-                  <ArrowUpIcon className="w-5 h-5 text-white" />
-                </div>
-              </div>
-              <div className="h-px w-full bg-linear-to-r from-transparent via-white/10 to-transparent" />
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-[10px] text-neutral-400 uppercase tracking-widest mb-1.5">ประกาศใหม่</p>
-                  <p className="text-2xl font-light tracking-tight">
-                    {loading ? "—" : `+${stats?.newListings ?? 0}`}
-                  </p>
-                </div>
-                <div className="w-12 h-12 border border-white/10 bg-white/5 rounded-2xl flex items-center justify-center backdrop-blur-sm">
-                  <BuildingIcon className="w-5 h-5 text-white" />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Quick Actions */}
-          <div className="bg-white border border-neutral-100 rounded-3xl shadow-[0_4px_20px_-4px_rgba(0,0,0,0.03)] overflow-hidden">
-            <h3 className="text-xs font-semibold uppercase tracking-widest text-black p-6 border-b border-neutral-100">
-              การดำเนินการด่วน
-            </h3>
-            <div className="p-3 space-y-1">
-              {quickActions.map((action, index) => {
-                const Icon = action.icon;
+          <div className="h-64 border border-neutral-100 rounded-2xl p-4 bg-neutral-50/50">
+            <div className="h-full flex items-end gap-1 md:gap-2 overflow-x-auto">
+              {graphPoints.map((point, index) => {
+                const heightPercent = (point.value / maxValue) * 100;
                 return (
-                  <Link
-                    key={index}
-                    href={action.href}
-                    className="flex items-center gap-4 p-3 hover:bg-neutral-50 rounded-2xl transition-all duration-300 group"
-                  >
-                    <div className="w-10 h-10 border border-neutral-100/50 rounded-xl flex items-center justify-center bg-white group-hover:border-black/10 transition-colors">
-                      <Icon className="w-4 h-4 text-neutral-500 group-hover:text-black transition-colors" />
-                    </div>
-                    <span className="text-sm text-neutral-600 group-hover:text-black transition-colors font-medium">
-                      {action.title}
+                  <div key={`${point.label}-${index}`} className="min-w-7 flex-1 flex flex-col items-center justify-end gap-2">
+                    <span className="text-[10px] text-neutral-500 whitespace-nowrap">
+                      {metric === "total-sales" ? `฿${Math.round(point.value).toLocaleString("th-TH")}` : point.value}
                     </span>
-                    <div className="flex-1" />
-                    <span className="text-neutral-300 group-hover:text-black opacity-0 group-hover:opacity-100 transition-all text-xs mr-2">→</span>
-                  </Link>
+                    <div className="w-full max-w-8 rounded-t-xl bg-black/90" style={{ height: `${Math.max(heightPercent, point.value > 0 ? 5 : 0)}%` }} />
+                    <span className="text-[10px] text-neutral-400">{point.label}</span>
+                  </div>
                 );
               })}
             </div>
+          </div>
+
+          <div className="mt-4 flex flex-col gap-3 text-[11px] text-neutral-400 md:flex-row md:items-center md:justify-between">
+            <p>หน่วย: {metricUnit}</p>
+            <p>รายงาน PDF จะอ้างอิงตัวกรองและข้อมูลล่าสุดจากฐานข้อมูลในหน้ารายงาน</p>
           </div>
         </div>
       </div>
