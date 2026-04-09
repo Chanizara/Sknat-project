@@ -297,7 +297,7 @@ function normalizePayload(input: unknown, mode: "create" | "update"): PropertyIn
   }
 
   if ("features" in payload) {
-    normalized.features = normalizeStringArray(payload.features);
+    normalized.features = normalizeStringArray(payload.features)?.slice(0, 3);
   }
 
   if ("images" in payload) {

@@ -325,7 +325,7 @@ function FluidSection({
               <div className="mb-7">
                 <p className="text-[11px] font-semibold tracking-[0.22em] uppercase text-[#555] mb-4">จุดเด่น</p>
                 <div className="space-y-3">
-                  {property.features.map((f, i) => (
+                  {property.features.slice(0, 3).map((f, i) => (
                     <div key={i} className="flex items-start gap-3">
                       <span className="text-[#0a0a0a] mt-0.5 shrink-0 text-[11px]">◆</span>
                       <span className="text-[15px] font-medium text-[#0a0a0a] leading-relaxed">{f}</span>
@@ -1003,7 +1003,7 @@ export default function PropertyDetailPage() {
 
   const allImages = property.images?.length ? property.images : [property.image];
   const premiumImages = allImages.slice(0, Math.min(6, allImages.length));
-  const featuresList = property.features ?? [];
+  const featuresList = (property.features ?? []).slice(0, 3);
   const premiumCaptions = premiumImages.map((_, i) => featuresList[i] ?? '');
 
   return (
