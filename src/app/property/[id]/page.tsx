@@ -14,7 +14,7 @@ import BeforeFooter from "@/app/component/before_footer";
 import Contact from "@/app/component/contact";
 
 const DEFAULT_MAX_PRICE = 50000000;
-const DEFAULT_MAX_AREA = 500;
+const DEFAULT_MAX_AREA = 10000;
 
 // ─── Lightbox ────────────────────────────────────────────────────────────────
 function Lightbox({

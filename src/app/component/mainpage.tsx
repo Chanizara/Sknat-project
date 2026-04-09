@@ -37,7 +37,7 @@ type FilterControlsProps = {
 };
 
 const DEFAULT_MAX_PRICE = 50000000;
-const DEFAULT_MAX_AREA = 500;
+const DEFAULT_MAX_AREA = 10000;
 
 export default function MainPage({ properties }: MainPageProps) {
   const router = useRouter();
