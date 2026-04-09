@@ -323,7 +323,7 @@ export default function MainPage({ properties }: MainPageProps) {
 
                               <div className="relative hidden min-h-[54px] items-center lg:flex">
                                 <AnimatePresence mode="wait">
-                                  {isHovered ? (
+                                  {isHovered && property.image ? (
                                     <motion.div
                                       key={`preview-${property.id}`}
                                       initial={{ opacity: 0, scale: 0.97, y: 8 }}

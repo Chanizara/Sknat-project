@@ -3,7 +3,6 @@ import type { ResultSetHeader, RowDataPacket } from "mysql2/promise";
 import { dbPool } from "@/lib/db";
 import { LISTING_TYPES, type ListingType, type Property, type PropertyInput } from "@/types/property";
 
-const DEFAULT_IMAGE = "/hero_1.jpg";
 const DEFAULT_CATEGORY = "ที่อยู่อาศัย";
 const DEFAULT_PROPERTY_TYPE = "บ้านเดี่ยว";
 
@@ -177,7 +176,7 @@ function mapRowToProperty(row: PropertyRow): Property {
     title: row.title,
     location: row.location,
     price: toNumberOrUndefined(row.price) ?? 0,
-    image: normalizeImageUrl(row.image),
+    image: row.image ? normalizeImageUrl(row.image) : "",
     category: row.category ?? undefined,
     propertyType: row.property_type ?? undefined,
     size: toNumberOrUndefined(row.size),
@@ -326,7 +325,6 @@ function normalizePayload(input: unknown, mode: "create" | "update"): PropertyIn
       throw new PropertyStoreError("price จำเป็นต้องระบุ");
     }
 
-    normalized.image = normalized.image ?? DEFAULT_IMAGE;
     normalized.category = normalized.category ?? DEFAULT_CATEGORY;
     normalized.propertyType = normalized.propertyType ?? DEFAULT_PROPERTY_TYPE;
 
@@ -525,7 +523,7 @@ export async function createProperty(input: unknown): Promise<Property> {
         normalized.title,
         normalized.location,
         normalized.price,
-        normalized.image ?? DEFAULT_IMAGE,
+        normalized.image ?? "",
         normalized.category ?? DEFAULT_CATEGORY,
         normalized.propertyType ?? DEFAULT_PROPERTY_TYPE,
         normalized.size ?? null,

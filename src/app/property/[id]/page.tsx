@@ -209,25 +209,7 @@ function FluidSection({
     return () => observer.disconnect();
   }, [images]);
 
-  // Pad to 14 images by repeating
-  const TARGET = 14;
-  const padded: string[] = [...images];
-  while (padded.length < TARGET) padded.push(...images);
-  const displayImages = padded.slice(0, TARGET);
-
-  // Exterior captions (first 7)
-  const exteriorCaptions = [
-    'ด้านหน้าบ้าน', 'ด้านข้างบ้าน', 'สวนหน้าบ้าน',
-    'ที่จอดรถ', 'ระเบียงชั้น 2', 'มุมมองทางเข้า', 'รอบบ้านทั้งหมด',
-  ];
-  // Interior captions (last 7)
-  const interiorCaptions = [
-    'ห้องนั่งเล่น', 'ห้องครัวและห้องอาหาร', 'ห้องนอนใหญ่',
-    'ห้องน้ำ Master', 'ห้องนอนรอง', 'พื้นที่อเนกประสงค์', 'บันไดและทางเดิน',
-  ];
-
-  const exteriorImages = displayImages.slice(0, 7);
-  const interiorImages = displayImages.slice(7, 14);
+  const displayImages = images;
 
   const mapsUrl = property.lat && property.lng
     ? `https://www.google.com/maps?q=${property.lat},${property.lng}`
@@ -388,121 +370,46 @@ function FluidSection({
           </div>
         </div>
 
-        {/* RIGHT — two groups of 7 with captions */}
+        {/* RIGHT — all images from DB, pairs grid */}
         <div className="flex-1 px-4 py-8">
 
-          {/* ── EXTERIOR group label ── */}
           <div className="mb-5" style={{ borderTop: '1px solid #e8e8e8', paddingTop: '20px' }}>
             <div className="flex items-center gap-2">
               <span className="text-[11px] text-[#2d2d2d]">◆</span>
-              <span className="text-[11px] font-semibold tracking-[0.28em] uppercase text-[#2d2d2d]">Exterior</span>
+              <span className="text-[11px] font-semibold tracking-[0.28em] uppercase text-[#2d2d2d]">Photo Gallery</span>
             </div>
           </div>
 
-          {/* Exterior images — pairs + last one full width */}
-          {[
-            [0, 1], [2, 3], [4, 5],
-          ].map(([a, b], rowIdx) => (
-            <div key={`ext-row-${rowIdx}`} className="grid grid-cols-2 gap-3 mb-3">
-              {[a, b].map((imgIdx) => (
-                <div key={imgIdx} className="flex flex-col gap-2">
-                  <div
-                    data-img-idx={imgIdx}
-                    className="relative overflow-hidden cursor-pointer group"
-                    style={{ aspectRatio: '4/5', borderRadius: '3px' }}
-                    onClick={() => onImageClick(imgIdx % images.length)}
-                  >
-                    <Image
-                      src={exteriorImages[imgIdx]}
-                      alt={exteriorCaptions[imgIdx]}
-                      fill
-                      className="object-cover transition-transform duration-700 group-hover:scale-105"
-                    />
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/8 transition-colors duration-300" />
-                  </div>
-                  <p className="text-sm font-medium text-[#171717]">{exteriorCaptions[imgIdx]}</p>
-                </div>
-              ))}
-            </div>
-          ))}
-          {/* Last exterior image — half column (portrait) */}
-          <div className="grid grid-cols-2 gap-3 mb-3">
-            <div className="flex flex-col gap-2">
-              <div
-                data-img-idx={6}
-                className="relative overflow-hidden cursor-pointer group"
-                style={{ aspectRatio: '4/5', borderRadius: '3px' }}
-                onClick={() => onImageClick(6 % images.length)}
-              >
-                <Image
-                  src={exteriorImages[6]}
-                  alt={exteriorCaptions[6]}
-                  fill
-                  className="object-cover transition-transform duration-700 group-hover:scale-105"
-                />
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/8 transition-colors duration-300" />
+          {/* Pair rows */}
+          {Array.from({ length: Math.ceil(displayImages.length / 2) }, (_, rowIdx) => {
+            const a = rowIdx * 2;
+            const b = rowIdx * 2 + 1;
+            return (
+              <div key={`row-${rowIdx}`} className="grid grid-cols-2 gap-3 mb-3">
+                {[a, b].map((imgIdx) => {
+                  if (imgIdx >= displayImages.length) return <div key={imgIdx} />;
+                  return (
+                    <div key={imgIdx} className="flex flex-col gap-2">
+                      <div
+                        data-img-idx={imgIdx}
+                        className="relative overflow-hidden cursor-pointer group"
+                        style={{ aspectRatio: '4/5', borderRadius: '3px' }}
+                        onClick={() => onImageClick(imgIdx)}
+                      >
+                        <Image
+                          src={displayImages[imgIdx]}
+                          alt={`รูปที่ ${imgIdx + 1}`}
+                          fill
+                          className="object-cover transition-transform duration-700 group-hover:scale-105"
+                        />
+                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/8 transition-colors duration-300" />
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
-              <p className="text-sm font-medium text-[#171717]">{exteriorCaptions[6]}</p>
-            </div>
-          </div>
-
-          {/* ── INTERIOR group label ── */}
-          <div
-            className="my-8"
-            style={{ borderTop: '1px solid #e8e8e8', paddingTop: '24px' }}
-          >
-            <div className="flex items-center gap-2">
-              <span className="text-[11px] text-[#2d2d2d]">◆</span>
-              <span className="text-[11px] font-semibold tracking-[0.28em] uppercase text-[#2d2d2d]">Interior</span>
-            </div>
-          </div>
-
-          {/* Interior images — pairs + last one full width */}
-          {[
-            [0, 1], [2, 3], [4, 5],
-          ].map(([a, b], rowIdx) => (
-            <div key={`int-row-${rowIdx}`} className="grid grid-cols-2 gap-3 mb-3">
-              {[a, b].map((imgIdx) => (
-                <div key={imgIdx} className="flex flex-col gap-2">
-                  <div
-                    data-img-idx={7 + imgIdx}
-                    className="relative overflow-hidden cursor-pointer group"
-                    style={{ aspectRatio: '4/5', borderRadius: '3px' }}
-                    onClick={() => onImageClick((7 + imgIdx) % images.length)}
-                  >
-                    <Image
-                      src={interiorImages[imgIdx]}
-                      alt={interiorCaptions[imgIdx]}
-                      fill
-                      className="object-cover transition-transform duration-700 group-hover:scale-105"
-                    />
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/8 transition-colors duration-300" />
-                  </div>
-                  <p className="text-sm font-medium text-[#171717]">{interiorCaptions[imgIdx]}</p>
-                </div>
-              ))}
-            </div>
-          ))}
-          {/* Last interior image — half column (portrait) */}
-          <div className="grid grid-cols-2 gap-3 mb-10">
-            <div className="flex flex-col gap-2">
-              <div
-                data-img-idx={13}
-                className="relative overflow-hidden cursor-pointer group"
-                style={{ aspectRatio: '4/5', borderRadius: '3px' }}
-                onClick={() => onImageClick(13 % images.length)}
-              >
-                <Image
-                  src={interiorImages[6]}
-                  alt={interiorCaptions[6]}
-                  fill
-                  className="object-cover transition-transform duration-700 group-hover:scale-105"
-                />
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/8 transition-colors duration-300" />
-              </div>
-              <p className="text-sm font-medium text-[#171717]">{interiorCaptions[6]}</p>
-            </div>
-          </div>
+            );
+          })}
 
         </div>
       </div>
