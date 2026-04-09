@@ -127,6 +127,10 @@ function normalizeAgent(value: unknown): PropertyInput["agent"] {
   };
 }
 
+function normalizeImageUrl(url: string): string {
+  return url.replace(/^https?:\/\/(localhost(:\d+)?|web(:\d+)?)/, "");
+}
+
 function parseJsonArray(input: string | null): string[] | undefined {
   if (!input) {
     return undefined;
@@ -139,7 +143,7 @@ function parseJsonArray(input: string | null): string[] | undefined {
     }
 
     const cleaned = parsed
-      .map((item) => (typeof item === "string" ? item.trim() : ""))
+      .map((item) => (typeof item === "string" ? normalizeImageUrl(item.trim()) : ""))
       .filter(Boolean);
 
     return cleaned.length > 0 ? cleaned : undefined;
@@ -173,7 +177,7 @@ function mapRowToProperty(row: PropertyRow): Property {
     title: row.title,
     location: row.location,
     price: toNumberOrUndefined(row.price) ?? 0,
-    image: row.image,
+    image: normalizeImageUrl(row.image),
     category: row.category ?? undefined,
     propertyType: row.property_type ?? undefined,
     size: toNumberOrUndefined(row.size),
