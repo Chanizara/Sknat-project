@@ -412,11 +412,12 @@ function wrapDbError(error: unknown): never {
   throw new PropertyStoreError("ไม่สามารถเชื่อมต่อฐานข้อมูล MySQL ได้", 500);
 }
 
-export async function listProperties(options?: { sellerId?: number }): Promise<Property[]> {
+export async function listProperties(options?: { sellerId?: number; excludeSold?: boolean }): Promise<Property[]> {
   try {
-    const whereClause = options?.sellerId
-      ? "WHERE p.seller_id = ? AND p.status != 'success'"
-      : "WHERE p.status != 'success'";
+    const conditions: string[] = [];
+    if (options?.sellerId) conditions.push("p.seller_id = ?");
+    if (options?.excludeSold) conditions.push("p.status != 'success'");
+    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
     const params = options?.sellerId ? [options.sellerId] : [];
     const [rows] = await dbPool.query<PropertyRow[]>(
       `SELECT

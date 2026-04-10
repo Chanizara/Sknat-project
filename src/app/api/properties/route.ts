@@ -4,7 +4,7 @@ import { PropertyStoreError, createProperty, listProperties } from "@/lib/proper
 
 export async function GET() {
   try {
-    const properties = await listProperties();
+    const properties = await listProperties({ excludeSold: true });
     return NextResponse.json(properties, { status: 200 });
   } catch (error) {
     return handleError(error);

@@ -149,6 +149,15 @@ export async function updateUser(id: number, input: unknown): Promise<User> {
   const fields: string[] = [];
   const values: Array<string | null> = [];
 
+  if ("username" in payload) {
+    const usernameValue = normalizeString(payload.username);
+    if (!usernameValue) {
+      throw new UserStoreError("username ต้องไม่ว่าง");
+    }
+    fields.push("username = ?");
+    values.push(usernameValue);
+  }
+
   if ("fullName" in payload) {
     fields.push("full_name = ?");
     values.push(normalizeString(payload.fullName) ?? null);
