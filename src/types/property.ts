@@ -29,6 +29,8 @@ export type Property = {
   agent?: Agent;
   images?: string[];
   sellerId?: number;
+  status?: string;
+  statusNote?: string;
   createdAt: string;
   updatedAt: string;
 };

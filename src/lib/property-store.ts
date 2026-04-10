@@ -29,6 +29,8 @@ type PropertyRow = RowDataPacket & {
   seller_email: string | null;
   seller_line_id: string | null;
   images: string | null;
+  status: string | null;
+  status_note: string | null;
   created_at: Date | string;
   updated_at: Date | string;
 };
@@ -197,6 +199,8 @@ function mapRowToProperty(row: PropertyRow): Property {
         }
       : undefined,
     images,
+    status: row.status ?? "pending",
+    statusNote: row.status_note ?? undefined,
     createdAt: toIsoString(row.created_at),
     updatedAt: toIsoString(row.updated_at),
   };
@@ -311,6 +315,14 @@ function normalizePayload(input: unknown, mode: "create" | "update"): PropertyIn
     normalized.agent = normalizeAgent(payload.agent);
   }
 
+  if ("status" in payload) {
+    normalized.status = normalizeString(payload.status);
+  }
+
+  if ("statusNote" in payload) {
+    normalized.statusNote = normalizeString(payload.statusNote) ?? "";
+  }
+
   if (mode === "create") {
     if (!normalized.type) {
       throw new PropertyStoreError("type จำเป็นต้องระบุ");
@@ -402,7 +414,9 @@ function wrapDbError(error: unknown): never {
 
 export async function listProperties(options?: { sellerId?: number }): Promise<Property[]> {
   try {
-    const whereClause = options?.sellerId ? "WHERE p.seller_id = ?" : "";
+    const whereClause = options?.sellerId
+      ? "WHERE p.seller_id = ? AND p.status != 'success'"
+      : "WHERE p.status != 'success'";
     const params = options?.sellerId ? [options.sellerId] : [];
     const [rows] = await dbPool.query<PropertyRow[]>(
       `SELECT
@@ -428,6 +442,8 @@ export async function listProperties(options?: { sellerId?: number }): Promise<P
         u.email AS seller_email,
         u.line_id AS seller_line_id,
         CAST(p.images AS CHAR) AS images,
+        p.status,
+        p.status_note,
         p.created_at,
         p.updated_at
       FROM properties p
@@ -469,6 +485,8 @@ export async function getPropertyById(id: number): Promise<Property | undefined>
         u.email AS seller_email,
         u.line_id AS seller_line_id,
         CAST(p.images AS CHAR) AS images,
+        p.status,
+        p.status_note,
         p.created_at,
         p.updated_at
       FROM properties p
@@ -592,6 +610,8 @@ export async function updateProperty(id: number, input: unknown): Promise<Proper
         lng = ?,
         seller_id = ?,
         images = ?,
+        status = ?,
+        status_note = ?,
         updated_at = NOW()
       WHERE id = ?`;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -614,6 +634,8 @@ export async function updateProperty(id: number, input: unknown): Promise<Proper
         merged.lng ?? null,
         merged.sellerId ?? null,
         merged.images ? JSON.stringify(merged.images) : null,
+        merged.status ?? "pending",
+        merged.statusNote ?? null,
         id,
       ],
     );

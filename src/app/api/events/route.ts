@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 
 import { getDashboardStats } from "@/lib/dashboard-store";
+import { getGraphData, type GraphMetric, type GraphRange } from "@/lib/graph-store";
 import { createMember, deleteMember, listMembers, MemberStoreError, updateMember } from "@/lib/member-store";
-import { createOrder, deleteOrder, listOrders, OrderStoreError, updateOrder } from "@/lib/order-store";
+import { createOrder, deleteOrder, listOrders, OrderStoreError, updateOrder, upsertOrderForProperty } from "@/lib/order-store";
 import { createProperty, deleteProperty, listProperties, PropertyStoreError, updateProperty } from "@/lib/property-store";
 import { createTransaction, listTransactions, TransactionStoreError } from "@/lib/transaction-store";
 import { authenticateUser, createUser, deleteUser, listUsers, updateUser, UserStoreError } from "@/lib/user-store";
@@ -100,6 +101,37 @@ export async function POST(request: Request) {
         return NextResponse.json({ ok: true, data: await updateProperty(id, payload) });
       }
 
+      case "properties:updateStatus": {
+        const p = payload as {
+          id?: unknown;
+          status?: unknown;
+          statusNote?: unknown;
+          customerName?: unknown;
+          customerPhone?: unknown;
+          customerEmail?: unknown;
+        } | undefined;
+
+        const id = Number(p?.id);
+        const updatedProperty = await updateProperty(id, {
+          id,
+          status: p?.status,
+          statusNote: p?.statusNote,
+        });
+
+        // Upsert order if the property is no longer pending
+        await upsertOrderForProperty({
+          propertyId: updatedProperty.id,
+          propertyTitle: updatedProperty.title,
+          propertyStatus: String(p?.status ?? "pending"),
+          statusNote: typeof p?.statusNote === "string" ? p.statusNote : undefined,
+          customerName: typeof p?.customerName === "string" ? p.customerName : undefined,
+          customerPhone: typeof p?.customerPhone === "string" ? p.customerPhone : undefined,
+          customerEmail: typeof p?.customerEmail === "string" ? p.customerEmail : undefined,
+        });
+
+        return NextResponse.json({ ok: true, data: updatedProperty });
+      }
+
       case "properties:delete": {
         const id = Number((payload as { id?: unknown } | undefined)?.id);
         await deleteProperty(id);
@@ -138,6 +170,21 @@ export async function POST(request: Request) {
 
       case "transactions:create":
         return NextResponse.json({ ok: true, data: await createTransaction(payload) });
+
+      case "graph:data": {
+        const p = payload as { metric?: unknown; range?: unknown; sellerId?: unknown };
+        const validMetrics: GraphMetric[] = ["seller-added", "member-signup", "total-sales"];
+        const validRanges: GraphRange[] = ["day", "week", "month"];
+        const metric = validMetrics.includes(p.metric as GraphMetric) ? (p.metric as GraphMetric) : "seller-added";
+        const graphRange = validRanges.includes(p.range as GraphRange) ? (p.range as GraphRange) : "week";
+        const sellerId = Number(p.sellerId);
+        const points = await getGraphData(
+          metric,
+          graphRange,
+          Number.isInteger(sellerId) && sellerId > 0 ? sellerId : undefined,
+        );
+        return NextResponse.json({ ok: true, data: points });
+      }
 
       default:
         return NextResponse.json({ ok: false, error: `unsupported event: ${event}` }, { status: 400 });

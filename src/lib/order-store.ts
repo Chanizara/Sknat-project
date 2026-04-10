@@ -218,6 +218,102 @@ export async function updateOrder(id: number, input: unknown): Promise<Order> {
   }
 }
 
+/** Maps property status values to order status values */
+const PROPERTY_TO_ORDER_STATUS: Record<string, OrderStatus> = {
+  negotiating: "negotiating",
+  success: "completed",
+  failed: "cancelled",
+  contacted: "contacted",
+};
+
+export type UpsertOrderInput = {
+  propertyId: number;
+  propertyTitle: string;
+  propertyStatus: string;
+  statusNote?: string;
+  customerName?: string;
+  customerPhone?: string;
+  customerEmail?: string;
+};
+
+/**
+ * Creates or updates an order linked to a property.
+ * Called automatically when property status is updated to a non-pending value.
+ */
+export async function upsertOrderForProperty(input: UpsertOrderInput): Promise<Order | null> {
+  const orderStatus = PROPERTY_TO_ORDER_STATUS[input.propertyStatus];
+  if (!orderStatus) return null; // "pending" or unknown → no order
+
+  try {
+    // Check if an order already exists for this property
+    const [existing] = await dbPool.query<OrderRow[]>(
+      `SELECT * FROM orders WHERE property_id = ? ORDER BY id DESC LIMIT 1`,
+      [input.propertyId],
+    );
+
+    if (existing.length > 0) {
+      // Update existing order
+      const order = existing[0];
+      const fields: string[] = ["status = ?"];
+      const values: Array<string | null> = [orderStatus];
+
+      if (input.statusNote !== undefined) {
+        fields.push("notes = ?");
+        values.push(input.statusNote || null);
+      }
+      if (input.customerName) {
+        fields.push("customer_name = ?");
+        values.push(input.customerName);
+      }
+      if (input.customerPhone !== undefined) {
+        fields.push("customer_phone = ?");
+        values.push(input.customerPhone || null);
+      }
+      if (input.customerEmail !== undefined) {
+        fields.push("customer_email = ?");
+        values.push(input.customerEmail || null);
+      }
+
+      await dbPool.execute(
+        `UPDATE orders SET ${fields.join(", ")} WHERE id = ?`,
+        [...values, String(order.id)],
+      );
+
+      const [rows] = await dbPool.query<OrderRow[]>(
+        `SELECT * FROM orders WHERE id = ? LIMIT 1`,
+        [order.id],
+      );
+      return rows.length > 0 ? mapRowToOrder(rows[0]) : null;
+    } else {
+      // Create new order — customer_name required
+      const customerName = input.customerName?.trim();
+      if (!customerName) return null; // cannot create without a name
+
+      const [result] = await dbPool.execute<ResultSetHeader>(
+        `INSERT INTO orders (property_id, property_title, customer_name, customer_phone, customer_email, status, notes, order_date)
+         VALUES (?, ?, ?, ?, ?, ?, ?, CURDATE())`,
+        [
+          input.propertyId,
+          input.propertyTitle,
+          customerName,
+          input.customerPhone || null,
+          input.customerEmail || null,
+          orderStatus,
+          input.statusNote || null,
+        ],
+      );
+
+      const [rows] = await dbPool.query<OrderRow[]>(
+        `SELECT * FROM orders WHERE id = ? LIMIT 1`,
+        [result.insertId],
+      );
+      return rows.length > 0 ? mapRowToOrder(rows[0]) : null;
+    }
+  } catch (error) {
+    wrapDbError(error);
+  }
+}
+
 export async function deleteOrder(id: number): Promise<void> {
   if (!Number.isInteger(id) || id <= 0) {
     throw new OrderStoreError("id ออร์เดอร์ไม่ถูกต้อง");
