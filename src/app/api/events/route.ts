@@ -151,7 +151,12 @@ export async function POST(request: Request) {
 
       case "orders:update": {
         const id = Number((payload as { id?: unknown } | undefined)?.id);
-        return NextResponse.json({ ok: true, data: await updateOrder(id, payload) });
+        const updatedOrder = await updateOrder(id, payload);
+        // Sync property status when order is marked completed
+        if (updatedOrder.propertyId && updatedOrder.status === "completed") {
+          await updateProperty(updatedOrder.propertyId, { id: updatedOrder.propertyId, status: "success" });
+        }
+        return NextResponse.json({ ok: true, data: updatedOrder });
       }
 
       case "orders:delete": {
