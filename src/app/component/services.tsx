@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 
 const services = [
   {
@@ -108,6 +109,7 @@ const services = [
 ];
 
 export default function Services() {
+  const router = useRouter();
   const sectionRef = useRef<HTMLElement>(null);
   const [isVisible, setIsVisible] = useState(false);
 
@@ -229,19 +231,7 @@ export default function Services() {
             ต้องการคำปรึกษาเพิ่มเติม?
           </p>
           <button
-            onClick={() => {
-              const element = document.getElementById("contact");
-              if (element) {
-                const navbarHeight = 80;
-                const elementPosition =
-                  element.getBoundingClientRect().top + window.scrollY;
-                const offsetPosition = elementPosition - navbarHeight;
-                window.scrollTo({
-                  top: offsetPosition,
-                  behavior: "smooth",
-                });
-              }
-            }}
+            onClick={() => router.push("/about#about-contact")}
             className="group inline-flex items-center gap-3 rounded-full bg-slate-950 px-8 py-4 text-sm font-semibold text-white transition-all hover:bg-slate-800 hover:shadow-xl"
           >
             ติดต่อเรา

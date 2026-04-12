@@ -81,9 +81,7 @@ export default function OurExperience() {
               className="font-light leading-relaxed text-[#1a1a1a]"
               style={{ fontSize: "clamp(0.95rem, 1.6vw, 1.15rem)" }}
             >
-              Our <strong className="font-semibold">experience portfolio</strong> is defined by
-              exceptional craftsmanship, curated selection, and enduring market knowledge. Built
-              for discerning buyers and investors with uncompromising vision.
+              พอร์ตโฟลิโอ<strong className="font-semibold">แห่งประสบการณ์</strong>ของเรา ถูกนิยามด้วยงานฝีมืออันยอดเยี่ยม การคัดสรรอย่างพิถีพิถัน และความเชี่ยวชาญตลาดที่ยั่งยืน สร้างขึ้นเพื่อผู้ซื้อและนักลงทุนที่มีวิสัยทัศน์ไม่ยอมประนีประนอม
             </p>
             <Link
               href="/about"

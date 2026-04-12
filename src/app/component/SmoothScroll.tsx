@@ -32,6 +32,7 @@ export default function SmoothScroll({ children }: { children: React.ReactNode }
     const targetY = target.getBoundingClientRect().top + window.scrollY - offsetY;
 
     if (lenisRef.current) {
+      lenisRef.current.resize();
       lenisRef.current.scrollTo(targetY, { immediate: true });
     } else {
       window.scrollTo({ top: targetY, left: 0, behavior: 'auto' });
@@ -80,14 +81,10 @@ export default function SmoothScroll({ children }: { children: React.ReactNode }
 
     let cancelled = false;
     let attempts = 0;
-    const maxAttempts = 14;
+    const maxAttempts = 20; // 20 × 50ms = 1000ms total
 
     const tryScroll = () => {
       if (cancelled) return;
-
-      const didScrollToHash = scrollToHashTarget();
-
-      if (didScrollToHash) return;
 
       // When there is no hash, keep default behavior: always reset to top on route changes.
       if (!window.location.hash) {
@@ -99,7 +96,9 @@ export default function SmoothScroll({ children }: { children: React.ReactNode }
         return;
       }
 
-      // If hash target isn't mounted yet, retry briefly.
+      // Always recalculate and scroll every attempt so layout shifts are corrected.
+      scrollToHashTarget();
+
       attempts += 1;
       if (attempts < maxAttempts) {
         window.setTimeout(tryScroll, 50);
