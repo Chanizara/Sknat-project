@@ -4,10 +4,35 @@ import { useEffect, useRef } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
 import Lenis from 'lenis';
 
+const SCROLL_STORE_KEY = 'sknat_scroll_positions';
+
+function saveScroll(key: string, y: number) {
+  try {
+    const store = JSON.parse(sessionStorage.getItem(SCROLL_STORE_KEY) || '{}');
+    store[key] = y;
+    sessionStorage.setItem(SCROLL_STORE_KEY, JSON.stringify(store));
+  } catch {}
+}
+
+function getSavedScroll(key: string): number | null {
+  try {
+    const store = JSON.parse(sessionStorage.getItem(SCROLL_STORE_KEY) || '{}');
+    return typeof store[key] === 'number' ? store[key] : null;
+  } catch {
+    return null;
+  }
+}
+
+function pathKey(pathname: string, searchParams: URLSearchParams) {
+  const qs = searchParams.toString();
+  return qs ? `${pathname}?${qs}` : pathname;
+}
+
 export default function SmoothScroll({ children }: { children: React.ReactNode }) {
   const lenisRef = useRef<Lenis | null>(null);
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const isPopStateRef = useRef(false);
 
   const scrollToHashTarget = () => {
     if (typeof window === 'undefined') return false;
@@ -42,70 +67,125 @@ export default function SmoothScroll({ children }: { children: React.ReactNode }
   };
 
   useEffect(() => {
-    // Initialize Lenis with heavy/smooth feel like fluid.glass
     const lenis = new Lenis({
-      duration: 1.4,           // Higher = slower/heavier feel
-      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), // Smooth exponential easing
+      duration: 1.4,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
       orientation: 'vertical',
       gestureOrientation: 'vertical',
       smoothWheel: true,
-      wheelMultiplier: 0.85,   // Slightly slower wheel scrolling for weight
+      wheelMultiplier: 0.85,
       touchMultiplier: 1.2,
     });
 
     lenisRef.current = lenis;
 
-    // RAF loop
     function raf(time: number) {
       lenis.raf(time);
       requestAnimationFrame(raf);
     }
     requestAnimationFrame(raf);
 
-    // Expose lenis globally for scrollTo
     (window as unknown as { lenis?: Lenis }).lenis = lenis;
+
+    // Save scroll position continuously (debounced) — keyed to current path
+    let saveTimer: ReturnType<typeof setTimeout>;
+    const onScroll = () => {
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(() => {
+        const key = window.location.pathname + (window.location.search || '');
+        saveScroll(key, window.scrollY);
+      }, 100);
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+
+    // Save position immediately on any pointer interaction — fires BEFORE
+    // Next.js has a chance to call scrollTo(0,0) during navigation.
+    // This is the most reliable snapshot of where the user actually was.
+    const onPointerDown = () => {
+      const key = window.location.pathname + (window.location.search || '');
+      saveScroll(key, window.scrollY);
+    };
+    window.addEventListener('pointerdown', onPointerDown, { passive: true });
+
+    // Detect browser back/forward button
+    const onPopState = () => {
+      isPopStateRef.current = true;
+    };
+    window.addEventListener('popstate', onPopState);
 
     return () => {
       lenis.destroy();
       delete (window as unknown as { lenis?: Lenis }).lenis;
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('pointerdown', onPointerDown);
+      window.removeEventListener('popstate', onPopState);
+      clearTimeout(saveTimer);
     };
   }, []);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
-    // Prevent browser restoring previous scroll on route navigation.
     if ('scrollRestoration' in window.history) {
-      window.history.scrollRestoration = 'manual';
+      // 'auto' lets the browser restore scroll on page refresh.
+      // We use popstate + sessionStorage to handle back/forward ourselves.
+      window.history.scrollRestoration = 'auto';
     }
+
+    const currentKey = pathKey(pathname, searchParams);
+    // NOTE: we intentionally do NOT save window.scrollY here because by the
+    // time this effect runs, Next.js may have already called scrollTo(0,0).
+    // Position is captured accurately by the pointerdown + scroll listeners.
 
     let cancelled = false;
     let attempts = 0;
-    const maxAttempts = 20; // 20 × 50ms = 1000ms total
+    const maxAttempts = 20;
 
     const tryScroll = () => {
       if (cancelled) return;
 
-      // When there is no hash, keep default behavior: always reset to top on route changes.
-      if (!window.location.hash) {
-        if (lenisRef.current) {
-          lenisRef.current.scrollTo(0, { immediate: true });
-        } else {
-          window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
-        }
+      // Hash anchor → scroll to section
+      if (window.location.hash) {
+        scrollToHashTarget();
+        attempts += 1;
+        if (attempts < maxAttempts) window.setTimeout(tryScroll, 50);
         return;
       }
 
-      // Always recalculate and scroll every attempt so layout shifts are corrected.
-      scrollToHashTarget();
+      // Back/forward navigation → restore saved scroll position
+      if (isPopStateRef.current) {
+        isPopStateRef.current = false;
+        const saved = getSavedScroll(currentKey);
+        if (saved !== null && saved > 0) {
+          const tryRestore = () => {
+            if (cancelled) return;
+            const pageHeight = document.documentElement.scrollHeight - window.innerHeight;
+            const target = Math.min(saved, Math.max(pageHeight, 0));
+            if (lenisRef.current) {
+              lenisRef.current.resize();
+              lenisRef.current.scrollTo(target, { immediate: true });
+            } else {
+              window.scrollTo({ top: target, behavior: 'auto' });
+            }
+            // Retry if page content hasn't fully rendered its height yet
+            if (pageHeight < saved - 50 && attempts < maxAttempts) {
+              attempts += 1;
+              window.setTimeout(tryRestore, 50);
+            }
+          };
+          tryRestore();
+          return;
+        }
+      }
 
-      attempts += 1;
-      if (attempts < maxAttempts) {
-        window.setTimeout(tryScroll, 50);
+      // New navigation (link click / router.push) → scroll to top
+      if (lenisRef.current) {
+        lenisRef.current.scrollTo(0, { immediate: true });
+      } else {
+        window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
       }
     };
 
-    // Wait one frame so the next route's layout has mounted.
     requestAnimationFrame(tryScroll);
 
     return () => {

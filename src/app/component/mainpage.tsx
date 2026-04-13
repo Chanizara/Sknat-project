@@ -263,6 +263,15 @@ export default function MainPage({ properties }: MainPageProps) {
 
                     <div id="properties-list" className="mt-[4.5rem] border-t border-[#8f877d]" />
 
+                    {/* Preload property images to avoid flash on first hover */}
+                    <div aria-hidden="true" className="pointer-events-none fixed top-0 overflow-hidden" style={{ left: -9999 }}>
+                      {filteredProperties.map((property) =>
+                        property.image ? (
+                          <Image key={property.id} src={property.image} alt="" width={282} height={156} />
+                        ) : null
+                      )}
+                    </div>
+
                     <div className="relative bg-white">
                       {filteredProperties.map((property, idx) => {
                         const isHovered = hoveredPropertyId === property.id;
@@ -324,21 +333,11 @@ export default function MainPage({ properties }: MainPageProps) {
                               <div className="relative hidden min-h-[54px] items-center lg:flex">
                                 <AnimatePresence mode="wait">
                                   {isHovered && property.image ? (
-                                    <motion.div
+                                    <PropertyImagePreview
                                       key={`preview-${property.id}`}
-                                      initial={{ opacity: 0, scale: 0.97, y: 8 }}
-                                      animate={{ opacity: 1, scale: 1, y: 0 }}
-                                      exit={{ opacity: 0, scale: 0.985, y: 4 }}
-                                      transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-                                      className="absolute left-[-22px] top-1/2 z-10 h-[156px] w-[282px] -translate-y-1/2 overflow-hidden bg-[#ece7df] shadow-[0_22px_60px_-34px_rgba(0,0,0,0.32)]"
-                                    >
-                                      <Image
-                                        src={property.image}
-                                        alt={property.title}
-                                        fill
-                                        className="object-cover"
-                                      />
-                                    </motion.div>
+                                      src={property.image}
+                                      alt={property.title}
+                                    />
                                   ) : null}
                                 </AnimatePresence>
 
@@ -401,6 +400,27 @@ function buildPropertyTags(property: Property) {
   ].filter(Boolean) as string[];
 
   return tags.slice(0, 4);
+}
+
+function PropertyImagePreview({ src, alt }: { src: string; alt: string }) {
+  const [loaded, setLoaded] = useState(false);
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.97, y: 8 }}
+      animate={{ opacity: loaded ? 1 : 0, scale: loaded ? 1 : 0.97, y: loaded ? 0 : 8 }}
+      exit={{ opacity: 0, scale: 0.985, y: 4 }}
+      transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+      className="absolute left-[-22px] top-1/2 z-10 h-[156px] w-[282px] -translate-y-1/2 overflow-hidden shadow-[0_22px_60px_-34px_rgba(0,0,0,0.32)]"
+    >
+      <Image
+        src={src}
+        alt={alt}
+        fill
+        className="object-cover"
+        onLoad={() => setLoaded(true)}
+      />
+    </motion.div>
+  );
 }
 
 function InlinePill({ label }: { label: string }) {
