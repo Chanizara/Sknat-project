@@ -46,7 +46,7 @@ export default function Navbar() {
         className="cursor-pointer bg-transparent border-none p-0"
       >
         <img
-          src="/house_logo.png"
+          src="/icon_02.png"
           alt="logo"
           className="
             h-10
