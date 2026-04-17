@@ -952,11 +952,11 @@ export default function PropertyDetailPage() {
 
           {/* Property title — large centered */}
           <h1
-            className="font-light text-[#0a0a0a] leading-[1.02]"
+            className="font-light text-[#0a0a0a] leading-[1.15]"
             style={{
-              fontSize: 'clamp(2.4rem, 5.5vw, 5rem)',
+              fontSize: 'clamp(2rem, 4.2vw, 4rem)',
               maxWidth: '900px',
-              letterSpacing: '-0.04em',
+              letterSpacing: '-0.02em',
             }}
           >
             {property.title}
