@@ -11,6 +11,7 @@ export type Transaction = {
   propertyTitle: string;
   propertyType?: string;
   propertyLocation?: string;
+  listingType?: "ขาย" | "เช่า";
   buyerName: string;
   buyerPhone?: string;
   sellerId?: number;
@@ -31,6 +32,7 @@ type TransactionRow = RowDataPacket & {
   property_title: string;
   property_type: string | null;
   property_location: string | null;
+  listing_type: "ขาย" | "เช่า" | null;
   buyer_name: string;
   buyer_phone: string | null;
   seller_id: number | null;
@@ -90,6 +92,7 @@ function mapRowToTransaction(row: TransactionRow): Transaction {
     propertyTitle: row.property_title,
     propertyType: row.property_type ?? undefined,
     propertyLocation: row.property_location ?? undefined,
+    listingType: row.listing_type ?? undefined,
     buyerName: row.buyer_name,
     buyerPhone: row.buyer_phone ?? undefined,
     sellerId: row.seller_id ?? undefined,
@@ -112,9 +115,10 @@ function wrapDbError(error: unknown): never {
 export async function getTransactionByOrderId(orderId: number): Promise<Transaction | null> {
   try {
     const [rows] = await dbPool.query<TransactionRow[]>(
-      `SELECT t.*, u.full_name AS seller_full_name
+      `SELECT t.*, u.full_name AS seller_full_name, p.type AS listing_type
        FROM transactions t
        LEFT JOIN users u ON u.id = t.seller_id
+       LEFT JOIN properties p ON p.id = t.property_id
        WHERE t.order_id = ? LIMIT 1`,
       [orderId],
     );
@@ -129,9 +133,10 @@ export async function listTransactions(options?: { sellerId?: number }): Promise
     const whereClause = options?.sellerId ? "WHERE t.seller_id = ?" : "";
     const params = options?.sellerId ? [options.sellerId] : [];
     const [rows] = await dbPool.query<TransactionRow[]>(
-      `SELECT t.*, u.full_name AS seller_full_name
+      `SELECT t.*, u.full_name AS seller_full_name, p.type AS listing_type
        FROM transactions t
        LEFT JOIN users u ON u.id = t.seller_id
+       LEFT JOIN properties p ON p.id = t.property_id
        ${whereClause}
        ORDER BY t.id DESC`,
       params,

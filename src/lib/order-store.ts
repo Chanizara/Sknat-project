@@ -8,6 +8,7 @@ export type Order = {
   id: number;
   propertyId?: number;
   propertyTitle: string;
+  listingType?: "ขาย" | "เช่า";
   memberId?: number;
   customerName: string;
   customerPhone?: string;
@@ -23,6 +24,7 @@ type OrderRow = RowDataPacket & {
   id: number;
   property_id: number | null;
   property_title: string;
+  listing_type: "ขาย" | "เช่า" | null;
   member_id: number | null;
   customer_name: string;
   customer_phone: string | null;
@@ -68,6 +70,7 @@ function mapRowToOrder(row: OrderRow): Order {
     id: row.id,
     propertyId: row.property_id ?? undefined,
     propertyTitle: row.property_title || "",
+    listingType: row.listing_type ?? undefined,
     memberId: row.member_id ?? undefined,
     customerName: row.customer_name,
     customerPhone: row.customer_phone ?? undefined,
@@ -90,7 +93,7 @@ export async function listOrders(options?: { sellerId?: number }): Promise<Order
     const whereClause = options?.sellerId ? "WHERE (p.seller_id = ? OR o.property_id IS NULL)" : "";
     const params = options?.sellerId ? [options.sellerId] : [];
     const [rows] = await dbPool.query<OrderRow[]>(
-      `SELECT o.* FROM orders o
+      `SELECT o.*, p.type AS listing_type FROM orders o
        LEFT JOIN properties p ON p.id = o.property_id
        ${whereClause}
        ORDER BY o.id DESC`,
@@ -220,6 +223,7 @@ export async function updateOrder(id: number, input: unknown): Promise<Order> {
 
 /** Maps property status values to order status values */
 const PROPERTY_TO_ORDER_STATUS: Record<string, OrderStatus> = {
+  pending: "pending",
   negotiating: "negotiating",
   success: "completed",
   failed: "cancelled",
