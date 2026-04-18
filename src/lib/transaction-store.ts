@@ -109,6 +109,21 @@ function wrapDbError(error: unknown): never {
   throw new TransactionStoreError("ไม่สามารถเชื่อมต่อฐานข้อมูล MySQL ได้", 500);
 }
 
+export async function getTransactionByOrderId(orderId: number): Promise<Transaction | null> {
+  try {
+    const [rows] = await dbPool.query<TransactionRow[]>(
+      `SELECT t.*, u.full_name AS seller_full_name
+       FROM transactions t
+       LEFT JOIN users u ON u.id = t.seller_id
+       WHERE t.order_id = ? LIMIT 1`,
+      [orderId],
+    );
+    return rows.length > 0 ? mapRowToTransaction(rows[0]) : null;
+  } catch (error) {
+    wrapDbError(error);
+  }
+}
+
 export async function listTransactions(options?: { sellerId?: number }): Promise<Transaction[]> {
   try {
     const whereClause = options?.sellerId ? "WHERE t.seller_id = ?" : "";

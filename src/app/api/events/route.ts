@@ -4,8 +4,8 @@ import { getDashboardStats } from "@/lib/dashboard-store";
 import { getGraphData, type GraphMetric, type GraphRange } from "@/lib/graph-store";
 import { createMember, deleteMember, listMembers, MemberStoreError, updateMember } from "@/lib/member-store";
 import { createOrder, deleteOrder, listOrders, OrderStoreError, updateOrder, upsertOrderForProperty } from "@/lib/order-store";
-import { createProperty, deleteProperty, listProperties, PropertyStoreError, updateProperty } from "@/lib/property-store";
-import { createTransaction, listTransactions, TransactionStoreError } from "@/lib/transaction-store";
+import { createProperty, deleteProperty, getPropertyById, listProperties, PropertyStoreError, updateProperty } from "@/lib/property-store";
+import { createTransaction, getTransactionByOrderId, listTransactions, TransactionStoreError } from "@/lib/transaction-store";
 import { authenticateUser, createUser, deleteUser, listUsers, updateUser, UserStoreError } from "@/lib/user-store";
 
 type EventRequest = {
@@ -152,10 +152,36 @@ export async function POST(request: Request) {
       case "orders:update": {
         const id = Number((payload as { id?: unknown } | undefined)?.id);
         const updatedOrder = await updateOrder(id, payload);
-        // Sync property status when order is marked completed
-        if (updatedOrder.propertyId && updatedOrder.status === "completed") {
-          await updateProperty(updatedOrder.propertyId, { id: updatedOrder.propertyId, status: "success" });
+
+        if (updatedOrder.status === "completed") {
+          // Sync property status
+          if (updatedOrder.propertyId) {
+            await updateProperty(updatedOrder.propertyId, { id: updatedOrder.propertyId, status: "success" });
+          }
+
+          // Auto-create transaction if one doesn't exist yet for this order
+          try {
+            const existing = await getTransactionByOrderId(updatedOrder.id);
+            if (!existing) {
+              const property = updatedOrder.propertyId ? await getPropertyById(updatedOrder.propertyId) : undefined;
+              await createTransaction({
+                orderId: updatedOrder.id,
+                propertyId: updatedOrder.propertyId,
+                propertyTitle: updatedOrder.propertyTitle,
+                propertyType: property?.type,
+                propertyLocation: property?.location,
+                buyerName: updatedOrder.customerName,
+                buyerPhone: updatedOrder.customerPhone,
+                sellerId: property?.sellerId,
+                price: property?.price,
+                status: "completed",
+              });
+            }
+          } catch {
+            // transaction creation is best-effort; order update still succeeds
+          }
         }
+
         return NextResponse.json({ ok: true, data: updatedOrder });
       }
 
