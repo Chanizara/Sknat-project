@@ -177,8 +177,8 @@ export async function POST(request: Request) {
                 status: "completed",
               });
             }
-          } catch {
-            // transaction creation is best-effort; order update still succeeds
+          } catch (txError) {
+            console.error("[orders:update] auto-create transaction failed for order", updatedOrder.id, txError);
           }
         }
 
@@ -193,6 +193,32 @@ export async function POST(request: Request) {
 
       case "transactions:list": {
         const sellerId = Number((payload as { sellerId?: unknown } | undefined)?.sellerId);
+        // Heal any completed orders that are missing a transaction
+        try {
+          const completedOrders = await listOrders();
+          for (const order of completedOrders) {
+            if (order.status !== "completed") continue;
+            const existing = await getTransactionByOrderId(order.id);
+            if (existing) continue;
+            const property = order.propertyId ? await getPropertyById(order.propertyId) : undefined;
+            if (!property?.price || property.price <= 0) continue;
+            await createTransaction({
+              orderId: order.id,
+              propertyId: order.propertyId,
+              propertyTitle: order.propertyTitle,
+              propertyType: property.type,
+              propertyLocation: property.location,
+              buyerName: order.customerName,
+              buyerPhone: order.customerPhone,
+              sellerId: property.sellerId,
+              price: property.price,
+              status: "completed",
+              transactionDate: order.orderDate,
+            });
+          }
+        } catch (healError) {
+          console.error("[transactions:list] heal missing transactions failed", healError);
+        }
         return NextResponse.json({
           ok: true,
           data: await listTransactions(Number.isInteger(sellerId) && sellerId > 0 ? { sellerId } : undefined),

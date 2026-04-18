@@ -167,11 +167,14 @@ export async function createTransaction(input: unknown): Promise<Transaction> {
     const normalizedStatus: TransactionStatus =
       status === "pending-transfer" || status === "cancelled" ? status : "completed";
 
+    const rawDate = normalizeString(payload.transactionDate);
+    const transactionDate = rawDate ? rawDate.slice(0, 10) : null;
+
     const [result] = await dbPool.execute<ResultSetHeader>(
       `INSERT INTO transactions (
         order_id, property_id, property_title, property_type, property_location,
         buyer_name, buyer_phone, seller_id, price, commission, payment_method, status, transaction_date
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURDATE())`,
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ${transactionDate ? "?" : "CURDATE()"})`,
       [
         normalizeId(payload.orderId) ?? null,
         normalizeId(payload.propertyId) ?? null,
@@ -185,6 +188,7 @@ export async function createTransaction(input: unknown): Promise<Transaction> {
         commission,
         normalizeString(payload.paymentMethod) ?? null,
         normalizedStatus,
+        ...(transactionDate ? [transactionDate] : []),
       ],
     );
 

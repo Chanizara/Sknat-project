@@ -223,7 +223,6 @@ export async function updateOrder(id: number, input: unknown): Promise<Order> {
 
 /** Maps property status values to order status values */
 const PROPERTY_TO_ORDER_STATUS: Record<string, OrderStatus> = {
-  pending: "pending",
   negotiating: "negotiating",
   success: "completed",
   failed: "cancelled",
@@ -248,15 +247,17 @@ export async function upsertOrderForProperty(input: UpsertOrderInput): Promise<O
   const orderStatus = PROPERTY_TO_ORDER_STATUS[input.propertyStatus];
   if (!orderStatus) return null; // "pending" or unknown → no order
 
+  const CLOSED_STATUSES: OrderStatus[] = ["completed", "cancelled"];
+
   try {
-    // Check if an order already exists for this property
+    // Find the most recent active (non-closed) order for this property
     const [existing] = await dbPool.query<OrderRow[]>(
-      `SELECT * FROM orders WHERE property_id = ? ORDER BY id DESC LIMIT 1`,
+      `SELECT * FROM orders WHERE property_id = ? AND status NOT IN ('completed', 'cancelled') ORDER BY id DESC LIMIT 1`,
       [input.propertyId],
     );
 
     if (existing.length > 0) {
-      // Update existing order
+      // Active order exists — update it (same deal progressing)
       const order = existing[0];
       const fields: string[] = ["status = ?"];
       const values: Array<string | null> = [orderStatus];
@@ -289,9 +290,11 @@ export async function upsertOrderForProperty(input: UpsertOrderInput): Promise<O
       );
       return rows.length > 0 ? mapRowToOrder(rows[0]) : null;
     } else {
-      // Create new order — customer_name required
+      // No active order — create a new one (new deal / new rental period)
+      // Skip creating if closed statuses are already the target (shouldn't happen, but guard)
+      if (CLOSED_STATUSES.includes(orderStatus) && !input.customerName?.trim()) return null;
       const customerName = input.customerName?.trim();
-      if (!customerName) return null; // cannot create without a name
+      if (!customerName) return null;
 
       const [result] = await dbPool.execute<ResultSetHeader>(
         `INSERT INTO orders (property_id, property_title, customer_name, customer_phone, customer_email, status, notes, order_date)
