@@ -336,16 +336,20 @@ export default function FloatingNav() {
           }}
         >
           <div
-            className="overflow-hidden"
+            className="relative overflow-hidden"
             style={{
-              background: 'rgba(18,18,18,0.92)',
-              backdropFilter: 'blur(24px)',
-              WebkitBackdropFilter: 'blur(24px)',
+              background: 'rgba(10,10,10,0.72)',
+              backdropFilter: 'blur(28px) saturate(180%)',
+              WebkitBackdropFilter: 'blur(28px) saturate(180%)',
               borderRadius: 10,
-              border: '1px solid rgba(255,255,255,0.1)',
-              boxShadow: '0 -16px 48px -12px rgba(0,0,0,0.5), 0 4px 24px rgba(0,0,0,0.3)',
+              border: '1px solid rgba(255,255,255,0.08)',
+              boxShadow: '0 0 0 1px rgba(255,255,255,0.04), 0 -20px 60px -16px rgba(0,0,0,0.55), 0 8px 32px rgba(0,0,0,0.35)',
             }}
           >
+            {/* Top highlight */}
+            <div className="absolute inset-x-3 top-0 h-px pointer-events-none"
+              style={{ background: 'linear-gradient(90deg,transparent,rgba(255,255,255,0.18),transparent)' }}
+            />
             <div className="px-4 py-3">
               {ALL_NAV_ITEMS.map((item, index) => (
                 <div key={item.label}
