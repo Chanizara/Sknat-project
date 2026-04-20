@@ -150,9 +150,9 @@ export default function ComparePage() {
           {[...Array(Math.max(0, 3 - favorites.length))].map((_, index) => (
             <div
               key={`placeholder-${index}`}
-              className="border-t border-dashed border-[#b8b1aa] pt-5"
+              className="border-t border-dashed border-[#b8b1aa] pt-5 h-full"
             >
-              <div className="flex min-h-105 items-center justify-center rounded-none border border-dashed border-slate-300/80 bg-white px-6">
+              <div className="flex h-full items-center justify-center rounded-none border border-dashed border-slate-300/80 bg-white px-6">
                 <div className="text-center">
                   <svg className="h-16 w-16 mx-auto text-slate-300 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M12 4v16m8-8H4" />
@@ -165,12 +165,6 @@ export default function ComparePage() {
           ))}
         </div>
 
-        {/* Bottom Note */}
-        <div className="mt-8 text-center">
-          <p className="text-sm text-slate-600">
-            💡 คุณสามารถเลือกบ้านได้สูงสุด 3 หลัง เพื่อเปรียบเทียบและตัดสินใจได้ง่ายขึ้น
-          </p>
-        </div>
       </div>
 
       {/* Contact Section */}
