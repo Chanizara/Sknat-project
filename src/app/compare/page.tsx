@@ -56,7 +56,7 @@ export default function ComparePage() {
           </div>
         </div>
 
-        <div className={`grid gap-8 lg:gap-10 ${favorites.length === 1 ? 'grid-cols-1 max-w-2xl mx-auto' : favorites.length === 2 ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1 lg:grid-cols-3'}`}>
+        <div className="grid gap-8 lg:gap-10 grid-cols-1 lg:grid-cols-3">
           {favorites.map((property) => (
             <article
               key={property.id}
@@ -157,8 +157,8 @@ export default function ComparePage() {
                   <svg className="h-16 w-16 mx-auto text-slate-300 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M12 4v16m8-8H4" />
                   </svg>
-                  <p className="text-slate-400 text-sm">เพิ่มบ้านอีก {3 - favorites.length} หลัง</p>
-                  <p className="text-slate-400 text-xs mt-1">เพื่อเปรียบเทียบได้ครบ</p>
+                  <p className="text-slate-400 text-sm">เพิ่มบ้านเพื่อเปรียบเทียบ</p>
+                  <p className="text-slate-400 text-xs mt-1">กลับไปเลือกบ้านที่ชอบ</p>
                 </div>
               </div>
             </div>
