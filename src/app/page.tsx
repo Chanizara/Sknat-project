@@ -12,7 +12,7 @@ export const dynamic = "force-dynamic";
 export default async function Page() {
   let properties: Property[] = [];
   try {
-    properties = await listProperties();
+    properties = await listProperties({ excludeSold: true });
   } catch (error) {
     console.error("Cannot load properties from MySQL:", error);
   }
