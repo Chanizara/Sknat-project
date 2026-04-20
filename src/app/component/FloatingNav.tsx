@@ -15,7 +15,7 @@ function PageNameDisplay() {
     return cleanPath.charAt(0).toUpperCase() + cleanPath.slice(1) || 'Home';
   };
   return (
-    <span className="text-[10px] font-medium tracking-[0.18em] uppercase" style={{ color: '#f5f2ee' }}>
+    <span className="text-[11.5px] font-medium tracking-[0.18em] uppercase" style={{ color: '#f5f2ee' }}>
       {getPageName()}
     </span>
   );
@@ -390,7 +390,7 @@ export default function FloatingNav() {
           style={{
             width: isMorphing ? 38 : 'auto',
             height: isMorphing ? 38 : 'auto',
-            padding: isMorphing ? 0 : '8px 20px',
+            padding: isMorphing ? 0 : '11px 26px',
             backgroundColor: isMorphing ? 'rgba(0,0,0,0.95)' : 'rgba(42,42,42,0.95)',
             backdropFilter: 'blur(10px)',
             borderRadius: isMorphing ? '50%' : 2,
@@ -407,29 +407,29 @@ export default function FloatingNav() {
           >
             {/* Logo */}
             <Link href="/" className="transition-opacity hover:opacity-70">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style={{ stroke: '#f5f2ee', strokeWidth: 1.5 }}>
+              <svg width="19" height="19" viewBox="0 0 24 24" fill="none" style={{ stroke: '#f5f2ee', strokeWidth: 1.5 }}>
                 <path d="M12 2L2 7l10 5 10-5-10-5z" />
                 <path d="M2 17l10 5 10-5" />
                 <path d="M2 12l10 5 10-5" />
               </svg>
             </Link>
-            <div style={{ width: 1, height: 14, backgroundColor: 'rgba(255,255,255,0.15)' }} />
+            <div style={{ width: 1, height: 17, backgroundColor: 'rgba(255,255,255,0.15)' }} />
             <PageNameDisplay />
-            <div style={{ width: 1, height: 14, backgroundColor: 'rgba(255,255,255,0.15)' }} />
+            <div style={{ width: 1, height: 17, backgroundColor: 'rgba(255,255,255,0.15)' }} />
             {/* Hamburger toggle */}
             <button
               onClick={() => setMenuOpen((prev) => !prev)}
               className="flex items-center justify-center transition-opacity hover:opacity-70 cursor-pointer"
-              style={{ width: 24, height: 24, background: 'none', border: 'none', padding: 0, color: '#f5f2ee' }}
+              style={{ width: 28, height: 28, background: 'none', border: 'none', padding: 0, color: '#f5f2ee' }}
               aria-label="Toggle menu"
             >
               {menuOpen ? (
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" style={{ stroke: 'currentColor', strokeWidth: 1.8 }}>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" style={{ stroke: 'currentColor', strokeWidth: 1.8 }}>
                   <line x1="4" y1="4" x2="20" y2="20" />
                   <line x1="20" y1="4" x2="4" y2="20" />
                 </svg>
               ) : (
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" style={{ stroke: 'currentColor', strokeWidth: 1.5 }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style={{ stroke: 'currentColor', strokeWidth: 1.5 }}>
                   <line x1="3" y1="8" x2="21" y2="8" />
                   <line x1="3" y1="16" x2="21" y2="16" />
                 </svg>
