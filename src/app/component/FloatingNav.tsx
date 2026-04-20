@@ -15,7 +15,7 @@ function PageNameDisplay() {
     return cleanPath.charAt(0).toUpperCase() + cleanPath.slice(1) || 'Home';
   };
   return (
-    <span className="text-[11.5px] font-medium tracking-[0.18em] uppercase" style={{ color: '#f5f2ee' }}>
+    <span className="text-[10.5px] font-medium tracking-[0.18em] uppercase" style={{ color: '#f5f2ee' }}>
       {getPageName()}
     </span>
   );
@@ -131,17 +131,6 @@ export default function FloatingNav() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Close dropdown on outside click
-  useEffect(() => {
-    if (!menuOpen) return;
-    const handleClickOutside = (e: MouseEvent) => {
-      if (pillRef.current && !pillRef.current.contains(e.target as Node)) {
-        setMenuOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [menuOpen]);
 
   const scrollToSection = (sectionId: string) => {
     setMenuOpen(false);
@@ -310,6 +299,8 @@ export default function FloatingNav() {
       <div
         ref={pillRef}
         className="fixed left-1/2 z-[9998]"
+        onMouseEnter={() => setMenuOpen(true)}
+        onMouseLeave={() => setMenuOpen(false)}
         style={{
           bottom: 32,
           transform: isCard
@@ -322,9 +313,9 @@ export default function FloatingNav() {
           pointerEvents: isCard ? 'none' : 'auto',
         }}
       >
-        {/* Click-triggered dropdown */}
+        {/* Hover-triggered dropdown */}
         <div
-          className="absolute left-1/2 pointer-events-none"
+          className="absolute left-1/2"
           style={{
             bottom: '100%',
             width: 220,
@@ -390,7 +381,7 @@ export default function FloatingNav() {
           style={{
             width: isMorphing ? 38 : 'auto',
             height: isMorphing ? 38 : 'auto',
-            padding: isMorphing ? 0 : '11px 26px',
+            padding: isMorphing ? 0 : '9px 22px',
             backgroundColor: isMorphing ? 'rgba(0,0,0,0.95)' : 'rgba(42,42,42,0.95)',
             backdropFilter: 'blur(10px)',
             borderRadius: isMorphing ? '50%' : 2,
@@ -407,34 +398,32 @@ export default function FloatingNav() {
           >
             {/* Logo */}
             <Link href="/" className="transition-opacity hover:opacity-70">
-              <svg width="19" height="19" viewBox="0 0 24 24" fill="none" style={{ stroke: '#f5f2ee', strokeWidth: 1.5 }}>
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" style={{ stroke: '#f5f2ee', strokeWidth: 1.5 }}>
                 <path d="M12 2L2 7l10 5 10-5-10-5z" />
                 <path d="M2 17l10 5 10-5" />
                 <path d="M2 12l10 5 10-5" />
               </svg>
             </Link>
-            <div style={{ width: 1, height: 17, backgroundColor: 'rgba(255,255,255,0.15)' }} />
+            <div style={{ width: 1, height: 15, backgroundColor: 'rgba(255,255,255,0.15)' }} />
             <PageNameDisplay />
-            <div style={{ width: 1, height: 17, backgroundColor: 'rgba(255,255,255,0.15)' }} />
-            {/* Hamburger toggle */}
-            <button
-              onClick={() => setMenuOpen((prev) => !prev)}
-              className="flex items-center justify-center transition-opacity hover:opacity-70 cursor-pointer"
-              style={{ width: 28, height: 28, background: 'none', border: 'none', padding: 0, color: '#f5f2ee' }}
-              aria-label="Toggle menu"
+            <div style={{ width: 1, height: 15, backgroundColor: 'rgba(255,255,255,0.15)' }} />
+            {/* Hamburger */}
+            <div
+              className="flex items-center justify-center"
+              style={{ width: 25, height: 25, color: '#f5f2ee' }}
             >
               {menuOpen ? (
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" style={{ stroke: 'currentColor', strokeWidth: 1.8 }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" style={{ stroke: 'currentColor', strokeWidth: 1.8 }}>
                   <line x1="4" y1="4" x2="20" y2="20" />
                   <line x1="20" y1="4" x2="4" y2="20" />
                 </svg>
               ) : (
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style={{ stroke: 'currentColor', strokeWidth: 1.5 }}>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" style={{ stroke: 'currentColor', strokeWidth: 1.5 }}>
                   <line x1="3" y1="8" x2="21" y2="8" />
                   <line x1="3" y1="16" x2="21" y2="16" />
                 </svg>
               )}
-            </button>
+            </div>
           </div>
         </div>
       </div>
