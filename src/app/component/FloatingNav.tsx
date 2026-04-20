@@ -103,6 +103,15 @@ export default function FloatingNav() {
   const [animationPhase, setAnimationPhase] = useState<'pill' | 'morphing' | 'floating' | 'card'>('pill');
   const [menuOpen, setMenuOpen] = useState(false);
   const pillRef = useRef<HTMLDivElement>(null);
+  const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handleMouseEnter = () => {
+    if (closeTimer.current) clearTimeout(closeTimer.current);
+    setMenuOpen(true);
+  };
+  const handleMouseLeave = () => {
+    closeTimer.current = setTimeout(() => setMenuOpen(false), 120);
+  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -299,8 +308,6 @@ export default function FloatingNav() {
       <div
         ref={pillRef}
         className="fixed left-1/2 z-[9998]"
-        onMouseEnter={() => setMenuOpen(true)}
-        onMouseLeave={() => setMenuOpen(false)}
         style={{
           bottom: 32,
           transform: isCard
@@ -316,18 +323,20 @@ export default function FloatingNav() {
         {/* Hover-triggered dropdown */}
         <div
           className="absolute left-1/2"
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
           style={{
-            bottom: '100%',
+            bottom: 'calc(100% + 8px)',
             width: 220,
             transform: `translateX(-50%) translateY(${menuOpen ? '0' : '10px'})`,
             opacity: menuOpen ? 1 : 0,
             transition: 'all 0.35s cubic-bezier(0.22,1,0.36,1)',
-            marginBottom: 8,
             zIndex: 60,
+            pointerEvents: menuOpen ? 'auto' : 'none',
           }}
         >
           <div
-            className="pointer-events-auto overflow-hidden"
+            className="overflow-hidden"
             style={{
               background: 'rgba(18,18,18,0.92)',
               backdropFilter: 'blur(24px)',
@@ -378,6 +387,8 @@ export default function FloatingNav() {
         {/* Pill bar */}
         <div
           className="flex items-center justify-center relative overflow-hidden"
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
           style={{
             width: isMorphing ? 38 : 'auto',
             height: isMorphing ? 38 : 'auto',
