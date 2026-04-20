@@ -12,6 +12,7 @@ import { useFavoritesStore } from "@/lib/favorites-store";
 import About from "./about";
 import OurExperience from "./OurExperience";
 import ParallaxImageSection from "./ParallaxImageSection";
+import { useEffect } from "react";
 
 type MainPageProps = {
   properties: Property[];
@@ -42,6 +43,12 @@ const DEFAULT_MAX_AREA = 10000;
 export default function MainPage({ properties }: MainPageProps) {
   const router = useRouter();
   const { addFavorite, removeFavorite, isFavorite, hasHydrated } = useFavoritesStore();
+
+  useEffect(() => {
+    if (!window.location.hash) {
+      window.scrollTo(0, 0);
+    }
+  }, []);
 
   const [filters, setFilters] = useState<Filters>({
     searchKeyword: "",

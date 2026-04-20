@@ -94,7 +94,7 @@ export default function RegisterSection() {
             </p>
 
             <h2
-              className="font-light leading-[0.95] text-[#171717] mb-8"
+              className="font-light leading-tight text-[#171717] mb-8"
               style={{ fontSize: 'clamp(2.2rem, 3.6vw, 4.2rem)', letterSpacing: '-0.045em' }}
             >
               สมัครสมาชิก
