@@ -20,6 +20,7 @@ export const dbPool =
   mysql.createPool({
     ...dbConfig,
     charset: "utf8mb4",
+    timezone: "Z",
   });
 
 if (process.env.NODE_ENV !== "production") {

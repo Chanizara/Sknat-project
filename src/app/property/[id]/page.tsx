@@ -184,7 +184,6 @@ function InquiryModal({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.name.trim()) { setError("กรุณากรอกชื่อ"); return; }
     setError("");
     setLoading(true);
     try {
@@ -224,7 +223,12 @@ function InquiryModal({
         onClick={(e) => e.stopPropagation()}
       >
         {done ? (
-          <div className="flex flex-col items-center gap-4 py-6 text-center">
+          <div className="relative flex flex-col items-center gap-4 py-6 text-center">
+            <button onClick={onClose} className="absolute right-0 top-0 text-[#888] hover:text-[#0a0a0a] transition">
+              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
             <div className="flex h-12 w-12 items-center justify-center border border-[#171717]">
               <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
@@ -232,7 +236,6 @@ function InquiryModal({
             </div>
             <p className="text-base font-light text-[#171717]">ส่งความสนใจแล้ว!</p>
             <p className="text-xs text-[#888]">ทีมงานจะติดต่อกลับหาคุณเร็ว ๆ นี้</p>
-            <button onClick={onClose} className="mt-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-[#171717] underline underline-offset-4">ปิด</button>
           </div>
         ) : (
           <>
@@ -247,27 +250,9 @@ function InquiryModal({
             <p className="text-[11px] text-[#888] mb-6 leading-relaxed">{property.title}</p>
             <form onSubmit={handleSubmit} noValidate className="space-y-4">
               <div>
-                <label className="block text-[10px] font-semibold uppercase tracking-[0.26em] text-[rgba(10,10,10,0.42)] mb-2">ชื่อ *</label>
-                <input type="text" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  disabled={loading} placeholder="ชื่อ-นามสกุล"
-                  className="w-full bg-transparent border-b border-[#d8d2ca] pb-2 pt-1 text-sm text-[#171717] placeholder-[#ccc] focus:outline-none focus:border-[#171717] transition-colors" />
-              </div>
-              <div>
-                <label className="block text-[10px] font-semibold uppercase tracking-[0.26em] text-[rgba(10,10,10,0.42)] mb-2">เบอร์โทรศัพท์</label>
-                <input type="tel" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                  disabled={loading} placeholder="08X-XXX-XXXX"
-                  className="w-full bg-transparent border-b border-[#d8d2ca] pb-2 pt-1 text-sm text-[#171717] placeholder-[#ccc] focus:outline-none focus:border-[#171717] transition-colors" />
-              </div>
-              <div>
-                <label className="block text-[10px] font-semibold uppercase tracking-[0.26em] text-[rgba(10,10,10,0.42)] mb-2">อีเมล</label>
-                <input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })}
-                  disabled={loading} placeholder="email@example.com"
-                  className="w-full bg-transparent border-b border-[#d8d2ca] pb-2 pt-1 text-sm text-[#171717] placeholder-[#ccc] focus:outline-none focus:border-[#171717] transition-colors" />
-              </div>
-              <div>
                 <label className="block text-[10px] font-semibold uppercase tracking-[0.26em] text-[rgba(10,10,10,0.42)] mb-2">หมายเหตุ</label>
                 <textarea value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })}
-                  disabled={loading} placeholder="ข้อมูลเพิ่มเติม เช่น วันเวลานัดดู..." rows={3}
+                  disabled={loading} placeholder="ข้อมูลเพิ่มเติม เช่น วันเวลานัดดู..." rows={4}
                   className="w-full bg-transparent border-b border-[#d8d2ca] pb-2 pt-1 text-sm text-[#171717] placeholder-[#ccc] focus:outline-none focus:border-[#171717] transition-colors resize-none" />
               </div>
               {error && <p className="text-xs text-[#c0392b] border-l-2 border-[#c0392b] pl-3 py-0.5">{error}</p>}

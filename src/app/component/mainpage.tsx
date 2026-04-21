@@ -354,17 +354,18 @@ export default function MainPage({ properties }: MainPageProps) {
                                 </div>
                               </div>
 
-                              <div className="relative hidden min-h-[54px] items-center lg:flex">
-                                <AnimatePresence mode="wait">
-                                  {isHovered && property.image ? (
-                                    <PropertyImagePreview
-                                      key={`preview-${property.id}`}
-                                      src={property.image}
-                                      alt={property.title}
-                                    />
-                                  ) : null}
-                                </AnimatePresence>
+                              {/* Hover image — centered in the row */}
+                              <AnimatePresence mode="wait">
+                                {isHovered && property.image ? (
+                                  <PropertyImagePreview
+                                    key={`preview-${property.id}`}
+                                    src={property.image}
+                                    alt={property.title}
+                                  />
+                                ) : null}
+                              </AnimatePresence>
 
+                              <div className="relative hidden min-h-[54px] items-center lg:flex">
                                 <div className="flex flex-nowrap items-center gap-1.5">
                                   {buildPropertyTags(property).map((tag) => (
                                     <InlinePill key={`${property.id}-${tag}`} label={tag} />
@@ -431,7 +432,7 @@ function PropertyImagePreview({ src, alt }: { src: string; alt: string }) {
       animate={{ opacity: loaded ? 1 : 0, scale: loaded ? 1 : 0.97, y: loaded ? 0 : 8 }}
       exit={{ opacity: 0, scale: 0.985, y: 4 }}
       transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-      className="absolute left-[-22px] top-1/2 z-10 h-[156px] w-[282px] -translate-y-1/2 overflow-hidden shadow-[0_22px_60px_-34px_rgba(0,0,0,0.32)]"
+      className="absolute left-1/2 top-1/2 z-10 h-40 w-70 -translate-x-1/2 -translate-y-1/2 overflow-hidden shadow-[0_22px_60px_-20px_rgba(0,0,0,0.22)] pointer-events-none"
     >
       <Image
         src={src}

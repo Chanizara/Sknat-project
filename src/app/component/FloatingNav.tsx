@@ -105,15 +105,15 @@ export default function FloatingNav() {
 
   const allNavItems: Array<{ label: string; href?: string; id?: string; action?: () => void }> = [
     ...BASE_NAV_ITEMS,
-    isLoggedIn
-      ? { label: `ออกจากระบบ (${user!.username})`, action: () => { logout(); setMenuOpen(false); } }
-      : { label: 'Login', href: '/login' },
+    ...(!isLoggedIn ? [{ label: 'Login', href: '/login' }] : []),
   ];
 
   const [animationPhase, setAnimationPhase] = useState<'pill' | 'morphing' | 'floating' | 'card'>('pill');
   const [menuOpen, setMenuOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
   const pillRef = useRef<HTMLDivElement>(null);
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const profileCloseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const handleMouseEnter = () => {
     if (closeTimer.current) clearTimeout(closeTimer.current);
@@ -122,6 +122,13 @@ export default function FloatingNav() {
   const handleMouseLeave = () => {
     closeTimer.current = setTimeout(() => setMenuOpen(false), 120);
   };
+
+  useEffect(() => {
+    setAnimationPhase('pill');
+    setMenuOpen(false);
+    setProfileOpen(false);
+    window.scrollTo({ top: 0 });
+  }, [pathname]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -413,19 +420,87 @@ export default function FloatingNav() {
             }}
           >
             {/* Login / Profile icon */}
-            <button
-              onClick={() => router.push('/login')}
-              className="relative transition-opacity hover:opacity-70"
-              aria-label={isLoggedIn ? 'โปรไฟล์' : 'เข้าสู่ระบบ'}
-            >
-              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" style={{ stroke: '#f5f2ee', strokeWidth: 1.5 }}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" />
-                <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 20.118a7.5 7.5 0 0115 0" />
-                {!isLoggedIn && (
-                  <line x1="3" y1="3" x2="21" y2="21" strokeLinecap="round" />
-                )}
-              </svg>
-            </button>
+            <div className="relative">
+              {/* Profile popup */}
+              {isLoggedIn && profileOpen && (
+                <div
+                  className="absolute left-1/2"
+                  onMouseEnter={() => { if (profileCloseTimer.current) clearTimeout(profileCloseTimer.current); }}
+                  onMouseLeave={() => { profileCloseTimer.current = setTimeout(() => setProfileOpen(false), 150); }}
+                  style={{
+                    bottom: 'calc(100% + 12px)',
+                    transform: 'translateX(-50%)',
+                    width: 200,
+                    zIndex: 70,
+                  }}
+                >
+                  <div
+                    className="relative overflow-hidden"
+                    style={{
+                      background: 'rgba(10,10,10,0.78)',
+                      backdropFilter: 'blur(28px) saturate(180%)',
+                      WebkitBackdropFilter: 'blur(28px) saturate(180%)',
+                      borderRadius: 10,
+                      border: '1px solid rgba(255,255,255,0.08)',
+                      boxShadow: '0 0 0 1px rgba(255,255,255,0.04), 0 -20px 60px -16px rgba(0,0,0,0.55), 0 8px 32px rgba(0,0,0,0.35)',
+                    }}
+                  >
+                    <div className="absolute inset-x-3 top-0 h-px pointer-events-none"
+                      style={{ background: 'linear-gradient(90deg,transparent,rgba(255,255,255,0.18),transparent)' }}
+                    />
+                    <div className="px-4 pt-4 pb-3">
+                      {/* Avatar + name */}
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full"
+                          style={{ background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.12)' }}>
+                          <span className="text-sm font-semibold" style={{ color: 'rgba(255,255,255,0.9)' }}>
+                            {(user!.fullName ?? user!.username).charAt(0).toUpperCase()}
+                          </span>
+                        </div>
+                        <div className="min-w-0">
+                          <p className="truncate text-sm font-medium" style={{ color: 'rgba(255,255,255,0.92)' }}>
+                            {user!.fullName ?? user!.username}
+                          </p>
+                          <p className="text-[10px] tracking-wider uppercase" style={{ color: 'rgba(255,255,255,0.38)' }}>
+                            {user!.role === 'admin' ? 'ผู้ดูแลระบบ' : user!.role === 'seller' ? 'พนักงานขาย' : 'สมาชิก'}
+                          </p>
+                        </div>
+                      </div>
+                      {user!.email && (
+                        <p className="mb-3 truncate text-[11px]" style={{ color: 'rgba(255,255,255,0.38)' }}>
+                          {user!.email}
+                        </p>
+                      )}
+                      <div style={{ borderTop: '1px solid rgba(255,255,255,0.07)', marginBottom: '10px' }} />
+                      <button
+                        onClick={() => { logout(); setProfileOpen(false); }}
+                        className="flex w-full items-center gap-2 py-1.5 text-left transition-opacity hover:opacity-70"
+                      >
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" style={{ stroke: 'rgba(255,100,100,0.8)', strokeWidth: 1.6, flexShrink: 0 }}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
+                        </svg>
+                        <span className="text-[12px] font-light" style={{ color: 'rgba(255,100,100,0.85)' }}>ออกจากระบบ</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+              <button
+                onClick={() => isLoggedIn ? setProfileOpen((v) => !v) : router.push('/login')}
+                onMouseEnter={() => { if (isLoggedIn) { if (profileCloseTimer.current) clearTimeout(profileCloseTimer.current); setProfileOpen(true); } }}
+                onMouseLeave={() => { if (isLoggedIn) { profileCloseTimer.current = setTimeout(() => setProfileOpen(false), 150); } }}
+                className="relative transition-opacity hover:opacity-70"
+                aria-label={isLoggedIn ? 'โปรไฟล์' : 'เข้าสู่ระบบ'}
+              >
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" style={{ stroke: '#f5f2ee', strokeWidth: 1.5 }}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 20.118a7.5 7.5 0 0115 0" />
+                  {!isLoggedIn && (
+                    <line x1="3" y1="3" x2="21" y2="21" strokeLinecap="round" />
+                  )}
+                </svg>
+              </button>
+            </div>
             <div style={{ width: 1, height: 15, backgroundColor: 'rgba(255,255,255,0.15)' }} />
             <PageNameDisplay />
             <div style={{ width: 1, height: 15, backgroundColor: 'rgba(255,255,255,0.15)' }} />

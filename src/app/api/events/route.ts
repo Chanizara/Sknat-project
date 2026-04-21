@@ -250,7 +250,7 @@ export async function POST(request: Request) {
 
         // Notify admin + seller who owns this property
         const notifTitle = `สนใจติดต่อ: ${p?.propertyTitle ?? "บ้าน"}`;
-        const notifMsg = `${p?.customerName ?? ""} (${p?.customerPhone ?? ""}) แสดงความสนใจ`;
+        const notifMsg = `${p?.customerName ?? ""} (${p?.customerPhone ?? ""}) แสดงความสนใจ${p?.notes ? `\nหมายเหตุ: ${p.notes}` : ""}`;
 
         // Get all admin users + the property's seller
         const allUsers = await listUsers();
