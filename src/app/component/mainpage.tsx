@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 
@@ -12,7 +12,6 @@ import { useFavoritesStore } from "@/lib/favorites-store";
 import About from "./about";
 import OurExperience from "./OurExperience";
 import ParallaxImageSection from "./ParallaxImageSection";
-import { useEffect } from "react";
 
 type MainPageProps = {
   properties: Property[];
@@ -31,14 +30,27 @@ type Filters = {
 
 type FilterControlsProps = {
   filters: Filters;
+  maxPrice: number;
+  maxArea: number;
   developmentTypeOptions: string[];
   districtOptions: string[];
   handleFilterChange: (filterType: keyof Filters, value: Filters[keyof Filters]) => void;
   toggleArrayFilter: (filterType: "areaType" | "listingType" | "developmentType" | "district", value: string) => void;
 };
 
-const DEFAULT_MAX_PRICE = 50000000;
-const DEFAULT_MAX_AREA = 10000;
+function computeMaxPrice(properties: Property[]) {
+  const prices = properties.map((p) => p.price).filter((p) => p > 0);
+  if (prices.length === 0) return 50_000_000;
+  const max = Math.max(...prices);
+  return Math.ceil(max / 10_000_000) * 10_000_000;
+}
+
+function computeMaxArea(properties: Property[]) {
+  const sizes = properties.map((p) => p.size ?? 0).filter((s) => s > 0);
+  if (sizes.length === 0) return 10000;
+  const max = Math.max(...sizes);
+  return Math.ceil(max / 100) * 100;
+}
 
 export default function MainPage({ properties }: MainPageProps) {
   const router = useRouter();
@@ -50,16 +62,19 @@ export default function MainPage({ properties }: MainPageProps) {
     }
   }, []);
 
-  const [filters, setFilters] = useState<Filters>({
+  const maxPrice = useMemo(() => computeMaxPrice(properties), [properties]);
+  const maxArea = useMemo(() => computeMaxArea(properties), [properties]);
+
+  const [filters, setFilters] = useState<Filters>(() => ({
     searchKeyword: "",
     areaType: [],
     listingType: [],
     developmentType: [],
-    priceRange: [0, DEFAULT_MAX_PRICE],
-    areaSize: [0, DEFAULT_MAX_AREA],
+    priceRange: [0, computeMaxPrice(properties)],
+    areaSize: [0, computeMaxArea(properties)],
     minBedrooms: "",
     district: [],
-  });
+  }));
 
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [hoveredPropertyId, setHoveredPropertyId] = useState<number | null>(null);
@@ -121,10 +136,10 @@ export default function MainPage({ properties }: MainPageProps) {
     count += filters.developmentType.length;
     count += filters.district.length;
     if (filters.minBedrooms) count += 1;
-    if (filters.priceRange[0] > 0 || filters.priceRange[1] < DEFAULT_MAX_PRICE) count += 1;
-    if (filters.areaSize[0] > 0 || filters.areaSize[1] < DEFAULT_MAX_AREA) count += 1;
+    if (filters.priceRange[0] > 0 || filters.priceRange[1] < maxPrice) count += 1;
+    if (filters.areaSize[0] > 0 || filters.areaSize[1] < maxArea) count += 1;
     return count;
-  }, [filters]);
+  }, [filters, maxPrice, maxArea]);
 
   const handleFilterChange = (filterType: keyof Filters, value: Filters[keyof Filters]) => {
     setFilters((prev) => ({ ...prev, [filterType]: value }));
@@ -148,8 +163,8 @@ export default function MainPage({ properties }: MainPageProps) {
       areaType: [],
       listingType: [],
       developmentType: [],
-      priceRange: [0, DEFAULT_MAX_PRICE],
-      areaSize: [0, DEFAULT_MAX_AREA],
+      priceRange: [0, maxPrice],
+      areaSize: [0, maxArea],
       minBedrooms: "",
       district: [],
     });
@@ -260,6 +275,8 @@ export default function MainPage({ properties }: MainPageProps) {
                         </div>
                         <HorizontalFilterControls
                           filters={filters}
+                          maxPrice={maxPrice}
+                          maxArea={maxArea}
                           developmentTypeOptions={developmentTypeOptions}
                           districtOptions={districtOptions}
                           handleFilterChange={handleFilterChange}
@@ -300,7 +317,7 @@ export default function MainPage({ properties }: MainPageProps) {
                               onFocus={() => setHoveredPropertyId(property.id)}
                               onMouseLeave={() => setHoveredPropertyId((current) => (current === property.id ? null : current))}
                               onBlur={() => setHoveredPropertyId((current) => (current === property.id ? null : current))}
-                              className="group relative grid items-center gap-3 border-b border-[#8f877d] bg-white px-1 py-3 transition-colors duration-300 md:px-2 lg:grid-cols-[0.95fr_1.45fr_42px]"
+                              className="group relative grid items-center gap-3 border-b border-[#8f877d] bg-white px-1 py-3 transition-colors duration-300 md:px-2 lg:grid-cols-[1fr_auto_42px]"
                             >
                               <div className="min-w-0 lg:pr-8">
                                 <div className="flex items-center gap-2">
@@ -348,7 +365,7 @@ export default function MainPage({ properties }: MainPageProps) {
                                   ) : null}
                                 </AnimatePresence>
 
-                                <div className="flex flex-wrap gap-1.5 pl-[50%]">
+                                <div className="flex flex-nowrap items-center gap-1.5">
                                   {buildPropertyTags(property).map((tag) => (
                                     <InlinePill key={`${property.id}-${tag}`} label={tag} />
                                   ))}
@@ -397,16 +414,13 @@ export default function MainPage({ properties }: MainPageProps) {
 }
 
 function buildPropertyTags(property: Property) {
-  const tags = [
+  return [
     property.type === "เช่า" ? "RENTAL" : "FOR SALE",
     property.propertyType?.toUpperCase(),
     property.size ? `${property.size} SQ.M.` : undefined,
     property.bedrooms ? `${property.bedrooms} BEDROOMS` : undefined,
-    property.bathrooms ? `${property.bathrooms} BATHROOMS` : undefined,
-    buildPriceLabel(property).toUpperCase(),
+    buildPriceLabel(property),
   ].filter(Boolean) as string[];
-
-  return tags.slice(0, 4);
 }
 
 function PropertyImagePreview({ src, alt }: { src: string; alt: string }) {
@@ -438,167 +452,279 @@ function InlinePill({ label }: { label: string }) {
   );
 }
 
+function DualRangeSlider({
+  min,
+  max,
+  step,
+  value,
+  onChange,
+}: {
+  min: number;
+  max: number;
+  step: number;
+  value: [number, number];
+  onChange: (value: [number, number]) => void;
+}) {
+  const range = max - min || 1;
+  const minPct = ((value[0] - min) / range) * 100;
+  const maxPct = ((value[1] - min) / range) * 100;
+  const thumbCls = "dual-range absolute w-full h-1";
+  return (
+    <div className="relative flex h-6 items-center">
+      <div className="absolute left-0 right-0 h-[2px] rounded-full bg-[#e0dbd4]">
+        <div
+          className="absolute h-full rounded-full bg-[#0a0a0a]"
+          style={{ left: `${minPct}%`, right: `${100 - maxPct}%` }}
+        />
+      </div>
+      <input
+        type="range"
+        min={min}
+        max={max}
+        step={step}
+        value={value[0]}
+        onChange={(e) => {
+          const v = Math.min(parseInt(e.target.value, 10), value[1] - step);
+          onChange([v, value[1]]);
+        }}
+        className={thumbCls}
+        style={{ zIndex: value[0] > (max + min) / 2 ? 5 : 3 }}
+      />
+      <input
+        type="range"
+        min={min}
+        max={max}
+        step={step}
+        value={value[1]}
+        onChange={(e) => {
+          const v = Math.max(parseInt(e.target.value, 10), value[0] + step);
+          onChange([value[0], v]);
+        }}
+        className={thumbCls}
+        style={{ zIndex: value[1] < (max + min) / 2 ? 5 : 4 }}
+      />
+    </div>
+  );
+}
+
 function HorizontalFilterControls({
   filters,
+  maxPrice,
+  maxArea,
   developmentTypeOptions,
   districtOptions,
   handleFilterChange,
   toggleArrayFilter,
 }: FilterControlsProps) {
+  const [priceMin, setPriceMin] = useState(String(filters.priceRange[0]));
+  const [priceMax, setPriceMax] = useState(String(filters.priceRange[1]));
+  const [areaMin, setAreaMin] = useState(String(filters.areaSize[0]));
+  const [areaMax, setAreaMax] = useState(String(filters.areaSize[1]));
+
+  const onSliderPrice = (v: [number, number]) => {
+    handleFilterChange("priceRange", v);
+    setPriceMin(String(v[0]));
+    setPriceMax(String(v[1]));
+  };
+
+  const onSliderArea = (v: [number, number]) => {
+    handleFilterChange("areaSize", v);
+    setAreaMin(String(v[0]));
+    setAreaMax(String(v[1]));
+  };
+
+  const commitPrice = () => {
+    const lo = Math.max(0, parseInt(priceMin, 10) || 0);
+    const hi = Math.min(maxPrice, parseInt(priceMax, 10) || maxPrice);
+    const sorted: [number, number] = [Math.min(lo, hi), Math.max(lo, hi)];
+    handleFilterChange("priceRange", sorted);
+    setPriceMin(String(sorted[0]));
+    setPriceMax(String(sorted[1]));
+  };
+
+  const commitArea = () => {
+    const lo = Math.max(0, parseInt(areaMin, 10) || 0);
+    const hi = Math.min(maxArea, parseInt(areaMax, 10) || maxArea);
+    const sorted: [number, number] = [Math.min(lo, hi), Math.max(lo, hi)];
+    handleFilterChange("areaSize", sorted);
+    setAreaMin(String(sorted[0]));
+    setAreaMax(String(sorted[1]));
+  };
+
   return (
-    <div className="space-y-3">
-      <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-[1.05fr_1.15fr_0.8fr]">
-        {/* Listing Type */}
-        <div className="border-b border-[#ebe4dc] pb-3">
-          <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.22em] text-[#888]">ประเภทประกาศ</p>
+    <div className="space-y-5">
+      {/* Row 1: Listing type + Development type + Bedrooms */}
+      <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
+        <div>
+          <p className="mb-2.5 text-[10px] font-semibold uppercase tracking-[0.22em] text-[#999]">ประเภทประกาศ</p>
           <div className="flex flex-wrap gap-1.5">
-            {LISTING_TYPES.map((type) => (
-              <button
-                key={type}
-                type="button"
-                onClick={() => toggleArrayFilter("listingType", type)}
-                className="border px-3 py-1 text-[11px] font-semibold transition"
-                style={filters.listingType.includes(type)
-                  ? { background: '#0a0a0a', color: '#fff', borderColor: '#0a0a0a' }
-                  : { background: '#fff', color: '#444', borderColor: '#d8d2ca' }}
-              >
-                {type}
-              </button>
-            ))}
+            {LISTING_TYPES.map((type) => {
+              const active = filters.listingType.includes(type);
+              return (
+                <button
+                  key={type}
+                  type="button"
+                  onClick={() => toggleArrayFilter("listingType", type)}
+                  className={`rounded-full border px-4 py-1.5 text-[11px] font-semibold transition-all duration-150 ${
+                    active
+                      ? "border-[#0a0a0a] bg-[#0a0a0a] text-white"
+                      : "border-[#d8d2ca] bg-white text-[#555] hover:border-[#0a0a0a] hover:text-[#0a0a0a]"
+                  }`}
+                >
+                  {type}
+                </button>
+              );
+            })}
           </div>
         </div>
 
-        {/* Development Type */}
-        <div className="border-b border-[#ebe4dc] pb-3">
-          <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.22em] text-[#888]">ประเภทการพัฒนา</p>
+        <div>
+          <p className="mb-2.5 text-[10px] font-semibold uppercase tracking-[0.22em] text-[#999]">ประเภทการพัฒนา</p>
           <div className="flex flex-wrap gap-1.5">
-            {developmentTypeOptions.map((type) => (
-              <button
-                key={type}
-                type="button"
-                onClick={() => toggleArrayFilter("developmentType", type)}
-                className="border px-2.5 py-1 text-[11px] transition"
-                style={filters.developmentType.includes(type)
-                  ? { background: '#0a0a0a', color: '#fff', borderColor: '#0a0a0a' }
-                  : { background: '#fff', color: '#444', borderColor: '#d8d2ca' }}
-              >
-                {type}
-              </button>
-            ))}
+            {developmentTypeOptions.map((type) => {
+              const active = filters.developmentType.includes(type);
+              return (
+                <button
+                  key={type}
+                  type="button"
+                  onClick={() => toggleArrayFilter("developmentType", type)}
+                  className={`rounded-full border px-4 py-1.5 text-[11px] font-semibold transition-all duration-150 ${
+                    active
+                      ? "border-[#0a0a0a] bg-[#0a0a0a] text-white"
+                      : "border-[#d8d2ca] bg-white text-[#555] hover:border-[#0a0a0a] hover:text-[#0a0a0a]"
+                  }`}
+                >
+                  {type}
+                </button>
+              );
+            })}
           </div>
         </div>
 
-        {/* Min Bedrooms */}
-        <div className="border-b border-[#ebe4dc] pb-3">
-          <label className="mb-2 block text-[10px] font-semibold uppercase tracking-[0.22em] text-[#888]">ห้องนอนขั้นต่ำ</label>
-          <select
-            value={filters.minBedrooms}
-            onChange={(event) => handleFilterChange("minBedrooms", event.target.value)}
-            className="h-9 w-full border border-[#d8d2ca] bg-white px-3 text-sm text-[#0a0a0a] outline-none transition"
-          >
-            <option value="">ไม่ระบุ</option>
-            <option value="1">1+</option>
-            <option value="2">2+</option>
-            <option value="3">3+</option>
-            <option value="4">4+</option>
-            <option value="5">5+</option>
-          </select>
+        <div>
+          <p className="mb-2.5 text-[10px] font-semibold uppercase tracking-[0.22em] text-[#999]">ห้องนอนขั้นต่ำ</p>
+          <div className="flex gap-1.5">
+            {["", "1", "2", "3", "4", "5"].map((val) => {
+              const active = filters.minBedrooms === val;
+              return (
+                <button
+                  key={val || "any"}
+                  type="button"
+                  onClick={() => handleFilterChange("minBedrooms", val)}
+                  className={`rounded-full border px-3 py-1.5 text-[11px] font-semibold transition-all duration-150 ${
+                    active
+                      ? "border-[#0a0a0a] bg-[#0a0a0a] text-white"
+                      : "border-[#d8d2ca] bg-white text-[#555] hover:border-[#0a0a0a] hover:text-[#0a0a0a]"
+                  }`}
+                >
+                  {val ? `${val}+` : "ทั้งหมด"}
+                </button>
+              );
+            })}
+          </div>
         </div>
+      </div>
 
-        {/* Price Range */}
-        <div className="border-b border-[#ebe4dc] pb-3 md:col-span-2 lg:col-span-2">
-          <label className="mb-2 block text-[10px] font-semibold uppercase tracking-[0.22em] text-[#888]">
-            ราคา {formatPrice(filters.priceRange[0])} - {formatPrice(filters.priceRange[1])}
-          </label>
-          <input
-            type="range"
-            min="0"
-            max={DEFAULT_MAX_PRICE}
-            step="100000"
-            value={filters.priceRange[1]}
-            onChange={(event) =>
-              handleFilterChange("priceRange", [filters.priceRange[0], parseInt(event.target.value, 10)])
-            }
-            className="mb-2 h-1 w-full cursor-pointer appearance-none bg-[#e0e0e0] accent-[#111111]"
+      {/* Row 2: Price + Area */}
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+        <div>
+          <div className="mb-3 flex items-baseline justify-between">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-[#999]">ราคา (บาท)</p>
+            <span className="text-[11px] text-[#555]">
+              {formatPrice(filters.priceRange[0])} – {formatPrice(filters.priceRange[1])}
+            </span>
+          </div>
+          <DualRangeSlider
+            min={0}
+            max={maxPrice}
+            step={Math.max(100000, Math.round(maxPrice / 500) * 1000)}
+            value={filters.priceRange}
+            onChange={onSliderPrice}
           />
-          <div className="grid grid-cols-2 gap-2">
+          <div className="mt-3 grid grid-cols-2 gap-2">
             <input
-              type="number"
+              type="text"
+              inputMode="numeric"
               placeholder="ต่ำสุด"
-              value={filters.priceRange[0]}
-              onChange={(event) =>
-                handleFilterChange("priceRange", [parseInt(event.target.value, 10) || 0, filters.priceRange[1]])
-              }
-              className="h-9 w-full border border-[#d8d2ca] bg-white px-2.5 text-sm text-[#0a0a0a] outline-none transition placeholder:text-[#ccc]"
+              value={priceMin}
+              onChange={(e) => setPriceMin(e.target.value)}
+              onBlur={commitPrice}
+              onKeyDown={(e) => e.key === "Enter" && commitPrice()}
+              className="h-9 w-full rounded border border-[#d8d2ca] bg-white px-3 text-[12px] text-[#0a0a0a] outline-none transition focus:border-[#0a0a0a] placeholder:text-[#bbb]"
             />
             <input
-              type="number"
+              type="text"
+              inputMode="numeric"
               placeholder="สูงสุด"
-              value={filters.priceRange[1]}
-              onChange={(event) =>
-                handleFilterChange("priceRange", [filters.priceRange[0], parseInt(event.target.value, 10) || DEFAULT_MAX_PRICE])
-              }
-              className="h-9 w-full border border-[#d8d2ca] bg-white px-2.5 text-sm text-[#0a0a0a] outline-none transition placeholder:text-[#ccc]"
+              value={priceMax}
+              onChange={(e) => setPriceMax(e.target.value)}
+              onBlur={commitPrice}
+              onKeyDown={(e) => e.key === "Enter" && commitPrice()}
+              className="h-9 w-full rounded border border-[#d8d2ca] bg-white px-3 text-[12px] text-[#0a0a0a] outline-none transition focus:border-[#0a0a0a] placeholder:text-[#bbb]"
             />
           </div>
         </div>
 
-        {/* Area Size */}
-        <div className="border-b border-[#ebe4dc] pb-3 md:col-span-2 lg:col-span-1">
-          <label className="mb-2 block text-[10px] font-semibold uppercase tracking-[0.22em] text-[#888]">
-            พื้นที่ {filters.areaSize[0]} - {filters.areaSize[1]} ตร.ม.
-          </label>
-          <input
-            type="range"
-            min="0"
-            max={DEFAULT_MAX_AREA}
-            step="10"
-            value={filters.areaSize[1]}
-            onChange={(event) =>
-              handleFilterChange("areaSize", [filters.areaSize[0], parseInt(event.target.value, 10)])
-            }
-            className="mb-2 h-1 w-full cursor-pointer appearance-none bg-[#e0e0e0] accent-[#111111]"
+        <div>
+          <div className="mb-3 flex items-baseline justify-between">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-[#999]">พื้นที่ (ตร.ม.)</p>
+            <span className="text-[11px] text-[#555]">
+              {filters.areaSize[0]} – {filters.areaSize[1]} ตร.ม.
+            </span>
+          </div>
+          <DualRangeSlider
+            min={0}
+            max={maxArea}
+            step={10}
+            value={filters.areaSize}
+            onChange={onSliderArea}
           />
-          <div className="grid grid-cols-2 gap-2">
+          <div className="mt-3 grid grid-cols-2 gap-2">
             <input
-              type="number"
+              type="text"
+              inputMode="numeric"
               placeholder="ต่ำสุด"
-              value={filters.areaSize[0]}
-              onChange={(event) =>
-                handleFilterChange("areaSize", [parseInt(event.target.value, 10) || 0, filters.areaSize[1]])
-              }
-              className="h-9 w-full border border-[#d8d2ca] bg-white px-2.5 text-sm text-[#0a0a0a] outline-none transition placeholder:text-[#ccc]"
+              value={areaMin}
+              onChange={(e) => setAreaMin(e.target.value)}
+              onBlur={commitArea}
+              onKeyDown={(e) => e.key === "Enter" && commitArea()}
+              className="h-9 w-full rounded border border-[#d8d2ca] bg-white px-3 text-[12px] text-[#0a0a0a] outline-none transition focus:border-[#0a0a0a] placeholder:text-[#bbb]"
             />
             <input
-              type="number"
+              type="text"
+              inputMode="numeric"
               placeholder="สูงสุด"
-              value={filters.areaSize[1]}
-              onChange={(event) =>
-                handleFilterChange("areaSize", [filters.areaSize[0], parseInt(event.target.value, 10) || DEFAULT_MAX_AREA])
-              }
-              className="h-9 w-full border border-[#d8d2ca] bg-white px-2.5 text-sm text-[#0a0a0a] outline-none transition placeholder:text-[#ccc]"
+              value={areaMax}
+              onChange={(e) => setAreaMax(e.target.value)}
+              onBlur={commitArea}
+              onKeyDown={(e) => e.key === "Enter" && commitArea()}
+              className="h-9 w-full rounded border border-[#d8d2ca] bg-white px-3 text-[12px] text-[#0a0a0a] outline-none transition focus:border-[#0a0a0a] placeholder:text-[#bbb]"
             />
           </div>
         </div>
       </div>
 
-      {/* District */}
-      <div className="pt-1">
-        <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.22em] text-[#888]">เขต/อำเภอ</p>
+      {/* Row 3: District */}
+      <div>
+        <p className="mb-2.5 text-[10px] font-semibold uppercase tracking-[0.22em] text-[#999]">เขต / อำเภอ</p>
         <div className="flex flex-wrap gap-1.5">
-          {districtOptions.map((district) => (
-            <button
-              key={district}
-              type="button"
-              onClick={() => toggleArrayFilter("district", district)}
-              className="border px-3 py-1 text-[11px] font-medium transition"
-              style={filters.district.includes(district)
-                ? { background: '#0a0a0a', color: '#fff', borderColor: '#0a0a0a' }
-                : { background: '#fff', color: '#444', borderColor: '#d8d2ca' }}
-            >
-              {district}
-            </button>
-          ))}
+          {districtOptions.map((district) => {
+            const active = filters.district.includes(district);
+            return (
+              <button
+                key={district}
+                type="button"
+                onClick={() => toggleArrayFilter("district", district)}
+                className={`rounded-full border px-4 py-1.5 text-[11px] font-medium transition-all duration-150 ${
+                  active
+                    ? "border-[#0a0a0a] bg-[#0a0a0a] text-white"
+                    : "border-[#d8d2ca] bg-white text-[#555] hover:border-[#0a0a0a] hover:text-[#0a0a0a]"
+                }`}
+              >
+                {district}
+              </button>
+            );
+          })}
         </div>
       </div>
     </div>

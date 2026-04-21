@@ -1,9 +1,12 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
+import { useAuthStore } from "@/lib/auth-store";
 
 export default function Hero() {
   const [scrollY, setScrollY] = useState(0);
+  const { user, hasHydrated } = useAuthStore();
 
   useEffect(() => {
     const handleScroll = () => setScrollY(window.scrollY);
@@ -30,9 +33,34 @@ export default function Hero() {
         <div className="absolute inset-0 bg-linear-to-b from-black/10 via-black/15 to-black/65" />
       </div>
 
-      {/* Brand name — center top */}
-      <div className="absolute top-0 left-0 right-0 z-20 flex justify-center pt-8">
+      {/* Top bar — brand + login */}
+      <div className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between px-8 pt-8">
+        <div className="w-16" />
         <span className="text-white text-sm font-medium tracking-[0.2em] uppercase">sknat</span>
+        {hasHydrated && (
+          user ? (
+            <Link
+              href="/login"
+              className="flex items-center gap-1.5 text-white/70 hover:text-white transition w-16 justify-end"
+            >
+              <svg className="h-[18px] w-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+              </svg>
+              <span className="text-[11px] tracking-wide">{user.username}</span>
+            </Link>
+          ) : (
+            <Link
+              href="/login"
+              className="flex items-center gap-1.5 text-white/70 hover:text-white transition w-16 justify-end"
+              aria-label="เข้าสู่ระบบ"
+            >
+              <svg className="h-[18px] w-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                <line x1="4" y1="4" x2="20" y2="20" strokeWidth="1.5" strokeLinecap="round" />
+              </svg>
+            </Link>
+          )
+        )}
       </div>
 
       {/* Text block — parallax: moves up faster than video, slower than scroll */}

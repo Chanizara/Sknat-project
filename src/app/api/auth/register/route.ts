@@ -1,21 +1,21 @@
 import { NextResponse } from "next/server";
 
-import { MemberStoreError, authenticateMember } from "@/lib/member-store";
+import { MemberStoreError, createMember } from "@/lib/member-store";
 
 export async function POST(request: Request) {
   try {
-    const payload = await request.json();
-    const { username, password } = payload as { username?: string; password?: string };
+    const body = await request.json();
+    const { firstName, lastName, phone, email, username, password } = body as Record<string, string>;
 
-    if (!username || !password) {
-      return NextResponse.json({ message: "กรุณากรอก username และ password" }, { status: 400 });
-    }
+    const fullName = `${(firstName ?? "").trim()} ${(lastName ?? "").trim()}`.trim();
 
-    const member = await authenticateMember(username, password);
-
-    if (!member) {
-      return NextResponse.json({ message: "username หรือ password ไม่ถูกต้อง" }, { status: 401 });
-    }
+    const member = await createMember({
+      fullName: fullName || undefined,
+      username,
+      password,
+      phone,
+      email,
+    });
 
     return NextResponse.json(
       {
@@ -28,7 +28,7 @@ export async function POST(request: Request) {
         createdAt: member.createdAt,
         updatedAt: member.updatedAt,
       },
-      { status: 200 },
+      { status: 201 },
     );
   } catch (error) {
     if (error instanceof MemberStoreError) {

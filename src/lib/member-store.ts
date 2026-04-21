@@ -1,3 +1,4 @@
+import { createHash } from "crypto";
 import type { ResultSetHeader, RowDataPacket } from "mysql2/promise";
 
 import { dbPool } from "@/lib/db";
@@ -7,6 +8,7 @@ type MemberStatus = "active" | "suspended";
 export type Member = {
   id: number;
   fullName: string;
+  username?: string;
   phone?: string;
   email?: string;
   status: MemberStatus;
@@ -20,6 +22,7 @@ export type Member = {
 type MemberRow = RowDataPacket & {
   id: number;
   full_name: string;
+  username: string | null;
   phone: string | null;
   email: string | null;
   status: MemberStatus;
@@ -50,10 +53,15 @@ function toIsoString(value: Date | string) {
   return value instanceof Date ? value.toISOString() : new Date(value).toISOString();
 }
 
+function hashPassword(password: string): string {
+  return createHash("sha256").update(password).digest("hex");
+}
+
 function mapRowToMember(row: MemberRow): Member {
   return {
     id: row.id,
     fullName: row.full_name,
+    username: row.username ?? undefined,
     phone: row.phone ?? undefined,
     email: row.email ?? undefined,
     status: row.status,
@@ -88,16 +96,29 @@ export async function createMember(input: unknown): Promise<Member> {
 
   const payload = input as Record<string, unknown>;
   const fullName = normalizeString(payload.fullName);
+  const username = normalizeString(payload.username);
+  const password = typeof payload.password === "string" ? payload.password : undefined;
   const status = payload.status === "suspended" ? "suspended" : "active";
 
   if (!fullName) {
     throw new MemberStoreError("fullName จำเป็นต้องระบุ");
   }
 
+  if (username && (!password || password.length < 8)) {
+    throw new MemberStoreError("password ต้องมีอย่างน้อย 8 ตัวอักษร");
+  }
+
   try {
     const [result] = await dbPool.execute<ResultSetHeader>(
-      `INSERT INTO members (full_name, phone, email, status) VALUES (?, ?, ?, ?)`,
-      [fullName, normalizeString(payload.phone) ?? null, normalizeString(payload.email) ?? null, status],
+      `INSERT INTO members (full_name, phone, email, status, username, password_hash) VALUES (?, ?, ?, ?, ?, ?)`,
+      [
+        fullName,
+        normalizeString(payload.phone) ?? null,
+        normalizeString(payload.email) ?? null,
+        status,
+        username ?? null,
+        username && password ? hashPassword(password) : null,
+      ],
     );
 
     const [rows] = await dbPool.query<MemberRow[]>(
@@ -109,6 +130,24 @@ export async function createMember(input: unknown): Promise<Member> {
       throw new MemberStoreError("สร้างสมาชิกไม่สำเร็จ", 500);
     }
 
+    return mapRowToMember(rows[0]);
+  } catch (error) {
+    if ((error as { code?: string }).code === "ER_DUP_ENTRY") {
+      throw new MemberStoreError("username นี้ถูกใช้งานแล้ว");
+    }
+    wrapDbError(error);
+  }
+}
+
+export async function authenticateMember(username: string, password: string): Promise<Member | null> {
+  if (!username || !password) return null;
+  try {
+    const [rows] = await dbPool.query<MemberRow[]>(
+      `SELECT * FROM members WHERE username = ? AND password_hash = ? AND status = 'active' LIMIT 1`,
+      [username.trim(), hashPassword(password)],
+    );
+    if (rows.length === 0) return null;
+    await dbPool.execute(`UPDATE members SET last_active_at = NOW() WHERE id = ?`, [rows[0].id]);
     return mapRowToMember(rows[0]);
   } catch (error) {
     wrapDbError(error);
@@ -154,6 +193,20 @@ export async function updateMember(id: number, input: unknown): Promise<Member> 
     values.push(status);
   }
 
+  if ("username" in payload) {
+    fields.push("username = ?");
+    values.push(normalizeString(payload.username) ?? null);
+  }
+
+  if ("password" in payload) {
+    const pw = typeof payload.password === "string" ? payload.password.trim() : "";
+    if (pw.length > 0) {
+      if (pw.length < 8) throw new MemberStoreError("password ต้องมีอย่างน้อย 8 ตัวอักษร");
+      fields.push("password_hash = ?");
+      values.push(hashPassword(pw));
+    }
+  }
+
   if (fields.length === 0) {
     throw new MemberStoreError("ไม่มีข้อมูลสำหรับอัปเดต");
   }
@@ -172,6 +225,9 @@ export async function updateMember(id: number, input: unknown): Promise<Member> 
 
     return mapRowToMember(rows[0]);
   } catch (error) {
+    if ((error as { code?: string }).code === "ER_DUP_ENTRY") {
+      throw new MemberStoreError("username นี้ถูกใช้งานแล้ว");
+    }
     wrapDbError(error);
   }
 }

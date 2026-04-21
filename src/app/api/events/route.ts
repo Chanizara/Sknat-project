@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { getDashboardStats } from "@/lib/dashboard-store";
 import { getGraphData, type GraphMetric, type GraphRange } from "@/lib/graph-store";
 import { createMember, deleteMember, listMembers, MemberStoreError, updateMember } from "@/lib/member-store";
+import { countUnread, createNotification, listNotifications, markAllRead, markNotificationRead, NotificationStoreError } from "@/lib/notification-store";
 import { createOrder, deleteOrder, listOrders, OrderStoreError, updateOrder, upsertOrderForProperty } from "@/lib/order-store";
 import { createProperty, deleteProperty, getPropertyById, listProperties, PropertyStoreError, updateProperty } from "@/lib/property-store";
 import { createTransaction, getTransactionByOrderId, listTransactions, TransactionStoreError } from "@/lib/transaction-store";
@@ -19,7 +20,8 @@ function handleError(error: unknown) {
     error instanceof PropertyStoreError ||
     error instanceof MemberStoreError ||
     error instanceof OrderStoreError ||
-    error instanceof TransactionStoreError
+    error instanceof TransactionStoreError ||
+    error instanceof NotificationStoreError
   ) {
     return NextResponse.json({ ok: false, error: error.message }, { status: error.status });
   }
@@ -224,6 +226,82 @@ export async function POST(request: Request) {
 
       case "transactions:create":
         return NextResponse.json({ ok: true, data: await createTransaction(payload) });
+
+      // ── Inquiry: create order from public property detail page ──
+      case "orders:createInquiry": {
+        const p = payload as {
+          propertyId?: number;
+          propertyTitle?: string;
+          customerName?: string;
+          customerPhone?: string;
+          customerEmail?: string;
+          notes?: string;
+        } | undefined;
+
+        const order = await createOrder({
+          propertyId: p?.propertyId,
+          propertyTitle: p?.propertyTitle ?? "",
+          customerName: p?.customerName ?? "ไม่ระบุ",
+          customerPhone: p?.customerPhone,
+          customerEmail: p?.customerEmail,
+          notes: p?.notes,
+          status: "pending",
+        });
+
+        // Notify admin + seller who owns this property
+        const notifTitle = `สนใจติดต่อ: ${p?.propertyTitle ?? "บ้าน"}`;
+        const notifMsg = `${p?.customerName ?? ""} (${p?.customerPhone ?? ""}) แสดงความสนใจ`;
+
+        // Get all admin users + the property's seller
+        const allUsers = await listUsers();
+        const property = p?.propertyId ? await getPropertyById(p.propertyId).catch(() => null) : null;
+        const recipientIds = new Set<number>();
+        for (const u of allUsers) {
+          if (u.role === "admin") recipientIds.add(u.id);
+        }
+        if (property?.sellerId) recipientIds.add(property.sellerId);
+
+        await Promise.all(
+          Array.from(recipientIds).map((uid) =>
+            createNotification({
+              type: "inquiry",
+              title: notifTitle,
+              message: notifMsg,
+              propertyId: p?.propertyId,
+              orderId: order.id,
+              recipientUserId: uid,
+            }),
+          ),
+        );
+
+        return NextResponse.json({ ok: true, data: order });
+      }
+
+      // ── Notifications ─────────────────────────────────────────
+      case "notifications:list": {
+        const recipientUserId = Number((payload as { recipientUserId?: unknown } | undefined)?.recipientUserId);
+        const data = await listNotifications(Number.isFinite(recipientUserId) && recipientUserId > 0 ? recipientUserId : undefined);
+        const unread = data.filter((n) => !n.isRead).length;
+        return NextResponse.json({ ok: true, data, unread });
+      }
+
+      case "notifications:unread-count": {
+        const recipientUserId = Number((payload as { recipientUserId?: unknown } | undefined)?.recipientUserId);
+        const count = await countUnread(Number.isFinite(recipientUserId) && recipientUserId > 0 ? recipientUserId : undefined);
+        return NextResponse.json({ ok: true, data: count });
+      }
+
+      case "notifications:mark-read": {
+        const id = Number((payload as { id?: unknown } | undefined)?.id);
+        await markNotificationRead(id);
+        return NextResponse.json({ ok: true, data: { id } });
+      }
+
+      case "notifications:mark-all-read": {
+        const recipientUserId = Number((payload as { recipientUserId?: unknown } | undefined)?.recipientUserId);
+        await markAllRead(Number.isFinite(recipientUserId) && recipientUserId > 0 ? recipientUserId : undefined);
+        return NextResponse.json({ ok: true });
+      }
 
       case "graph:data": {
         const p = payload as { metric?: unknown; range?: unknown; sellerId?: unknown };

@@ -1,8 +1,9 @@
 'use client';
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { useAuthStore } from "@/lib/auth-store";
 
 function PageNameDisplay() {
   const pathname = usePathname();
@@ -87,18 +88,27 @@ function AnimatedNavLink({
   );
 }
 
-const NAV_ITEMS = [
+const BASE_NAV_ITEMS: Array<{ label: string; href?: string; id?: string }> = [
+  { label: 'Home', href: '/' },
   { label: 'About Us', href: '/about' },
   { label: 'Properties', id: 'properties' },
   { label: 'Contact', href: '/about#about-contact' },
   { label: 'Favourites', href: '/compare' },
-] as const;
-
-const ALL_NAV_ITEMS = [{ label: 'Home', href: '/' as string }, ...NAV_ITEMS.map(i => ({ ...i }))] as Array<{ label: string; href?: string; id?: string }>;
+];
 
 export default function FloatingNav() {
   const pathname = usePathname();
+  const router = useRouter();
   const isHomePage = pathname === '/';
+  const { user, hasHydrated, logout } = useAuthStore();
+  const isLoggedIn = hasHydrated && !!user;
+
+  const allNavItems: Array<{ label: string; href?: string; id?: string; action?: () => void }> = [
+    ...BASE_NAV_ITEMS,
+    isLoggedIn
+      ? { label: `ออกจากระบบ (${user!.username})`, action: () => { logout(); setMenuOpen(false); } }
+      : { label: 'Login', href: '/login' },
+  ];
 
   const [animationPhase, setAnimationPhase] = useState<'pill' | 'morphing' | 'floating' | 'card'>('pill');
   const [menuOpen, setMenuOpen] = useState(false);
@@ -246,13 +256,13 @@ export default function FloatingNav() {
               <p className="mb-5 text-[10px] font-medium tracking-[0.2em] uppercase text-center"
                 style={{ color: 'rgba(255,255,255,0.45)' }}>MENU</p>
               <nav className="mb-6">
-                {ALL_NAV_ITEMS.map((item, index) => (
+                {allNavItems.map((item, index) => (
                   <div key={item.label}
-                    style={{ borderBottom: index < ALL_NAV_ITEMS.length - 1 ? '1px solid rgba(255,255,255,0.05)' : 'none' }}>
+                    style={{ borderBottom: index < allNavItems.length - 1 ? '1px solid rgba(255,255,255,0.05)' : 'none' }}>
                     {item.href ? (
                       <AnimatedNavLink href={item.href}>{item.label}</AnimatedNavLink>
                     ) : (
-                      <AnimatedNavLink onClick={() => item.id && scrollToSection(item.id)}>{item.label}</AnimatedNavLink>
+                      <AnimatedNavLink onClick={() => item.action ? item.action() : item.id && scrollToSection(item.id)}>{item.label}</AnimatedNavLink>
                     )}
                   </div>
                 ))}
@@ -351,31 +361,22 @@ export default function FloatingNav() {
               style={{ background: 'linear-gradient(90deg,transparent,rgba(255,255,255,0.18),transparent)' }}
             />
             <div className="px-4 py-3">
-              {ALL_NAV_ITEMS.map((item, index) => (
+              {allNavItems.map((item, index) => (
                 <div key={item.label}
-                  style={{ borderBottom: index < ALL_NAV_ITEMS.length - 1 ? '1px solid rgba(255,255,255,0.06)' : 'none' }}>
+                  style={{ borderBottom: index < allNavItems.length - 1 ? '1px solid rgba(255,255,255,0.06)' : 'none' }}>
                   {item.href ? (
-                    <Link
-                      href={item.href}
-                      onClick={() => setMenuOpen(false)}
-                      className="group flex w-full items-center justify-between py-2.5 transition-all hover:pl-1"
-                    >
-                      <span className="text-sm font-light" style={{ color: 'rgba(255,255,255,0.85)' }}>
-                        {item.label}
-                      </span>
+                    <Link href={item.href} onClick={() => setMenuOpen(false)}
+                      className="group flex w-full items-center justify-between py-2.5 transition-all hover:pl-1">
+                      <span className="text-sm font-light" style={{ color: 'rgba(255,255,255,0.85)' }}>{item.label}</span>
                       <svg className="h-3 w-3 opacity-0 -translate-x-1 transition-all duration-200 group-hover:opacity-40 group-hover:translate-x-0"
                         fill="none" viewBox="0 0 24 24" stroke="rgba(255,255,255,0.5)">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5l7 7-7 7" />
                       </svg>
                     </Link>
                   ) : (
-                    <button
-                      onClick={() => item.id && scrollToSection(item.id)}
-                      className="group flex w-full items-center justify-between py-2.5 transition-all hover:pl-1"
-                    >
-                      <span className="text-sm font-light" style={{ color: 'rgba(255,255,255,0.85)' }}>
-                        {item.label}
-                      </span>
+                    <button onClick={() => item.action ? item.action() : item.id && scrollToSection(item.id)}
+                      className="group flex w-full items-center justify-between py-2.5 transition-all hover:pl-1">
+                      <span className="text-sm font-light" style={{ color: 'rgba(255,255,255,0.85)' }}>{item.label}</span>
                       <svg className="h-3 w-3 opacity-0 -translate-x-1 transition-all duration-200 group-hover:opacity-40 group-hover:translate-x-0"
                         fill="none" viewBox="0 0 24 24" stroke="rgba(255,255,255,0.5)">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5l7 7-7 7" />
@@ -411,14 +412,20 @@ export default function FloatingNav() {
               transition: 'opacity 0.25s ease, transform 0.35s cubic-bezier(0.34,1.56,0.64,1)',
             }}
           >
-            {/* Logo */}
-            <Link href="/" className="transition-opacity hover:opacity-70">
+            {/* Login / Profile icon */}
+            <button
+              onClick={() => router.push('/login')}
+              className="relative transition-opacity hover:opacity-70"
+              aria-label={isLoggedIn ? 'โปรไฟล์' : 'เข้าสู่ระบบ'}
+            >
               <svg width="17" height="17" viewBox="0 0 24 24" fill="none" style={{ stroke: '#f5f2ee', strokeWidth: 1.5 }}>
-                <path d="M12 2L2 7l10 5 10-5-10-5z" />
-                <path d="M2 17l10 5 10-5" />
-                <path d="M2 12l10 5 10-5" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 20.118a7.5 7.5 0 0115 0" />
+                {!isLoggedIn && (
+                  <line x1="3" y1="3" x2="21" y2="21" strokeLinecap="round" />
+                )}
               </svg>
-            </Link>
+            </button>
             <div style={{ width: 1, height: 15, backgroundColor: 'rgba(255,255,255,0.15)' }} />
             <PageNameDisplay />
             <div style={{ width: 1, height: 15, backgroundColor: 'rgba(255,255,255,0.15)' }} />

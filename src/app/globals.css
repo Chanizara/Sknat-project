@@ -23,6 +23,38 @@ html {
   scroll-behavior: auto; /* Disable native smooth scroll - Lenis handles this */
 }
 
+/* Dual-range slider: allow pointer events only on thumbs */
+.dual-range {
+  pointer-events: none;
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+}
+.dual-range::-webkit-slider-thumb {
+  pointer-events: auto;
+  -webkit-appearance: none;
+  appearance: none;
+  width: 1rem;
+  height: 1rem;
+  border-radius: 999px;
+  background: #0a0a0a;
+  border: 2px solid #fff;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.28);
+  cursor: pointer;
+}
+.dual-range::-moz-range-thumb {
+  pointer-events: auto;
+  width: 1rem;
+  height: 1rem;
+  border-radius: 999px;
+  background: #0a0a0a;
+  border: 2px solid #fff;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.28);
+  cursor: pointer;
+}
+.dual-range::-webkit-slider-runnable-track { background: transparent; }
+.dual-range::-moz-range-track { background: transparent; }
+
 html.lenis, html.lenis body {
   height: auto;
 }

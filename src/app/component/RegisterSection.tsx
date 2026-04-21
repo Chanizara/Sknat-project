@@ -2,8 +2,8 @@
 
 import { useEffect, useRef, useState } from 'react';
 
-type FormState = { firstName: string; lastName: string; phone: string; email: string };
-const emptyForm: FormState = { firstName: '', lastName: '', phone: '', email: '' };
+type FormState = { firstName: string; lastName: string; phone: string; email: string; username: string; password: string };
+const emptyForm: FormState = { firstName: '', lastName: '', phone: '', email: '', username: '', password: '' };
 
 export default function RegisterSection() {
   const sectionRef = useRef<HTMLElement>(null);
@@ -28,7 +28,6 @@ export default function RegisterSection() {
     e.preventDefault();
     setError('');
 
-    const fullName = `${form.firstName.trim()} ${form.lastName.trim()}`.trim();
     if (!form.firstName.trim() || !form.lastName.trim()) {
       setError('กรุณากรอกชื่อและนามสกุล');
       return;
@@ -41,13 +40,28 @@ export default function RegisterSection() {
       setError('กรุณากรอกอีเมล');
       return;
     }
+    if (!form.username.trim()) {
+      setError('กรุณากรอก username');
+      return;
+    }
+    if (!form.password || form.password.length < 8) {
+      setError('password ต้องมีความยาวอย่างน้อย 8 ตัวอักษร');
+      return;
+    }
 
     setSubmitting(true);
     try {
-      const res = await fetch('/api/members', {
+      const res = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ fullName, phone: form.phone.trim(), email: form.email.trim() }),
+        body: JSON.stringify({
+          firstName: form.firstName.trim(),
+          lastName: form.lastName.trim(),
+          phone: form.phone.trim(),
+          email: form.email.trim(),
+          username: form.username.trim(),
+          password: form.password,
+        }),
       });
 
       if (!res.ok) {
@@ -194,7 +208,7 @@ export default function RegisterSection() {
                 </div>
 
                 {/* Email */}
-                <div className="mb-8">
+                <div className="mb-6">
                   <Field label="อีเมล">
                     <input
                       type="email"
@@ -203,6 +217,36 @@ export default function RegisterSection() {
                       onChange={(e) => setForm({ ...form, email: e.target.value })}
                       disabled={submitting}
                       className={inputCls}
+                    />
+                  </Field>
+                </div>
+
+                {/* Username */}
+                <div className="mb-6">
+                  <Field label="Username">
+                    <input
+                      type="text"
+                      placeholder="username สำหรับเข้าสู่ระบบ"
+                      value={form.username}
+                      onChange={(e) => setForm({ ...form, username: e.target.value })}
+                      disabled={submitting}
+                      className={inputCls}
+                      autoComplete="username"
+                    />
+                  </Field>
+                </div>
+
+                {/* Password */}
+                <div className="mb-8">
+                  <Field label="Password">
+                    <input
+                      type="password"
+                      placeholder="อย่างน้อย 8 ตัวอักษร"
+                      value={form.password}
+                      onChange={(e) => setForm({ ...form, password: e.target.value })}
+                      disabled={submitting}
+                      className={inputCls}
+                      autoComplete="new-password"
                     />
                   </Field>
                 </div>

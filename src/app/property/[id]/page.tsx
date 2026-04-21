@@ -10,6 +10,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { buildPriceLabel, formatPrice, formatUpdatedAt, getDistrict } from "@/lib/property-format";
 import { type Property } from "@/types/property";
 import { useFavoritesStore } from "@/lib/favorites-store";
+import { useAuthStore } from "@/lib/auth-store";
 import BeforeFooter from "@/app/component/before_footer";
 import Contact from "@/app/component/contact";
 
@@ -163,14 +164,137 @@ function PremiumCarousel({
 }
 
 // ─── Fluid Sticky Section ─────────────────────────────────────────────────────
+function InquiryModal({
+  property,
+  onClose,
+}: {
+  property: Property;
+  onClose: () => void;
+}) {
+  const { user } = useAuthStore();
+  const [form, setForm] = useState({
+    name: user?.fullName ?? "",
+    phone: user?.phone ?? "",
+    email: user?.email ?? "",
+    notes: "",
+  });
+  const [loading, setLoading] = useState(false);
+  const [done, setDone] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!form.name.trim()) { setError("กรุณากรอกชื่อ"); return; }
+    setError("");
+    setLoading(true);
+    try {
+      const res = await fetch("/api/events", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          event: "orders:createInquiry",
+          payload: {
+            propertyId: property.id,
+            propertyTitle: property.title,
+            customerName: form.name.trim(),
+            customerPhone: form.phone.trim() || undefined,
+            customerEmail: form.email.trim() || undefined,
+            notes: form.notes.trim() || undefined,
+          },
+        }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        setError(data.error ?? "เกิดข้อผิดพลาด");
+        return;
+      }
+      setDone(true);
+    } catch {
+      setError("ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-sm" onClick={onClose}>
+      <div
+        className="w-full sm:max-w-md bg-white p-8 sm:mx-4"
+        style={{ borderRadius: "2px" }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {done ? (
+          <div className="flex flex-col items-center gap-4 py-6 text-center">
+            <div className="flex h-12 w-12 items-center justify-center border border-[#171717]">
+              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <p className="text-base font-light text-[#171717]">ส่งความสนใจแล้ว!</p>
+            <p className="text-xs text-[#888]">ทีมงานจะติดต่อกลับหาคุณเร็ว ๆ นี้</p>
+            <button onClick={onClose} className="mt-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-[#171717] underline underline-offset-4">ปิด</button>
+          </div>
+        ) : (
+          <>
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-[1.1rem] font-light tracking-[-0.02em] text-[#171717]">สนใจติดต่อ</h3>
+              <button onClick={onClose} className="text-[#888] hover:text-[#0a0a0a] transition">
+                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <p className="text-[11px] text-[#888] mb-6 leading-relaxed">{property.title}</p>
+            <form onSubmit={handleSubmit} noValidate className="space-y-4">
+              <div>
+                <label className="block text-[10px] font-semibold uppercase tracking-[0.26em] text-[rgba(10,10,10,0.42)] mb-2">ชื่อ *</label>
+                <input type="text" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })}
+                  disabled={loading} placeholder="ชื่อ-นามสกุล"
+                  className="w-full bg-transparent border-b border-[#d8d2ca] pb-2 pt-1 text-sm text-[#171717] placeholder-[#ccc] focus:outline-none focus:border-[#171717] transition-colors" />
+              </div>
+              <div>
+                <label className="block text-[10px] font-semibold uppercase tracking-[0.26em] text-[rgba(10,10,10,0.42)] mb-2">เบอร์โทรศัพท์</label>
+                <input type="tel" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                  disabled={loading} placeholder="08X-XXX-XXXX"
+                  className="w-full bg-transparent border-b border-[#d8d2ca] pb-2 pt-1 text-sm text-[#171717] placeholder-[#ccc] focus:outline-none focus:border-[#171717] transition-colors" />
+              </div>
+              <div>
+                <label className="block text-[10px] font-semibold uppercase tracking-[0.26em] text-[rgba(10,10,10,0.42)] mb-2">อีเมล</label>
+                <input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })}
+                  disabled={loading} placeholder="email@example.com"
+                  className="w-full bg-transparent border-b border-[#d8d2ca] pb-2 pt-1 text-sm text-[#171717] placeholder-[#ccc] focus:outline-none focus:border-[#171717] transition-colors" />
+              </div>
+              <div>
+                <label className="block text-[10px] font-semibold uppercase tracking-[0.26em] text-[rgba(10,10,10,0.42)] mb-2">หมายเหตุ</label>
+                <textarea value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })}
+                  disabled={loading} placeholder="ข้อมูลเพิ่มเติม เช่น วันเวลานัดดู..." rows={3}
+                  className="w-full bg-transparent border-b border-[#d8d2ca] pb-2 pt-1 text-sm text-[#171717] placeholder-[#ccc] focus:outline-none focus:border-[#171717] transition-colors resize-none" />
+              </div>
+              {error && <p className="text-xs text-[#c0392b] border-l-2 border-[#c0392b] pl-3 py-0.5">{error}</p>}
+              <div className="pt-2">
+                <button type="submit" disabled={loading}
+                  className="w-full bg-[#0a0a0a] py-3.5 text-[11px] font-semibold uppercase tracking-[0.26em] text-white hover:bg-[#222] disabled:opacity-40 transition">
+                  {loading ? "กำลังส่ง..." : "ส่งความสนใจ"}
+                </button>
+              </div>
+            </form>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function FluidSection({
   property,
   images,
   onImageClick,
+  onOpenInquiry,
 }: {
   property: Property;
   images: string[];
   onImageClick: (i: number) => void;
+  onOpenInquiry: () => void;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [activeIdx, setActiveIdx] = useState(0);
@@ -358,14 +482,15 @@ function FluidSection({
                   {property.agent.phone}
                 </a>
               )}
-              <Link
-                href="/about#about-contact"
-                className="flex items-center justify-center gap-2 py-3 text-[11px] font-semibold tracking-[0.18em] uppercase bg-[#0f1214] text-[#f7f2ec] hover:bg-[#20262b] transition-all duration-200"
+              <button
+                type="button"
+                onClick={onOpenInquiry}
+                className="w-full flex items-center justify-center gap-2 py-3 text-[11px] font-semibold tracking-[0.18em] uppercase bg-[#0f1214] text-[#f7f2ec] hover:bg-[#20262b] transition-all duration-200"
                 style={{ borderRadius: '2px' }}
               >
                 <span style={{ fontFamily: 'monospace' }}>↳</span>
-                ติดต่อสอบถาม
-              </Link>
+                สนใจติดต่อ
+              </button>
             </div>
           </div>
         </div>
@@ -855,10 +980,22 @@ function buildPropertyTags(property: Property) {
 // ─── Main Page ────────────────────────────────────────────────────────────────
 export default function PropertyDetailPage() {
   const params = useParams();
+  const router = useRouter();
   const propertyId = params.id as string;
+  const { user, hasHydrated } = useAuthStore();
   const [property, setProperty] = useState<Property | null>(null);
   const [loading, setLoading] = useState(true);
   const [lightboxIdx, setLightboxIdx] = useState<number | null>(null);
+  const [inquiryOpen, setInquiryOpen] = useState(false);
+
+  const handleOpenInquiry = () => {
+    if (!hasHydrated) return;
+    if (!user) {
+      router.push(`/login?next=/property/${propertyId}`);
+      return;
+    }
+    setInquiryOpen(true);
+  };
 
   useEffect(() => {
     fetch(`/api/properties/${propertyId}`)
@@ -924,6 +1061,11 @@ export default function PropertyDetailPage() {
           onPrev={() => setLightboxIdx((i) => (i !== null ? Math.max(0, i - 1) : 0))}
           onNext={() => setLightboxIdx((i) => (i !== null ? Math.min(allImages.length - 1, i + 1) : 0))}
         />
+      )}
+
+      {/* Inquiry modal — rendered at page root to escape overflow:auto containers */}
+      {inquiryOpen && property && (
+        <InquiryModal property={property} onClose={() => setInquiryOpen(false)} />
       )}
 
       {/* ═══════════════════════════════════════
@@ -1002,6 +1144,7 @@ export default function PropertyDetailPage() {
         property={property}
         images={allImages}
         onImageClick={setLightboxIdx}
+        onOpenInquiry={handleOpenInquiry}
       />
 
       {/* ═══════════════════════════════════════
