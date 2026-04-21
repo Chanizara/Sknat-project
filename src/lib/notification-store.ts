@@ -113,3 +113,11 @@ export async function markAllRead(recipientUserId?: number): Promise<void> {
     await dbPool.execute(`UPDATE notifications SET is_read = 1`);
   }
 }
+
+export async function deleteAllNotifications(recipientUserId?: number): Promise<void> {
+  if (recipientUserId) {
+    await dbPool.execute(`DELETE FROM notifications WHERE recipient_user_id = ?`, [recipientUserId]);
+  } else {
+    await dbPool.execute(`DELETE FROM notifications`);
+  }
+}

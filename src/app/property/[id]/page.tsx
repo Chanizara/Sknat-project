@@ -164,7 +164,7 @@ function PremiumCarousel({
 }
 
 // ─── Fluid Sticky Section ─────────────────────────────────────────────────────
-function InquiryModal({
+function BookingModal({
   property,
   onClose,
 }: {
@@ -172,10 +172,19 @@ function InquiryModal({
   onClose: () => void;
 }) {
   const { user } = useAuthStore();
+
+  const getMinDateTime = () => {
+    const d = new Date();
+    d.setMinutes(d.getMinutes() + 30);
+    const pad = (n: number) => String(n).padStart(2, "0");
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  };
+
   const [form, setForm] = useState({
     name: user?.fullName ?? "",
     phone: user?.phone ?? "",
     email: user?.email ?? "",
+    bookingDate: "",
     notes: "",
   });
   const [loading, setLoading] = useState(false);
@@ -185,19 +194,25 @@ function InquiryModal({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    if (!form.bookingDate) {
+      setError("กรุณาเลือกวันและเวลาที่ต้องการจอง");
+      return;
+    }
     setLoading(true);
     try {
       const res = await fetch("/api/events", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          event: "orders:createInquiry",
+          event: "bookings:createFromPublic",
           payload: {
             propertyId: property.id,
             propertyTitle: property.title,
-            customerName: form.name.trim(),
+            memberId: user?.id,
+            customerName: form.name.trim() || "ไม่ระบุ",
             customerPhone: form.phone.trim() || undefined,
             customerEmail: form.email.trim() || undefined,
+            bookingDate: new Date(form.bookingDate).toISOString(),
             notes: form.notes.trim() || undefined,
           },
         }),
@@ -234,13 +249,13 @@ function InquiryModal({
                 <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
               </svg>
             </div>
-            <p className="text-base font-light text-[#171717]">ส่งความสนใจแล้ว!</p>
-            <p className="text-xs text-[#888]">ทีมงานจะติดต่อกลับหาคุณเร็ว ๆ นี้</p>
+            <p className="text-base font-light text-[#171717]">จองสำเร็จแล้ว!</p>
+            <p className="text-xs text-[#888]">ทีมงานจะยืนยันการจองและติดต่อกลับหาคุณเร็ว ๆ นี้</p>
           </div>
         ) : (
           <>
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-[1.1rem] font-light tracking-[-0.02em] text-[#171717]">สนใจติดต่อ</h3>
+              <h3 className="text-[1.1rem] font-light tracking-[-0.02em] text-[#171717]">จองดูบ้าน</h3>
               <button onClick={onClose} className="text-[#888] hover:text-[#0a0a0a] transition">
                 <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -248,18 +263,35 @@ function InquiryModal({
               </button>
             </div>
             <p className="text-[11px] text-[#888] mb-6 leading-relaxed">{property.title}</p>
-            <form onSubmit={handleSubmit} noValidate className="space-y-4">
+            <form onSubmit={handleSubmit} noValidate className="space-y-5">
+              <div>
+                <label className="block text-[10px] font-semibold uppercase tracking-[0.26em] text-[rgba(10,10,10,0.42)] mb-2">วันและเวลาที่ต้องการจอง *</label>
+                <input
+                  type="datetime-local"
+                  value={form.bookingDate}
+                  min={getMinDateTime()}
+                  onChange={(e) => setForm({ ...form, bookingDate: e.target.value })}
+                  disabled={loading}
+                  required
+                  className="w-full bg-transparent border-b border-[#d8d2ca] pb-2 pt-1 text-sm text-[#171717] focus:outline-none focus:border-[#171717] transition-colors"
+                />
+              </div>
               <div>
                 <label className="block text-[10px] font-semibold uppercase tracking-[0.26em] text-[rgba(10,10,10,0.42)] mb-2">หมายเหตุ</label>
-                <textarea value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })}
-                  disabled={loading} placeholder="ข้อมูลเพิ่มเติม เช่น วันเวลานัดดู..." rows={4}
-                  className="w-full bg-transparent border-b border-[#d8d2ca] pb-2 pt-1 text-sm text-[#171717] placeholder-[#ccc] focus:outline-none focus:border-[#171717] transition-colors resize-none" />
+                <textarea
+                  value={form.notes}
+                  onChange={(e) => setForm({ ...form, notes: e.target.value })}
+                  disabled={loading}
+                  placeholder="ข้อมูลเพิ่มเติม เช่น จำนวนคนที่มาดู ความต้องการพิเศษ..."
+                  rows={3}
+                  className="w-full bg-transparent border-b border-[#d8d2ca] pb-2 pt-1 text-sm text-[#171717] placeholder-[#ccc] focus:outline-none focus:border-[#171717] transition-colors resize-none"
+                />
               </div>
               {error && <p className="text-xs text-[#c0392b] border-l-2 border-[#c0392b] pl-3 py-0.5">{error}</p>}
               <div className="pt-2">
                 <button type="submit" disabled={loading}
                   className="w-full bg-[#0a0a0a] py-3.5 text-[11px] font-semibold uppercase tracking-[0.26em] text-white hover:bg-[#222] disabled:opacity-40 transition">
-                  {loading ? "กำลังส่ง..." : "ส่งความสนใจ"}
+                  {loading ? "กำลังจอง..." : "ยืนยันการจอง"}
                 </button>
               </div>
             </form>
@@ -458,13 +490,16 @@ function FluidSection({
               {property.agent?.phone && (
                 <a
                   href={`tel:${property.agent.phone}`}
-                  className="flex items-center justify-center gap-2 py-3 text-[11px] font-semibold tracking-[0.18em] uppercase border border-[#171717] text-[#171717] hover:bg-[#171717] hover:text-white transition-all duration-200"
+                  className="flex items-center gap-3 py-3 px-4 border border-[#d8d2ca] text-[#49443f] hover:border-[#0a0a0a] hover:text-[#0a0a0a] hover:bg-[#f7f4ef] transition-all duration-200"
                   style={{ borderRadius: '2px' }}
                 >
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="shrink-0">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                   </svg>
-                  {property.agent.phone}
+                  <div className="flex flex-col">
+                    <span className="text-[10px] font-semibold tracking-[0.18em] uppercase text-[#888]">ติดต่อผู้ดูแลบ้าน</span>
+                    <span className="text-[13px] font-medium text-[#171717] mt-0.5">{property.agent.phone}</span>
+                  </div>
                 </a>
               )}
               <button
@@ -474,7 +509,7 @@ function FluidSection({
                 style={{ borderRadius: '2px' }}
               >
                 <span style={{ fontFamily: 'monospace' }}>↳</span>
-                สนใจติดต่อ
+                จองคิวดูบ้าน
               </button>
             </div>
           </div>
@@ -971,15 +1006,15 @@ export default function PropertyDetailPage() {
   const [property, setProperty] = useState<Property | null>(null);
   const [loading, setLoading] = useState(true);
   const [lightboxIdx, setLightboxIdx] = useState<number | null>(null);
-  const [inquiryOpen, setInquiryOpen] = useState(false);
+  const [bookingOpen, setBookingOpen] = useState(false);
 
-  const handleOpenInquiry = () => {
+  const handleOpenBooking = () => {
     if (!hasHydrated) return;
     if (!user) {
       router.push(`/login?next=/property/${propertyId}`);
       return;
     }
-    setInquiryOpen(true);
+    setBookingOpen(true);
   };
 
   useEffect(() => {
@@ -1048,9 +1083,9 @@ export default function PropertyDetailPage() {
         />
       )}
 
-      {/* Inquiry modal — rendered at page root to escape overflow:auto containers */}
-      {inquiryOpen && property && (
-        <InquiryModal property={property} onClose={() => setInquiryOpen(false)} />
+      {/* Booking modal — rendered at page root to escape overflow:auto containers */}
+      {bookingOpen && property && (
+        <BookingModal property={property} onClose={() => setBookingOpen(false)} />
       )}
 
       {/* ═══════════════════════════════════════
@@ -1129,7 +1164,7 @@ export default function PropertyDetailPage() {
         property={property}
         images={allImages}
         onImageClick={setLightboxIdx}
-        onOpenInquiry={handleOpenInquiry}
+        onOpenInquiry={handleOpenBooking}
       />
 
       {/* ═══════════════════════════════════════

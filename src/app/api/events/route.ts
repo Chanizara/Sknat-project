@@ -3,11 +3,12 @@ import { NextResponse } from "next/server";
 import { getDashboardStats } from "@/lib/dashboard-store";
 import { getGraphData, type GraphMetric, type GraphRange } from "@/lib/graph-store";
 import { createMember, deleteMember, listMembers, MemberStoreError, updateMember } from "@/lib/member-store";
-import { countUnread, createNotification, listNotifications, markAllRead, markNotificationRead, NotificationStoreError } from "@/lib/notification-store";
+import { countUnread, createNotification, deleteAllNotifications, listNotifications, markAllRead, markNotificationRead, NotificationStoreError } from "@/lib/notification-store";
 import { createOrder, deleteOrder, listOrders, OrderStoreError, updateOrder, upsertOrderForProperty } from "@/lib/order-store";
 import { createProperty, deleteProperty, getPropertyById, listProperties, PropertyStoreError, updateProperty } from "@/lib/property-store";
 import { createTransaction, getTransactionByOrderId, listTransactions, TransactionStoreError } from "@/lib/transaction-store";
 import { authenticateUser, createUser, deleteUser, listUsers, updateUser, UserStoreError } from "@/lib/user-store";
+import { BookingStoreError, createBooking, deleteBooking, listAllBookings, listBookingsByProperty, updateBooking } from "@/lib/booking-store";
 
 type EventRequest = {
   event?: string;
@@ -21,7 +22,8 @@ function handleError(error: unknown) {
     error instanceof MemberStoreError ||
     error instanceof OrderStoreError ||
     error instanceof TransactionStoreError ||
-    error instanceof NotificationStoreError
+    error instanceof NotificationStoreError ||
+    error instanceof BookingStoreError
   ) {
     return NextResponse.json({ ok: false, error: error.message }, { status: error.status });
   }
@@ -249,8 +251,8 @@ export async function POST(request: Request) {
         });
 
         // Notify admin + seller who owns this property
-        const notifTitle = `สนใจติดต่อ: ${p?.propertyTitle ?? "บ้าน"}`;
-        const notifMsg = `${p?.customerName ?? ""} (${p?.customerPhone ?? ""}) แสดงความสนใจ${p?.notes ? `\nหมายเหตุ: ${p.notes}` : ""}`;
+        const notifTitle = `ต้องการจองคิวดูบ้าน: ${p?.propertyTitle ?? "บ้าน"}`;
+        const notifMsg = `${p?.customerName ?? ""} (${p?.customerPhone ?? ""}) ต้องการจองคิวดูบ้าน${p?.notes ? `\nหมายเหตุ: ${p.notes}` : ""}`;
 
         // Get all admin users + the property's seller
         const allUsers = await listUsers();
@@ -303,6 +305,12 @@ export async function POST(request: Request) {
         return NextResponse.json({ ok: true });
       }
 
+      case "notifications:clear-all": {
+        const recipientUserId = Number((payload as { recipientUserId?: unknown } | undefined)?.recipientUserId);
+        await deleteAllNotifications(Number.isFinite(recipientUserId) && recipientUserId > 0 ? recipientUserId : undefined);
+        return NextResponse.json({ ok: true });
+      }
+
       case "graph:data": {
         const p = payload as { metric?: unknown; range?: unknown; sellerId?: unknown };
         const validMetrics: GraphMetric[] = ["seller-added", "member-signup", "total-sales"];
@@ -316,6 +324,83 @@ export async function POST(request: Request) {
           Number.isInteger(sellerId) && sellerId > 0 ? sellerId : undefined,
         );
         return NextResponse.json({ ok: true, data: points });
+      }
+
+      // ── Bookings ──────────────────────────────────────────
+      case "bookings:listByProperty": {
+        const propertyId = Number((payload as { propertyId?: unknown } | undefined)?.propertyId);
+        if (!propertyId) return NextResponse.json({ ok: false, error: "propertyId จำเป็นต้องระบุ" }, { status: 400 });
+        return NextResponse.json({ ok: true, data: await listBookingsByProperty(propertyId) });
+      }
+
+      case "bookings:list":
+        return NextResponse.json({ ok: true, data: await listAllBookings() });
+
+      case "bookings:create":
+        return NextResponse.json({ ok: true, data: await createBooking(payload) });
+
+      case "bookings:update": {
+        const id = Number((payload as { id?: unknown } | undefined)?.id);
+        return NextResponse.json({ ok: true, data: await updateBooking(id, payload) });
+      }
+
+      case "bookings:delete": {
+        const id = Number((payload as { id?: unknown } | undefined)?.id);
+        await deleteBooking(id);
+        return NextResponse.json({ ok: true, data: { id } });
+      }
+
+      // ── Public booking from property detail page ──────────
+      case "bookings:createFromPublic": {
+        const p = payload as {
+          propertyId?: number;
+          propertyTitle?: string;
+          memberId?: number;
+          customerName?: string;
+          customerPhone?: string;
+          customerEmail?: string;
+          bookingDate?: string;
+          notes?: string;
+        } | undefined;
+
+        const booking = await createBooking({
+          propertyId: p?.propertyId,
+          propertyTitle: p?.propertyTitle ?? "",
+          memberId: p?.memberId,
+          customerName: p?.customerName ?? "ไม่ระบุ",
+          customerPhone: p?.customerPhone,
+          customerEmail: p?.customerEmail,
+          bookingDate: p?.bookingDate,
+          notes: p?.notes,
+          status: "pending",
+          isManual: false,
+        });
+
+        // Notify admin + seller
+        const notifTitle = `ต้องการจองคิวดูบ้าน: ${p?.propertyTitle ?? "บ้าน"}`;
+        const notifMsg = `${p?.customerName ?? ""} (${p?.customerPhone ?? ""}) ต้องการจองคิวดูบ้านวันที่ ${p?.bookingDate ? new Date(p.bookingDate).toLocaleString("th-TH") : ""}${p?.notes ? `\nหมายเหตุ: ${p.notes}` : ""}`;
+
+        const allUsers = await listUsers();
+        const property = p?.propertyId ? await getPropertyById(p.propertyId).catch(() => null) : null;
+        const recipientIds = new Set<number>();
+        for (const u of allUsers) {
+          if (u.role === "admin") recipientIds.add(u.id);
+        }
+        if (property?.sellerId) recipientIds.add(property.sellerId);
+
+        await Promise.all(
+          Array.from(recipientIds).map((uid) =>
+            createNotification({
+              type: "inquiry",
+              title: notifTitle,
+              message: notifMsg,
+              propertyId: p?.propertyId,
+              recipientUserId: uid,
+            }),
+          ),
+        );
+
+        return NextResponse.json({ ok: true, data: booking });
       }
 
       default:
