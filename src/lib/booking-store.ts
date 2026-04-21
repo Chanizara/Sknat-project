@@ -110,6 +110,16 @@ export async function createBooking(payload: unknown): Promise<Booking> {
   const bookingDate = new Date(p.bookingDate as string);
   if (isNaN(bookingDate.getTime())) throw new BookingStoreError("วันที่จองไม่ถูกต้อง");
 
+  // Conflict check: no other active booking within 30 minutes of requested slot for this property
+  if (propertyId) {
+    const [conflicts] = await dbPool.execute<BookingRow[]>(
+      `SELECT id FROM bookings WHERE property_id = ? AND status != 'cancelled'
+       AND ABS(TIMESTAMPDIFF(MINUTE, booking_date, ?)) < 30 LIMIT 1`,
+      [propertyId, bookingDate],
+    );
+    if (conflicts.length > 0) throw new BookingStoreError("วันและเวลานี้มีการจองไว้แล้ว กรุณาเลือกเวลาอื่น");
+  }
+
   const [result] = await dbPool.execute<ResultSetHeader>(
     `INSERT INTO bookings (property_id, property_title, member_id, customer_name, customer_phone, customer_email, booking_date, notes, status, is_manual)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -146,6 +156,15 @@ export async function updateBooking(id: number, payload: unknown): Promise<Booki
   if (p?.bookingDate) {
     bookingDate = new Date(p.bookingDate as string);
     if (isNaN(bookingDate.getTime())) throw new BookingStoreError("วันที่จองไม่ถูกต้อง");
+    // Conflict check on date change
+    if (existing[0].property_id) {
+      const [conflicts] = await dbPool.execute<BookingRow[]>(
+        `SELECT id FROM bookings WHERE property_id = ? AND status != 'cancelled' AND id != ?
+         AND ABS(TIMESTAMPDIFF(MINUTE, booking_date, ?)) < 30 LIMIT 1`,
+        [existing[0].property_id, id, bookingDate],
+      );
+      if (conflicts.length > 0) throw new BookingStoreError("วันและเวลานี้มีการจองไว้แล้ว กรุณาเลือกเวลาอื่น");
+    }
   } else {
     bookingDate = new Date(toIsoString(existing[0].booking_date));
   }
@@ -161,4 +180,13 @@ export async function updateBooking(id: number, payload: unknown): Promise<Booki
 
 export async function deleteBooking(id: number): Promise<void> {
   await dbPool.execute(`DELETE FROM bookings WHERE id = ?`, [id]);
+}
+
+/** Returns ISO datetime strings of all taken (non-cancelled) booking slots for a property */
+export async function listTakenSlots(propertyId: number): Promise<string[]> {
+  const [rows] = await dbPool.execute<BookingRow[]>(
+    `SELECT booking_date FROM bookings WHERE property_id = ? AND status != 'cancelled'`,
+    [propertyId],
+  );
+  return rows.map((r) => toIsoString(r.booking_date));
 }

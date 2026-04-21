@@ -190,12 +190,41 @@ function BookingModal({
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
   const [error, setError] = useState("");
+  const [takenSlots, setTakenSlots] = useState<string[]>([]);
+  const [slotConflict, setSlotConflict] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/events", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ event: "bookings:takenSlots", payload: { propertyId: property.id } }),
+    })
+      .then((r) => r.json())
+      .then((data) => { if (data.ok && Array.isArray(data.data)) setTakenSlots(data.data); })
+      .catch(() => {});
+  }, [property.id]);
+
+  const checkConflict = (dateStr: string) => {
+    if (!dateStr) return false;
+    const selected = new Date(dateStr).getTime();
+    return takenSlots.some((slot) => Math.abs(new Date(slot).getTime() - selected) < 30 * 60 * 1000);
+  };
+
+  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setForm({ ...form, bookingDate: val });
+    setSlotConflict(checkConflict(val));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     if (!form.bookingDate) {
       setError("กรุณาเลือกวันและเวลาที่ต้องการจอง");
+      return;
+    }
+    if (checkConflict(form.bookingDate)) {
+      setError("วันและเวลานี้มีการจองไว้แล้ว กรุณาเลือกเวลาอื่น (ห่างกันอย่างน้อย 30 นาที)");
       return;
     }
     setLoading(true);
@@ -217,8 +246,8 @@ function BookingModal({
           },
         }),
       });
-      if (!res.ok) {
-        const data = await res.json();
+      const data = await res.json();
+      if (!res.ok || !data.ok) {
         setError(data.error ?? "เกิดข้อผิดพลาด");
         return;
       }
@@ -244,13 +273,37 @@ function BookingModal({
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
-            <div className="flex h-12 w-12 items-center justify-center border border-[#171717]">
-              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-              </svg>
-            </div>
-            <p className="text-base font-light text-[#171717]">จองสำเร็จแล้ว!</p>
-            <p className="text-xs text-[#888]">ทีมงานจะยืนยันการจองและติดต่อกลับหาคุณเร็ว ๆ นี้</p>
+            <svg className="h-14 w-14" fill="none" viewBox="0 0 52 52" stroke="currentColor">
+              <circle
+                cx="26" cy="26" r="24"
+                strokeWidth="1.5"
+                stroke="#171717"
+                fill="none"
+                strokeDasharray="150.8"
+                strokeDashoffset="150.8"
+                style={{ animation: "drawCircle 0.5s ease forwards" }}
+              />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="1.5"
+                stroke="#171717"
+                d="M14 27l8 8 16-16"
+                strokeDasharray="35"
+                strokeDashoffset="35"
+                style={{ animation: "drawCheck 0.4s ease 0.45s forwards" }}
+              />
+              <style>{`
+                @keyframes drawCircle {
+                  to { stroke-dashoffset: 0; }
+                }
+                @keyframes drawCheck {
+                  to { stroke-dashoffset: 0; }
+                }
+              `}</style>
+            </svg>
+            <p className="text-base text-[#171717]">จองสำเร็จแล้ว!</p>
+            <p className="text-xs text-[#171717]">ทีมงานจะยืนยันการจองและติดต่อกลับหาคุณเร็ว ๆ นี้</p>
           </div>
         ) : (
           <>
@@ -270,11 +323,14 @@ function BookingModal({
                   type="datetime-local"
                   value={form.bookingDate}
                   min={getMinDateTime()}
-                  onChange={(e) => setForm({ ...form, bookingDate: e.target.value })}
+                  onChange={handleDateChange}
                   disabled={loading}
                   required
-                  className="w-full bg-transparent border-b border-[#d8d2ca] pb-2 pt-1 text-sm text-[#171717] focus:outline-none focus:border-[#171717] transition-colors"
+                  className={`w-full bg-transparent border-b pb-2 pt-1 text-sm text-[#171717] focus:outline-none transition-colors ${slotConflict ? "border-[#c0392b]" : "border-[#d8d2ca] focus:border-[#171717]"}`}
                 />
+                {slotConflict && (
+                  <p className="mt-1.5 text-[10px] text-[#c0392b]">เวลานี้มีการจองไว้แล้ว กรุณาเลือกเวลาอื่น (ห่างกันอย่างน้อย 30 นาที)</p>
+                )}
               </div>
               <div>
                 <label className="block text-[10px] font-semibold uppercase tracking-[0.26em] text-[rgba(10,10,10,0.42)] mb-2">หมายเหตุ</label>

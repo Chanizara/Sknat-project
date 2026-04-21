@@ -8,7 +8,7 @@ import { createOrder, deleteOrder, listOrders, OrderStoreError, updateOrder, ups
 import { createProperty, deleteProperty, getPropertyById, listProperties, PropertyStoreError, updateProperty } from "@/lib/property-store";
 import { createTransaction, getTransactionByOrderId, listTransactions, TransactionStoreError } from "@/lib/transaction-store";
 import { authenticateUser, createUser, deleteUser, listUsers, updateUser, UserStoreError } from "@/lib/user-store";
-import { BookingStoreError, createBooking, deleteBooking, listAllBookings, listBookingsByProperty, updateBooking } from "@/lib/booking-store";
+import { BookingStoreError, createBooking, deleteBooking, listAllBookings, listBookingsByProperty, listTakenSlots, updateBooking } from "@/lib/booking-store";
 
 type EventRequest = {
   event?: string;
@@ -331,6 +331,12 @@ export async function POST(request: Request) {
         const propertyId = Number((payload as { propertyId?: unknown } | undefined)?.propertyId);
         if (!propertyId) return NextResponse.json({ ok: false, error: "propertyId จำเป็นต้องระบุ" }, { status: 400 });
         return NextResponse.json({ ok: true, data: await listBookingsByProperty(propertyId) });
+      }
+
+      case "bookings:takenSlots": {
+        const propertyId = Number((payload as { propertyId?: unknown } | undefined)?.propertyId);
+        if (!propertyId) return NextResponse.json({ ok: false, error: "propertyId จำเป็นต้องระบุ" }, { status: 400 });
+        return NextResponse.json({ ok: true, data: await listTakenSlots(propertyId) });
       }
 
       case "bookings:list":
