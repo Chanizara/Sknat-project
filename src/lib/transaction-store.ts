@@ -80,6 +80,12 @@ function normalizePositiveNumber(value: unknown, fieldName: string): number | un
   return parsed;
 }
 
+function normalizeNonNegativeNumber(value: unknown): number | undefined {
+  if (value === undefined || value === null || value === "") return undefined;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) && parsed >= 0 ? parsed : undefined;
+}
+
 function toIsoString(value: Date | string) {
   return value instanceof Date ? value.toISOString() : new Date(value).toISOString();
 }
@@ -155,10 +161,10 @@ export async function createTransaction(input: unknown): Promise<Transaction> {
   const payload = input as Record<string, unknown>;
   const propertyTitle = normalizeString(payload.propertyTitle);
   const buyerName = normalizeString(payload.buyerName);
-  const price = normalizePositiveNumber(payload.price, "price");
+  const price = normalizeNonNegativeNumber(payload.price) ?? 0;
 
-  if (!propertyTitle || !buyerName || price === undefined) {
-    throw new TransactionStoreError("propertyTitle, buyerName และ price จำเป็นต้องระบุ");
+  if (!propertyTitle || !buyerName) {
+    throw new TransactionStoreError("propertyTitle และ buyerName จำเป็นต้องระบุ");
   }
 
   try {

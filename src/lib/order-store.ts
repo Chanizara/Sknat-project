@@ -290,9 +290,16 @@ export async function upsertOrderForProperty(input: UpsertOrderInput): Promise<O
       );
       return rows.length > 0 ? mapRowToOrder(rows[0]) : null;
     } else {
-      // No active order — create a new one (new deal / new rental period)
-      // Skip creating if closed statuses are already the target (shouldn't happen, but guard)
-      if (CLOSED_STATUSES.includes(orderStatus) && !input.customerName?.trim()) return null;
+      // No active order found.
+      // If targeting a closed status, check whether a closed order already exists to avoid duplicates.
+      if (CLOSED_STATUSES.includes(orderStatus)) {
+        const [closedOrders] = await dbPool.query<OrderRow[]>(
+          `SELECT * FROM orders WHERE property_id = ? AND status IN ('completed', 'cancelled') ORDER BY id DESC LIMIT 1`,
+          [input.propertyId],
+        );
+        if (closedOrders.length > 0) return mapRowToOrder(closedOrders[0]);
+      }
+      // No order at all — create a new one (new deal / new rental period)
       const customerName = input.customerName?.trim();
       if (!customerName) return null;
 

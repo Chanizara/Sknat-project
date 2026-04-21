@@ -119,7 +119,7 @@ export async function POST(request: Request) {
         });
 
         // Upsert order if the property is no longer pending
-        await upsertOrderForProperty({
+        const upsertedOrder = await upsertOrderForProperty({
           propertyId: updatedProperty.id,
           propertyTitle: updatedProperty.title,
           propertyStatus: String(p?.status ?? "pending"),
@@ -128,6 +128,29 @@ export async function POST(request: Request) {
           customerPhone: typeof p?.customerPhone === "string" ? p.customerPhone : undefined,
           customerEmail: typeof p?.customerEmail === "string" ? p.customerEmail : undefined,
         });
+
+        // Auto-create transaction when property is marked as sold/rented
+        if (upsertedOrder?.status === "completed") {
+          try {
+            const existing = await getTransactionByOrderId(upsertedOrder.id);
+            if (!existing) {
+              await createTransaction({
+                orderId: upsertedOrder.id,
+                propertyId: updatedProperty.id,
+                propertyTitle: updatedProperty.title,
+                propertyType: updatedProperty.type,
+                propertyLocation: updatedProperty.location,
+                buyerName: upsertedOrder.customerName,
+                buyerPhone: upsertedOrder.customerPhone,
+                sellerId: updatedProperty.sellerId,
+                price: updatedProperty.price,
+                status: "completed",
+              });
+            }
+          } catch (txError) {
+            console.error("[properties:updateStatus] auto-create transaction failed", txError);
+          }
+        }
 
         return NextResponse.json({ ok: true, data: updatedProperty });
       }
@@ -193,32 +216,6 @@ export async function POST(request: Request) {
 
       case "transactions:list": {
         const sellerId = Number((payload as { sellerId?: unknown } | undefined)?.sellerId);
-        // Heal any completed orders that are missing a transaction
-        try {
-          const completedOrders = await listOrders();
-          for (const order of completedOrders) {
-            if (order.status !== "completed") continue;
-            const existing = await getTransactionByOrderId(order.id);
-            if (existing) continue;
-            const property = order.propertyId ? await getPropertyById(order.propertyId) : undefined;
-            if (!property?.price || property.price <= 0) continue;
-            await createTransaction({
-              orderId: order.id,
-              propertyId: order.propertyId,
-              propertyTitle: order.propertyTitle,
-              propertyType: property.type,
-              propertyLocation: property.location,
-              buyerName: order.customerName,
-              buyerPhone: order.customerPhone,
-              sellerId: property.sellerId,
-              price: property.price,
-              status: "completed",
-              transactionDate: order.orderDate,
-            });
-          }
-        } catch (healError) {
-          console.error("[transactions:list] heal missing transactions failed", healError);
-        }
         return NextResponse.json({
           ok: true,
           data: await listTransactions(Number.isInteger(sellerId) && sellerId > 0 ? { sellerId } : undefined),
