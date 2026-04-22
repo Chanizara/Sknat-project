@@ -93,7 +93,8 @@ const BASE_NAV_ITEMS: Array<{ label: string; href?: string; id?: string }> = [
   { label: 'About Us', href: '/about' },
   { label: 'Properties', id: 'properties' },
   { label: 'Contact', href: '/about#about-contact' },
-  { label: 'Favourites', href: '/compare' },
+  { label: 'Compare', href: '/compare' },
+  { label: 'Favourites', href: '/favorite' },
 ];
 
 export default function FloatingNav() {

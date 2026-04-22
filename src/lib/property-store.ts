@@ -2,6 +2,7 @@ import type { ResultSetHeader, RowDataPacket } from "mysql2/promise";
 
 import { dbPool } from "@/lib/db";
 import { LISTING_TYPES, type ListingType, type Property, type PropertyInput } from "@/types/property";
+import { findNearestStation } from "@/lib/bts-stations";
 
 const DEFAULT_CATEGORY = "ที่อยู่อาศัย";
 const DEFAULT_PROPERTY_TYPE = "บ้านเดี่ยว";
@@ -31,6 +32,10 @@ type PropertyRow = RowDataPacket & {
   images: string | null;
   status: string | null;
   status_note: string | null;
+  nearby_school_meters: number | null;
+  nearby_hospital_meters: number | null;
+  nearby_bts_meters: number | null;
+  nearby_mrt_meters: number | null;
   created_at: Date | string;
   updated_at: Date | string;
 };
@@ -172,6 +177,19 @@ function mapRowToProperty(row: PropertyRow): Property {
 
   const hasAgent = row.seller_full_name || row.seller_phone || row.seller_email || row.seller_line_id;
 
+  const lat = toNumberOrUndefined(row.lat);
+  const lng = toNumberOrUndefined(row.lng);
+
+  let nearestStation: string | undefined;
+  let nearestStationDistance: number | undefined;
+  if (lat && lng) {
+    const nearest = findNearestStation(lat, lng);
+    if (nearest) {
+      nearestStation = `${nearest.line} ${nearest.nameTh}`;
+      nearestStationDistance = nearest.distanceMeters;
+    }
+  }
+
   return {
     id: row.id,
     type: row.type,
@@ -187,8 +205,8 @@ function mapRowToProperty(row: PropertyRow): Property {
     pricePerSqm: toNumberOrUndefined(row.price_per_sqm),
     description: row.description ?? undefined,
     features,
-    lat: toNumberOrUndefined(row.lat),
-    lng: toNumberOrUndefined(row.lng),
+    lat,
+    lng,
     sellerId: toNumberOrUndefined(row.seller_id),
     agent: hasAgent
       ? {
@@ -201,6 +219,12 @@ function mapRowToProperty(row: PropertyRow): Property {
     images,
     status: row.status ?? "pending",
     statusNote: row.status_note ?? undefined,
+    nearestStation,
+    nearestStationDistance,
+    nearbySchoolMeters: toNumberOrUndefined(row.nearby_school_meters),
+    nearbyHospitalMeters: toNumberOrUndefined(row.nearby_hospital_meters),
+    nearbyBTSMeters: toNumberOrUndefined(row.nearby_bts_meters),
+    nearbyMRTMeters: toNumberOrUndefined(row.nearby_mrt_meters),
     createdAt: toIsoString(row.created_at),
     updatedAt: toIsoString(row.updated_at),
   };
@@ -305,6 +329,19 @@ function normalizePayload(input: unknown, mode: "create" | "update"): PropertyIn
 
   if ("features" in payload) {
     normalized.features = normalizeStringArray(payload.features)?.slice(0, 3);
+  }
+
+  if ("nearbySchoolMeters" in payload) {
+    normalized.nearbySchoolMeters = normalizeNumber(payload.nearbySchoolMeters, "nearbySchoolMeters");
+  }
+  if ("nearbyHospitalMeters" in payload) {
+    normalized.nearbyHospitalMeters = normalizeNumber(payload.nearbyHospitalMeters, "nearbyHospitalMeters");
+  }
+  if ("nearbyBTSMeters" in payload) {
+    normalized.nearbyBTSMeters = normalizeNumber(payload.nearbyBTSMeters, "nearbyBTSMeters");
+  }
+  if ("nearbyMRTMeters" in payload) {
+    normalized.nearbyMRTMeters = normalizeNumber(payload.nearbyMRTMeters, "nearbyMRTMeters");
   }
 
   if ("images" in payload) {
@@ -445,6 +482,10 @@ export async function listProperties(options?: { sellerId?: number; excludeSold?
         CAST(p.images AS CHAR) AS images,
         p.status,
         p.status_note,
+        p.nearby_school_meters,
+        p.nearby_hospital_meters,
+        p.nearby_bts_meters,
+        p.nearby_mrt_meters,
         p.created_at,
         p.updated_at
       FROM properties p
@@ -488,6 +529,10 @@ export async function getPropertyById(id: number): Promise<Property | undefined>
         CAST(p.images AS CHAR) AS images,
         p.status,
         p.status_note,
+        p.nearby_school_meters,
+        p.nearby_hospital_meters,
+        p.nearby_bts_meters,
+        p.nearby_mrt_meters,
         p.created_at,
         p.updated_at
       FROM properties p
@@ -533,8 +578,12 @@ export async function createProperty(input: unknown): Promise<Property> {
         lat,
         lng,
         seller_id,
-        images
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+        images,
+        nearby_school_meters,
+        nearby_hospital_meters,
+        nearby_bts_meters,
+        nearby_mrt_meters
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [result] = await (dbPool.execute as any)(sql,
       [
@@ -555,6 +604,10 @@ export async function createProperty(input: unknown): Promise<Property> {
         normalized.lng ?? null,
         sellerId ?? null,
         normalized.images ? JSON.stringify(normalized.images) : null,
+        normalized.nearbySchoolMeters ?? null,
+        normalized.nearbyHospitalMeters ?? null,
+        normalized.nearbyBTSMeters ?? null,
+        normalized.nearbyMRTMeters ?? null,
       ],
     );
 
@@ -613,6 +666,10 @@ export async function updateProperty(id: number, input: unknown): Promise<Proper
         images = ?,
         status = ?,
         status_note = ?,
+        nearby_school_meters = ?,
+        nearby_hospital_meters = ?,
+        nearby_bts_meters = ?,
+        nearby_mrt_meters = ?,
         updated_at = NOW()
       WHERE id = ?`;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -637,6 +694,10 @@ export async function updateProperty(id: number, input: unknown): Promise<Proper
         merged.images ? JSON.stringify(merged.images) : null,
         merged.status ?? "pending",
         merged.statusNote ?? null,
+        merged.nearbySchoolMeters ?? null,
+        merged.nearbyHospitalMeters ?? null,
+        merged.nearbyBTSMeters ?? null,
+        merged.nearbyMRTMeters ?? null,
         id,
       ],
     );

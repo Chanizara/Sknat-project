@@ -31,6 +31,12 @@ export type Property = {
   sellerId?: number;
   status?: string;
   statusNote?: string;
+  nearestStation?: string;
+  nearestStationDistance?: number;
+  nearbySchoolMeters?: number;
+  nearbyHospitalMeters?: number;
+  nearbyBTSMeters?: number;
+  nearbyMRTMeters?: number;
   createdAt: string;
   updatedAt: string;
 };

@@ -6,7 +6,7 @@ import { useMemo, useState, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 
-import { buildPriceLabel, formatPrice, getDistrict } from "@/lib/property-format";
+import { buildPriceLabel, getDistrict } from "@/lib/property-format";
 import { LISTING_TYPES, type Property } from "@/types/property";
 import { useFavoritesStore } from "@/lib/favorites-store";
 import About from "./about";
@@ -17,7 +17,7 @@ type MainPageProps = {
   properties: Property[];
 };
 
-type Filters = {
+export type Filters = {
   searchKeyword: string;
   areaType: string[];
   listingType: string[];
@@ -26,30 +26,78 @@ type Filters = {
   areaSize: [number, number];
   minBedrooms: string;
   district: string[];
+  highlights: string[];
+  proximitySchool: number | null;
+  proximityHospital: number | null;
+  proximityBTS: number | null;
+  proximityMRT: number | null;
 };
 
 type FilterControlsProps = {
   filters: Filters;
-  maxPrice: number;
-  maxArea: number;
+  highlightOptions: string[];
   developmentTypeOptions: string[];
   districtOptions: string[];
   handleFilterChange: (filterType: keyof Filters, value: Filters[keyof Filters]) => void;
-  toggleArrayFilter: (filterType: "areaType" | "listingType" | "developmentType" | "district", value: string) => void;
+  toggleArrayFilter: (filterType: "areaType" | "listingType" | "developmentType" | "district" | "highlights", value: string) => void;
 };
 
-function computeMaxPrice(properties: Property[]) {
-  const prices = properties.map((p) => p.price).filter((p) => p > 0);
-  if (prices.length === 0) return 50_000_000;
-  const max = Math.max(...prices);
-  return Math.ceil(max / 10_000_000) * 10_000_000;
-}
+export const EMPTY_FILTERS: Filters = {
+  searchKeyword: "",
+  areaType: [],
+  listingType: [],
+  developmentType: [],
+  priceRange: [0, 0],
+  areaSize: [0, 0],
+  minBedrooms: "",
+  district: [],
+  highlights: [],
+  proximitySchool: null,
+  proximityHospital: null,
+  proximityBTS: null,
+  proximityMRT: null,
+};
 
-function computeMaxArea(properties: Property[]) {
-  const sizes = properties.map((p) => p.size ?? 0).filter((s) => s > 0);
-  if (sizes.length === 0) return 10000;
-  const max = Math.max(...sizes);
-  return Math.ceil(max / 100) * 100;
+export function applyFilters(properties: Property[], filters: Filters): Property[] {
+  return properties.filter((property) => {
+    if (
+      filters.searchKeyword &&
+      !property.title.toLowerCase().includes(filters.searchKeyword.toLowerCase()) &&
+      !property.location.toLowerCase().includes(filters.searchKeyword.toLowerCase())
+    ) return false;
+    if (filters.areaType.length > 0 && !filters.areaType.includes(property.category ?? "")) return false;
+    if (filters.listingType.length > 0 && !filters.listingType.includes(property.type)) return false;
+    if (filters.developmentType.length > 0 && !filters.developmentType.includes(property.propertyType ?? "")) return false;
+    if (filters.priceRange[0] > 0 && property.price < filters.priceRange[0]) return false;
+    if (filters.priceRange[1] > 0 && property.price > filters.priceRange[1]) return false;
+    if (filters.areaSize[0] > 0 && (property.size ?? 0) < filters.areaSize[0]) return false;
+    if (filters.areaSize[1] > 0 && (property.size ?? 0) > filters.areaSize[1]) return false;
+    if (filters.highlights.length > 0) {
+      const propFeatures = property.features ?? [];
+      if (!filters.highlights.every((h) => propFeatures.includes(h))) return false;
+    }
+    if (filters.minBedrooms) {
+      const bedrooms = property.bedrooms ?? 0;
+      if (bedrooms < parseInt(filters.minBedrooms, 10)) return false;
+    }
+    if (filters.district.length > 0) {
+      const propertyDistrict = getDistrict(property.location);
+      if (!filters.district.includes(propertyDistrict)) return false;
+    }
+    if (filters.proximitySchool !== null) {
+      if (property.nearbySchoolMeters == null || property.nearbySchoolMeters > filters.proximitySchool) return false;
+    }
+    if (filters.proximityHospital !== null) {
+      if (property.nearbyHospitalMeters == null || property.nearbyHospitalMeters > filters.proximityHospital) return false;
+    }
+    if (filters.proximityBTS !== null) {
+      if (property.nearbyBTSMeters == null || property.nearbyBTSMeters > filters.proximityBTS) return false;
+    }
+    if (filters.proximityMRT !== null) {
+      if (property.nearbyMRTMeters == null || property.nearbyMRTMeters > filters.proximityMRT) return false;
+    }
+    return true;
+  });
 }
 
 export default function MainPage({ properties }: MainPageProps) {
@@ -62,19 +110,7 @@ export default function MainPage({ properties }: MainPageProps) {
     }
   }, []);
 
-  const maxPrice = useMemo(() => computeMaxPrice(properties), [properties]);
-  const maxArea = useMemo(() => computeMaxArea(properties), [properties]);
-
-  const [filters, setFilters] = useState<Filters>(() => ({
-    searchKeyword: "",
-    areaType: [],
-    listingType: [],
-    developmentType: [],
-    priceRange: [0, computeMaxPrice(properties)],
-    areaSize: [0, computeMaxArea(properties)],
-    minBedrooms: "",
-    district: [],
-  }));
+  const [filters, setFilters] = useState<Filters>(() => ({ ...EMPTY_FILTERS }));
 
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [hoveredPropertyId, setHoveredPropertyId] = useState<number | null>(null);
@@ -85,10 +121,7 @@ export default function MainPage({ properties }: MainPageProps) {
     if (isFavorite(property.id)) {
       removeFavorite(property.id);
     } else {
-      const success = addFavorite(property);
-      if (!success && !isFavorite(property.id)) {
-        alert('คุณสามารถเลือกได้สูงสุด 3 บ้านเท่านั้น เพื่อนำไป Compare กัน');
-      }
+      addFavorite(property);
     }
   };
 
@@ -102,31 +135,7 @@ export default function MainPage({ properties }: MainPageProps) {
     [properties],
   );
 
-  const filteredProperties = useMemo(() => {
-    return properties.filter((property) => {
-      if (
-        filters.searchKeyword &&
-        !property.title.toLowerCase().includes(filters.searchKeyword.toLowerCase()) &&
-        !property.location.toLowerCase().includes(filters.searchKeyword.toLowerCase())
-      ) return false;
-      if (filters.areaType.length > 0 && !filters.areaType.includes(property.category ?? "")) return false;
-      if (filters.listingType.length > 0 && !filters.listingType.includes(property.type)) return false;
-      if (filters.developmentType.length > 0 && !filters.developmentType.includes(property.propertyType ?? "")) return false;
-      if (property.price < filters.priceRange[0] || property.price > filters.priceRange[1]) return false;
-      if (property.size !== undefined) {
-        if (property.size < filters.areaSize[0] || property.size > filters.areaSize[1]) return false;
-      }
-      if (filters.minBedrooms) {
-        const bedrooms = property.bedrooms ?? 0;
-        if (bedrooms < parseInt(filters.minBedrooms, 10)) return false;
-      }
-      if (filters.district.length > 0) {
-        const propertyDistrict = getDistrict(property.location);
-        if (!filters.district.includes(propertyDistrict)) return false;
-      }
-      return true;
-    });
-  }, [properties, filters]);
+  const filteredProperties = useMemo(() => applyFilters(properties, filters), [properties, filters]);
 
   const activeFilters = useMemo(() => {
     let count = 0;
@@ -136,17 +145,22 @@ export default function MainPage({ properties }: MainPageProps) {
     count += filters.developmentType.length;
     count += filters.district.length;
     if (filters.minBedrooms) count += 1;
-    if (filters.priceRange[0] > 0 || filters.priceRange[1] < maxPrice) count += 1;
-    if (filters.areaSize[0] > 0 || filters.areaSize[1] < maxArea) count += 1;
+    if (filters.priceRange[0] > 0 || filters.priceRange[1] > 0) count += 1;
+    if (filters.areaSize[0] > 0 || filters.areaSize[1] > 0) count += 1;
+    count += filters.highlights.length;
+    if (filters.proximitySchool !== null) count += 1;
+    if (filters.proximityHospital !== null) count += 1;
+    if (filters.proximityBTS !== null) count += 1;
+    if (filters.proximityMRT !== null) count += 1;
     return count;
-  }, [filters, maxPrice, maxArea]);
+  }, [filters]);
 
   const handleFilterChange = (filterType: keyof Filters, value: Filters[keyof Filters]) => {
     setFilters((prev) => ({ ...prev, [filterType]: value }));
   };
 
   const toggleArrayFilter = (
-    filterType: "areaType" | "listingType" | "developmentType" | "district",
+    filterType: "areaType" | "listingType" | "developmentType" | "district" | "highlights",
     value: string,
   ) => {
     setFilters((prev) => ({
@@ -157,17 +171,31 @@ export default function MainPage({ properties }: MainPageProps) {
     }));
   };
 
-  const clearFilters = () => {
-    setFilters({
-      searchKeyword: "",
-      areaType: [],
-      listingType: [],
-      developmentType: [],
-      priceRange: [0, maxPrice],
-      areaSize: [0, maxArea],
-      minBedrooms: "",
-      district: [],
-    });
+  const highlightOptions = useMemo(
+    () => Array.from(new Set(properties.flatMap((p) => p.features ?? []))).sort(),
+    [properties],
+  );
+
+  const clearFilters = () => setFilters({ ...EMPTY_FILTERS });
+
+  const handleCompare = () => {
+    const params = new URLSearchParams();
+    if (filters.searchKeyword) params.set("q", filters.searchKeyword);
+    if (filters.listingType.length) params.set("listing", filters.listingType.join(","));
+    if (filters.developmentType.length) params.set("devType", filters.developmentType.join(","));
+    if (filters.district.length) params.set("district", filters.district.join(","));
+    if (filters.highlights.length) params.set("highlights", filters.highlights.join(","));
+    if (filters.minBedrooms) params.set("beds", filters.minBedrooms);
+    if (filters.priceRange[0] > 0) params.set("priceMin", String(filters.priceRange[0]));
+    if (filters.priceRange[1] > 0) params.set("priceMax", String(filters.priceRange[1]));
+    if (filters.areaSize[0] > 0) params.set("areaMin", String(filters.areaSize[0]));
+    if (filters.areaSize[1] > 0) params.set("areaMax", String(filters.areaSize[1]));
+    if (filters.proximitySchool !== null) params.set("school", String(filters.proximitySchool));
+    if (filters.proximityHospital !== null) params.set("hospital", String(filters.proximityHospital));
+    if (filters.proximityBTS !== null) params.set("bts", String(filters.proximityBTS));
+    if (filters.proximityMRT !== null) params.set("mrt", String(filters.proximityMRT));
+    const qs = params.toString();
+    router.push(qs ? `/compare?${qs}` : "/compare");
   };
 
   const handlePropertyNavigate = (property: Property, event: React.MouseEvent<HTMLAnchorElement>) => {
@@ -245,7 +273,7 @@ export default function MainPage({ properties }: MainPageProps) {
 
                     <div
                       className={`overflow-hidden transition-all duration-500 ${
-                        isFilterOpen ? "mt-8 max-h-[720px] opacity-100" : "mt-0 max-h-0 opacity-0"
+                        isFilterOpen ? "mt-8 max-h-[900px] opacity-100" : "mt-0 max-h-0 opacity-0"
                       }`}
                     >
                       <div className="border-y border-[#ddd8d2] bg-white py-5">
@@ -257,6 +285,13 @@ export default function MainPage({ properties }: MainPageProps) {
                             <p className="mt-1 text-xs text-[#8f8881]">ปรับเงื่อนไขเพื่อคัดบ้านที่ใกล้เคียงความต้องการ</p>
                           </div>
                           <div className="flex items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={handleCompare}
+                              className="border border-[#1a40b6] bg-[#1a40b6] px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-white transition hover:bg-[#1536a0]"
+                            >
+                              Compare ({filteredProperties.length})
+                            </button>
                             <button
                               type="button"
                               onClick={clearFilters}
@@ -275,8 +310,7 @@ export default function MainPage({ properties }: MainPageProps) {
                         </div>
                         <HorizontalFilterControls
                           filters={filters}
-                          maxPrice={maxPrice}
-                          maxArea={maxArea}
+                          highlightOptions={highlightOptions}
                           developmentTypeOptions={developmentTypeOptions}
                           districtOptions={districtOptions}
                           handleFilterChange={handleFilterChange}
@@ -453,103 +487,49 @@ function InlinePill({ label }: { label: string }) {
   );
 }
 
-function DualRangeSlider({
-  min,
-  max,
-  step,
-  value,
-  onChange,
-}: {
-  min: number;
-  max: number;
-  step: number;
-  value: [number, number];
-  onChange: (value: [number, number]) => void;
-}) {
-  const range = max - min || 1;
-  const minPct = ((value[0] - min) / range) * 100;
-  const maxPct = ((value[1] - min) / range) * 100;
-  const thumbCls = "dual-range absolute w-full h-1";
-  return (
-    <div className="relative flex h-6 items-center">
-      <div className="absolute left-0 right-0 h-[2px] rounded-full bg-[#e0dbd4]">
-        <div
-          className="absolute h-full rounded-full bg-[#0a0a0a]"
-          style={{ left: `${minPct}%`, right: `${100 - maxPct}%` }}
-        />
-      </div>
-      <input
-        type="range"
-        min={min}
-        max={max}
-        step={step}
-        value={value[0]}
-        onChange={(e) => {
-          const v = Math.min(parseInt(e.target.value, 10), value[1] - step);
-          onChange([v, value[1]]);
-        }}
-        className={thumbCls}
-        style={{ zIndex: value[0] > (max + min) / 2 ? 5 : 3 }}
-      />
-      <input
-        type="range"
-        min={min}
-        max={max}
-        step={step}
-        value={value[1]}
-        onChange={(e) => {
-          const v = Math.max(parseInt(e.target.value, 10), value[0] + step);
-          onChange([value[0], v]);
-        }}
-        className={thumbCls}
-        style={{ zIndex: value[1] < (max + min) / 2 ? 5 : 4 }}
-      />
-    </div>
-  );
-}
+const PROXIMITY_OPTIONS = [
+  { value: 500, label: "500 ม." },
+  { value: 1000, label: "1 กม." },
+  { value: 2000, label: "2 กม." },
+  { value: 5000, label: "5 กม." },
+];
 
 function HorizontalFilterControls({
   filters,
-  maxPrice,
-  maxArea,
+  highlightOptions,
   developmentTypeOptions,
   districtOptions,
   handleFilterChange,
   toggleArrayFilter,
 }: FilterControlsProps) {
-  const [priceMin, setPriceMin] = useState(String(filters.priceRange[0]));
-  const [priceMax, setPriceMax] = useState(String(filters.priceRange[1]));
-  const [areaMin, setAreaMin] = useState(String(filters.areaSize[0]));
-  const [areaMax, setAreaMax] = useState(String(filters.areaSize[1]));
+  const chipCls = (active: boolean) =>
+    `rounded-full border px-4 py-1.5 text-[11px] font-semibold transition-all duration-150 ${
+      active
+        ? "border-[#0a0a0a] bg-[#0a0a0a] text-white"
+        : "border-[#d8d2ca] bg-white text-[#555] hover:border-[#0a0a0a] hover:text-[#0a0a0a]"
+    }`;
+  const inputCls = "h-9 w-full rounded border border-[#d8d2ca] bg-white px-3 text-[12px] text-[#0a0a0a] outline-none transition focus:border-[#0a0a0a] placeholder:text-[#bbb]";
+  const labelCls = "mb-2.5 text-[10px] font-semibold uppercase tracking-[0.22em] text-[#999]";
 
-  const onSliderPrice = (v: [number, number]) => {
-    handleFilterChange("priceRange", v);
-    setPriceMin(String(v[0]));
-    setPriceMax(String(v[1]));
+  const commitPrice = (lo: string, hi: string) => {
+    const min = Math.max(0, parseInt(lo, 10) || 0);
+    const max = Math.max(0, parseInt(hi, 10) || 0);
+    handleFilterChange("priceRange", [min, max] as [number, number]);
   };
 
-  const onSliderArea = (v: [number, number]) => {
-    handleFilterChange("areaSize", v);
-    setAreaMin(String(v[0]));
-    setAreaMax(String(v[1]));
+  const commitArea = (lo: string, hi: string) => {
+    const min = Math.max(0, parseInt(lo, 10) || 0);
+    const max = Math.max(0, parseInt(hi, 10) || 0);
+    handleFilterChange("areaSize", [min, max] as [number, number]);
   };
 
-  const commitPrice = () => {
-    const lo = Math.max(0, parseInt(priceMin, 10) || 0);
-    const hi = Math.min(maxPrice, parseInt(priceMax, 10) || maxPrice);
-    const sorted: [number, number] = [Math.min(lo, hi), Math.max(lo, hi)];
-    handleFilterChange("priceRange", sorted);
-    setPriceMin(String(sorted[0]));
-    setPriceMax(String(sorted[1]));
-  };
+  const [priceMin, setPriceMin] = useState(filters.priceRange[0] > 0 ? String(filters.priceRange[0]) : "");
+  const [priceMax, setPriceMax] = useState(filters.priceRange[1] > 0 ? String(filters.priceRange[1]) : "");
+  const [areaMin, setAreaMin] = useState(filters.areaSize[0] > 0 ? String(filters.areaSize[0]) : "");
+  const [areaMax, setAreaMax] = useState(filters.areaSize[1] > 0 ? String(filters.areaSize[1]) : "");
 
-  const commitArea = () => {
-    const lo = Math.max(0, parseInt(areaMin, 10) || 0);
-    const hi = Math.min(maxArea, parseInt(areaMax, 10) || maxArea);
-    const sorted: [number, number] = [Math.min(lo, hi), Math.max(lo, hi)];
-    handleFilterChange("areaSize", sorted);
-    setAreaMin(String(sorted[0]));
-    setAreaMax(String(sorted[1]));
+  const toggleProximity = (key: "proximitySchool" | "proximityHospital" | "proximityBTS" | "proximityMRT", val: number) => {
+    handleFilterChange(key, filters[key] === val ? null : val);
   };
 
   return (
@@ -557,71 +537,33 @@ function HorizontalFilterControls({
       {/* Row 1: Listing type + Development type + Bedrooms */}
       <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
         <div>
-          <p className="mb-2.5 text-[10px] font-semibold uppercase tracking-[0.22em] text-[#999]">ประเภทประกาศ</p>
+          <p className={labelCls}>ประเภทประกาศ</p>
           <div className="flex flex-wrap gap-1.5">
-            {LISTING_TYPES.map((type) => {
-              const active = filters.listingType.includes(type);
-              return (
-                <button
-                  key={type}
-                  type="button"
-                  onClick={() => toggleArrayFilter("listingType", type)}
-                  className={`rounded-full border px-4 py-1.5 text-[11px] font-semibold transition-all duration-150 ${
-                    active
-                      ? "border-[#0a0a0a] bg-[#0a0a0a] text-white"
-                      : "border-[#d8d2ca] bg-white text-[#555] hover:border-[#0a0a0a] hover:text-[#0a0a0a]"
-                  }`}
-                >
-                  {type}
-                </button>
-              );
-            })}
+            {LISTING_TYPES.map((type) => (
+              <button key={type} type="button" onClick={() => toggleArrayFilter("listingType", type)} className={chipCls(filters.listingType.includes(type))}>
+                {type}
+              </button>
+            ))}
           </div>
         </div>
-
         <div>
-          <p className="mb-2.5 text-[10px] font-semibold uppercase tracking-[0.22em] text-[#999]">ประเภทการพัฒนา</p>
+          <p className={labelCls}>ประเภทการพัฒนา</p>
           <div className="flex flex-wrap gap-1.5">
-            {developmentTypeOptions.map((type) => {
-              const active = filters.developmentType.includes(type);
-              return (
-                <button
-                  key={type}
-                  type="button"
-                  onClick={() => toggleArrayFilter("developmentType", type)}
-                  className={`rounded-full border px-4 py-1.5 text-[11px] font-semibold transition-all duration-150 ${
-                    active
-                      ? "border-[#0a0a0a] bg-[#0a0a0a] text-white"
-                      : "border-[#d8d2ca] bg-white text-[#555] hover:border-[#0a0a0a] hover:text-[#0a0a0a]"
-                  }`}
-                >
-                  {type}
-                </button>
-              );
-            })}
+            {developmentTypeOptions.map((type) => (
+              <button key={type} type="button" onClick={() => toggleArrayFilter("developmentType", type)} className={chipCls(filters.developmentType.includes(type))}>
+                {type}
+              </button>
+            ))}
           </div>
         </div>
-
         <div>
-          <p className="mb-2.5 text-[10px] font-semibold uppercase tracking-[0.22em] text-[#999]">ห้องนอนขั้นต่ำ</p>
+          <p className={labelCls}>ห้องนอนขั้นต่ำ</p>
           <div className="flex gap-1.5">
-            {["", "1", "2", "3", "4", "5"].map((val) => {
-              const active = filters.minBedrooms === val;
-              return (
-                <button
-                  key={val || "any"}
-                  type="button"
-                  onClick={() => handleFilterChange("minBedrooms", val)}
-                  className={`rounded-full border px-3 py-1.5 text-[11px] font-semibold transition-all duration-150 ${
-                    active
-                      ? "border-[#0a0a0a] bg-[#0a0a0a] text-white"
-                      : "border-[#d8d2ca] bg-white text-[#555] hover:border-[#0a0a0a] hover:text-[#0a0a0a]"
-                  }`}
-                >
-                  {val ? `${val}+` : "ทั้งหมด"}
-                </button>
-              );
-            })}
+            {["", "1", "2", "3", "4", "5"].map((val) => (
+              <button key={val || "any"} type="button" onClick={() => handleFilterChange("minBedrooms", val)} className={chipCls(filters.minBedrooms === val)}>
+                {val ? `${val}+` : "ทั้งหมด"}
+              </button>
+            ))}
           </div>
         </div>
       </div>
@@ -629,77 +571,44 @@ function HorizontalFilterControls({
       {/* Row 2: Price + Area */}
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         <div>
-          <div className="mb-3 flex items-baseline justify-between">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-[#999]">ราคา (บาท)</p>
-            <span className="text-[11px] text-[#555]">
-              {formatPrice(filters.priceRange[0])} – {formatPrice(filters.priceRange[1])}
-            </span>
-          </div>
-          <DualRangeSlider
-            min={0}
-            max={maxPrice}
-            step={Math.max(100000, Math.round(maxPrice / 500) * 1000)}
-            value={filters.priceRange}
-            onChange={onSliderPrice}
-          />
-          <div className="mt-3 grid grid-cols-2 gap-2">
+          <p className={labelCls}>ราคา (บาท)</p>
+          <div className="mt-2 grid grid-cols-2 gap-2">
             <input
-              type="text"
-              inputMode="numeric"
-              placeholder="ต่ำสุด"
+              type="text" inputMode="numeric" placeholder="ต่ำสุด (บาท)"
               value={priceMin}
               onChange={(e) => setPriceMin(e.target.value)}
-              onBlur={commitPrice}
-              onKeyDown={(e) => e.key === "Enter" && commitPrice()}
-              className="h-9 w-full rounded border border-[#d8d2ca] bg-white px-3 text-[12px] text-[#0a0a0a] outline-none transition focus:border-[#0a0a0a] placeholder:text-[#bbb]"
+              onBlur={() => commitPrice(priceMin, priceMax)}
+              onKeyDown={(e) => e.key === "Enter" && commitPrice(priceMin, priceMax)}
+              className={inputCls}
             />
             <input
-              type="text"
-              inputMode="numeric"
-              placeholder="สูงสุด"
+              type="text" inputMode="numeric" placeholder="สูงสุด (บาท)"
               value={priceMax}
               onChange={(e) => setPriceMax(e.target.value)}
-              onBlur={commitPrice}
-              onKeyDown={(e) => e.key === "Enter" && commitPrice()}
-              className="h-9 w-full rounded border border-[#d8d2ca] bg-white px-3 text-[12px] text-[#0a0a0a] outline-none transition focus:border-[#0a0a0a] placeholder:text-[#bbb]"
+              onBlur={() => commitPrice(priceMin, priceMax)}
+              onKeyDown={(e) => e.key === "Enter" && commitPrice(priceMin, priceMax)}
+              className={inputCls}
             />
           </div>
         </div>
-
         <div>
-          <div className="mb-3 flex items-baseline justify-between">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-[#999]">พื้นที่ (ตร.ม.)</p>
-            <span className="text-[11px] text-[#555]">
-              {filters.areaSize[0]} – {filters.areaSize[1]} ตร.ม.
-            </span>
-          </div>
-          <DualRangeSlider
-            min={0}
-            max={maxArea}
-            step={10}
-            value={filters.areaSize}
-            onChange={onSliderArea}
-          />
-          <div className="mt-3 grid grid-cols-2 gap-2">
+          <p className={labelCls}>พื้นที่ (ตร.ม.)</p>
+          <div className="mt-2 grid grid-cols-2 gap-2">
             <input
-              type="text"
-              inputMode="numeric"
-              placeholder="ต่ำสุด"
+              type="text" inputMode="numeric" placeholder="ต่ำสุด (ตร.ม.)"
               value={areaMin}
               onChange={(e) => setAreaMin(e.target.value)}
-              onBlur={commitArea}
-              onKeyDown={(e) => e.key === "Enter" && commitArea()}
-              className="h-9 w-full rounded border border-[#d8d2ca] bg-white px-3 text-[12px] text-[#0a0a0a] outline-none transition focus:border-[#0a0a0a] placeholder:text-[#bbb]"
+              onBlur={() => commitArea(areaMin, areaMax)}
+              onKeyDown={(e) => e.key === "Enter" && commitArea(areaMin, areaMax)}
+              className={inputCls}
             />
             <input
-              type="text"
-              inputMode="numeric"
-              placeholder="สูงสุด"
+              type="text" inputMode="numeric" placeholder="สูงสุด (ตร.ม.)"
               value={areaMax}
               onChange={(e) => setAreaMax(e.target.value)}
-              onBlur={commitArea}
-              onKeyDown={(e) => e.key === "Enter" && commitArea()}
-              className="h-9 w-full rounded border border-[#d8d2ca] bg-white px-3 text-[12px] text-[#0a0a0a] outline-none transition focus:border-[#0a0a0a] placeholder:text-[#bbb]"
+              onBlur={() => commitArea(areaMin, areaMax)}
+              onKeyDown={(e) => e.key === "Enter" && commitArea(areaMin, areaMax)}
+              className={inputCls}
             />
           </div>
         </div>
@@ -707,25 +616,56 @@ function HorizontalFilterControls({
 
       {/* Row 3: District */}
       <div>
-        <p className="mb-2.5 text-[10px] font-semibold uppercase tracking-[0.22em] text-[#999]">เขต / อำเภอ</p>
+        <p className={labelCls}>เขต / อำเภอ</p>
         <div className="flex flex-wrap gap-1.5">
-          {districtOptions.map((district) => {
-            const active = filters.district.includes(district);
-            return (
-              <button
-                key={district}
-                type="button"
-                onClick={() => toggleArrayFilter("district", district)}
-                className={`rounded-full border px-4 py-1.5 text-[11px] font-medium transition-all duration-150 ${
-                  active
-                    ? "border-[#0a0a0a] bg-[#0a0a0a] text-white"
-                    : "border-[#d8d2ca] bg-white text-[#555] hover:border-[#0a0a0a] hover:text-[#0a0a0a]"
-                }`}
-              >
-                {district}
+          {districtOptions.map((district) => (
+            <button key={district} type="button" onClick={() => toggleArrayFilter("district", district)} className={chipCls(filters.district.includes(district))}>
+              {district}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Row 4: Highlights */}
+      {highlightOptions.length > 0 && (
+        <div>
+          <p className={labelCls}>จุดเด่น</p>
+          <div className="flex flex-wrap gap-1.5">
+            {highlightOptions.map((h) => (
+              <button key={h} type="button" onClick={() => toggleArrayFilter("highlights", h)} className={chipCls(filters.highlights.includes(h))}>
+                {h}
               </button>
-            );
-          })}
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Row 5: Proximity filters */}
+      <div>
+        <p className={labelCls}>ทำเลใกล้</p>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {([
+            { key: "proximitySchool" as const, label: "🏫 ใกล้โรงเรียน" },
+            { key: "proximityHospital" as const, label: "🏥 ใกล้โรงพยาบาล" },
+            { key: "proximityBTS" as const, label: "🚈 ใกล้ BTS" },
+            { key: "proximityMRT" as const, label: "🚇 ใกล้ MRT" },
+          ]).map(({ key, label }) => (
+            <div key={key}>
+              <p className="mb-1.5 text-[10px] font-medium text-[#555]">{label}</p>
+              <div className="flex flex-wrap gap-1">
+                {PROXIMITY_OPTIONS.map((opt) => (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => toggleProximity(key, opt.value)}
+                    className={chipCls(filters[key] === opt.value)}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </div>
