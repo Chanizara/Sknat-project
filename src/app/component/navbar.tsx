@@ -2,18 +2,16 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useFavoritesStore } from "@/lib/favorites-store";
 import { useAuthStore } from "@/lib/auth-store";
 
 export default function Navbar() {
   const { favorites, hasHydrated } = useFavoritesStore();
-  const { user, hasHydrated: authHydrated, logout } = useAuthStore();
+  const { user, hasHydrated: authHydrated } = useAuthStore();
   const pathname = usePathname();
   const router = useRouter();
   const isHomePage = pathname === '/';
-  const [userMenuOpen, setUserMenuOpen] = useState(false);
 
   const scrollToSection = (sectionId: string) => {
     if (!isHomePage) {
@@ -62,39 +60,16 @@ export default function Navbar() {
         </Link>
 
         {/* Auth */}
-        {authHydrated && (
-          user ? (
-            <div className="relative">
-              <button onClick={() => setUserMenuOpen((v) => !v)} className="flex items-center gap-2 hover:opacity-100 transition">
-                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/20 text-[11px] font-semibold uppercase">
-                  {user.username.charAt(0)}
-                </span>
-                <span className="text-sm">{user.username}</span>
-              </button>
-              {userMenuOpen && (
-                <div className="absolute right-0 top-10 w-40 bg-white shadow-lg border border-[#ececec] py-1 z-50">
-                  <div className="px-4 py-2 border-b border-[#f0f0f0]">
-                    <p className="text-[11px] font-semibold text-[#0a0a0a] truncate">{user.fullName ?? user.username}</p>
-                    <p className="text-[10px] text-[#888] uppercase tracking-wide">{user.role}</p>
-                  </div>
-                  <button
-                    onClick={() => { logout(); setUserMenuOpen(false); }}
-                    className="w-full text-left px-4 py-2 text-[12px] text-[#555] hover:bg-[#f7f7f7] hover:text-[#0a0a0a] transition"
-                  >
-                    ออกจากระบบ
-                  </button>
-                </div>
-              )}
-            </div>
-          ) : (
-            <button onClick={() => router.push('/login')} className="flex items-center gap-1.5 hover:opacity-100 transition" aria-label="เข้าสู่ระบบ">
-              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.6">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
-              </svg>
-              <span className="text-sm">เข้าสู่ระบบ</span>
-            </button>
-          )
-        )}
+        <button
+          onClick={() => router.push(authHydrated && user ? '/profile' : '/login')}
+          className="flex items-center gap-1.5 hover:opacity-100 transition"
+          aria-label="บัญชีผู้ใช้"
+        >
+          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.6">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+          </svg>
+          <span className="text-sm">{authHydrated && user ? user.username : 'เข้าสู่ระบบ'}</span>
+        </button>
       </div>
     </nav>
   );

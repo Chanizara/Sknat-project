@@ -40,7 +40,7 @@ export default function Hero() {
         {hasHydrated && (
           user ? (
             <Link
-              href="/login"
+              href="/profile"
               className="flex items-center gap-1.5 text-white/70 hover:text-white transition w-16 justify-end"
             >
               <svg className="h-[18px] w-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
