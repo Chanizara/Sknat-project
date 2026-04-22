@@ -137,23 +137,6 @@ export default function MainPage({ properties }: MainPageProps) {
 
   const filteredProperties = useMemo(() => applyFilters(properties, filters), [properties, filters]);
 
-  const activeFilters = useMemo(() => {
-    let count = 0;
-    if (filters.searchKeyword.trim()) count += 1;
-    count += filters.areaType.length;
-    count += filters.listingType.length;
-    count += filters.developmentType.length;
-    count += filters.district.length;
-    if (filters.minBedrooms) count += 1;
-    if (filters.priceRange[0] > 0 || filters.priceRange[1] > 0) count += 1;
-    if (filters.areaSize[0] > 0 || filters.areaSize[1] > 0) count += 1;
-    count += filters.highlights.length;
-    if (filters.proximitySchool !== null) count += 1;
-    if (filters.proximityHospital !== null) count += 1;
-    if (filters.proximityBTS !== null) count += 1;
-    if (filters.proximityMRT !== null) count += 1;
-    return count;
-  }, [filters]);
 
   const handleFilterChange = (filterType: keyof Filters, value: Filters[keyof Filters]) => {
     setFilters((prev) => ({ ...prev, [filterType]: value }));
@@ -258,15 +241,13 @@ export default function MainPage({ properties }: MainPageProps) {
                             <span style={{ fontFamily: "monospace" }}>↳</span>
                             VIEW PROJECTS
                           </Link>
-                          <button
-                            type="button"
-                            onClick={() => setIsFilterOpen((prev) => !prev)}
+                          <Link
+                            href="/compare"
                             className="inline-flex items-center gap-3 border border-[#171717] px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.24em] text-[#171717] transition hover:bg-[#171717] hover:text-white"
                           >
                             <span className="inline-block h-[1px] w-4 bg-current" />
-                            ตัวกรองขั้นสูง
-                            <span className="text-[10px] text-current/60">{activeFilters}</span>
-                          </button>
+                            เครื่องมือช่วยตัดสินใจ
+                          </Link>
                         </div>
                       </div>
                     </div>
