@@ -68,6 +68,7 @@ export default function LoginPage() {
     if (!regForm.firstName.trim() || !regForm.lastName.trim()) { setError('กรุณากรอกชื่อและนามสกุล'); return; }
     if (!regForm.username.trim()) { setError('กรุณากรอก username'); return; }
     if (!regForm.password || regForm.password.length < 8) { setError('password ต้องมีอย่างน้อย 8 ตัวอักษร'); return; }
+    if (!regForm.phone.trim()) { setError('กรุณากรอกเบอร์โทรศัพท์'); return; }
     if (!regForm.email.trim()) { setError('กรุณากรอกอีเมล'); return; }
     setLoading(true);
     try {
