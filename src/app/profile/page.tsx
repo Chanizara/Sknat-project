@@ -72,6 +72,11 @@ export default function ProfilePage() {
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    const missing: string[] = [];
+    if (!form.fullName.trim()) missing.push('ชื่อ-นามสกุล');
+    if (!form.email.trim()) missing.push('อีเมล');
+    if (!form.phone.trim()) missing.push('เบอร์โทรศัพท์');
+    if (missing.length > 0) { setError(`กรุณากรอก: ${missing.join(', ')}`); return; }
     setLoading(true);
     try {
       const res = await fetch(`/api/users/${user.id}`, {
